@@ -1,1 +1,334 @@
-<p>Profile works!</p>
+<div class="profile-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-container">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Loading your profile...</p>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!isLoading() && profile()" class="profile-content">
+    <!-- Profile Header -->
+    <mat-card class="profile-header-card">
+      <mat-card-content>
+        <div class="profile-header">
+          <div class="avatar-section">
+            <div class="avatar-container">
+              <img
+                [src]="avatarPreview || profile()?.avatar || '/assets/default-avatar.png'"
+                [alt]="fullName()"
+                class="avatar"
+              />
+              <div class="avatar-overlay">
+                <input
+                  type="file"
+                  #avatarInput
+                  (change)="onAvatarSelected($event)"
+                  accept="image/*"
+                  style="display: none"
+                />
+                <button
+                  mat-icon-button
+                  (click)="avatarInput.click()"
+                  class="avatar-edit-btn"
+                >
+                  <mat-icon>camera_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div *ngIf="avatarFile" class="avatar-actions">
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="uploadAvatar()"
+                [disabled]="isUpdating()"
+              >
+                <mat-icon>upload</mat-icon>
+                Upload
+              </button>
+              <button
+                mat-button
+                (click)="avatarFile = null; avatarPreview = null"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <div class="profile-info">
+            <h1>{{ fullName() }}</h1>
+            <p class="username">@{{ profile()?.username || 'username' }}</p>
+            <p class="email">{{ profile()?.email }}</p>
+
+            <div class="account-level">
+              <mat-icon [style.color]="accountLevelColor()">
+                {{ getAccountLevelIcon(profile()?.stats.accountLevel ||
+                'bronze') }}
+              </mat-icon>
+              <span class="level-text"
+                >{{ profile()?.stats.accountLevel | titlecase }} Member</span
+              >
+            </div>
+          </div>
+
+          <div class="stats-section">
+            <div class="stat-item">
+              <div class="stat-value">{{ profile()?.stats.totalVotes }}</div>
+              <div class="stat-label">Total Votes</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ profile()?.stats.votesUsed }}</div>
+              <div class="stat-label">Votes Used</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">
+                {{ profile()?.stats.optionsParticipated }}
+              </div>
+              <div class="stat-label">Options Participated</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vote Usage Progress -->
+        <div class="vote-progress">
+          <div class="progress-header">
+            <span>Vote Usage</span>
+            <span>{{ votesPercentageUsed() }}%</span>
+          </div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="votesPercentageUsed()"
+            color="accent"
+          ></mat-progress-bar>
+          <div class="progress-info">
+            <span>{{ profile()?.stats.votesRemaining }} votes remaining</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Profile Tabs -->
+    <mat-card class="profile-tabs-card">
+      <mat-tab-group
+        (selectedTabChange)="onTabChange($event.index)"
+        [selectedIndex]="selectedTabIndex"
+      >
+        <!-- Personal Information Tab -->
+        <mat-tab label="Personal Information">
+          <div class="tab-content">
+            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>First Name</mat-label>
+                  <input matInput formControlName="firstName" required />
+                  <mat-error
+                    *ngIf="profileForm.get('firstName')?.hasError('required')"
+                  >
+                    First name is required
+                  </mat-error>
+                  <mat-error
+                    *ngIf="profileForm.get('firstName')?.hasError('minlength')"
+                  >
+                    First name must be at least 2 characters
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Last Name</mat-label>
+                  <input matInput formControlName="lastName" required />
+                  <mat-error
+                    *ngIf="profileForm.get('lastName')?.hasError('required')"
+                  >
+                    Last name is required
+                  </mat-error>
+                  <mat-error
+                    *ngIf="profileForm.get('lastName')?.hasError('minlength')"
+                  >
+                    Last name must be at least 2 characters
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Username</mat-label>
+                  <input matInput formControlName="username" />
+                  <mat-error
+                    *ngIf="profileForm.get('username')?.hasError('minlength')"
+                  >
+                    Username must be at least 3 characters
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Phone Number</mat-label>
+                  <input matInput formControlName="phone" type="tel" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Date of Birth</mat-label>
+                  <input matInput formControlName="dateOfBirth" type="date" />
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Bio</mat-label>
+                <textarea
+                  matInput
+                  formControlName="bio"
+                  rows="4"
+                  placeholder="Tell us about yourself..."
+                ></textarea>
+                <mat-hint
+                  >{{ profileForm.get('bio')?.value?.length || 0 }}/500
+                  characters</mat-hint
+                >
+                <mat-error
+                  *ngIf="profileForm.get('bio')?.hasError('maxlength')"
+                >
+                  Bio cannot exceed 500 characters
+                </mat-error>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="profileForm.invalid || isUpdating()"
+                >
+                  <mat-icon>save</mat-icon>
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Preferences Tab -->
+        <mat-tab label="Preferences">
+          <div class="tab-content">
+            <form [formGroup]="preferencesForm" (ngSubmit)="savePreferences()">
+              <div class="preferences-section">
+                <h3>Notifications</h3>
+                <div class="toggle-group">
+                  <mat-slide-toggle formControlName="emailNotifications">
+                    Email Notifications
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="pushNotifications">
+                    Push Notifications
+                  </mat-slide-toggle>
+                </div>
+              </div>
+
+              <div class="preferences-section">
+                <h3>Appearance</h3>
+                <mat-form-field appearance="outline">
+                  <mat-label>Theme</mat-label>
+                  <mat-select formControlName="theme">
+                    <mat-option value="light">Light</mat-option>
+                    <mat-option value="dark">Dark</mat-option>
+                    <mat-option value="auto">Auto</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="preferences-section">
+                <h3>Privacy</h3>
+                <mat-form-field appearance="outline">
+                  <mat-label>Profile Visibility</mat-label>
+                  <mat-select formControlName="profileVisibility">
+                    <mat-option value="public">Public</mat-option>
+                    <mat-option value="private">Private</mat-option>
+                    <mat-option value="friends">Friends Only</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <div class="toggle-group">
+                  <mat-slide-toggle formControlName="showEmail">
+                    Show Email Address
+                  </mat-slide-toggle>
+                  <mat-slide-toggle formControlName="showPhone">
+                    Show Phone Number
+                  </mat-slide-toggle>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="preferencesForm.invalid || isUpdating()"
+                >
+                  <mat-icon>save</mat-icon>
+                  Save Preferences
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Account Tab -->
+        <mat-tab label="Account">
+          <div class="tab-content">
+            <div class="account-info">
+              <h3>Account Information</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="label">Member Since:</span>
+                  <span class="value"
+                    >{{ profile()?.createdAt | date:'mediumDate' }}</span
+                  >
+                </div>
+                <div class="info-item">
+                  <span class="label">Last Updated:</span>
+                  <span class="value"
+                    >{{ profile()?.updatedAt | date:'medium' }}</span
+                  >
+                </div>
+                <div class="info-item">
+                  <span class="label">Account Level:</span>
+                  <span class="value">
+                    <mat-icon [style.color]="accountLevelColor()">
+                      {{ getAccountLevelIcon(profile()?.stats.accountLevel ||
+                      'bronze') }}
+                    </mat-icon>
+                    {{ profile()?.stats.accountLevel | titlecase }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="account-stats">
+              <h3>Statistics</h3>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-number">
+                    {{ profile()?.stats.totalVotes }}
+                  </div>
+                  <div class="stat-label">Total Votes</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-number">
+                    {{ profile()?.stats.votesUsed }}
+                  </div>
+                  <div class="stat-label">Votes Used</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-number">
+                    {{ profile()?.stats.optionsParticipated }}
+                  </div>
+                  <div class="stat-label">Options Participated</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-number">
+                    {{ profile()?.stats.organizationsJoined }}
+                  </div>
+                  <div class="stat-label">Organizations</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  </div>
+</div>

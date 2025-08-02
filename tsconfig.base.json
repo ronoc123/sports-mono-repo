@@ -36,6 +36,7 @@
         "libs/player-options/feature-player-option/src/index.ts"
       ],
       "@sports-ui/feature-profile": ["libs/profile/src/index.ts"],
+      "@sports-ui/feature-redeem": ["libs/redeem/feature-redeem/src/index.ts"],
       "@sports-ui/feature-roaster": [
         "libs/roaster/feature-roaster/src/index.ts"
       ],
@@ -46,7 +47,13 @@
         "libs/player-options/player-option-data-access/src/index.ts"
       ],
       "@sports-ui/profile": ["libs/profile/src/index.ts"],
+      "@sports-ui/profile-data-access": [
+        "libs/profile/profile-data-access/src/index.ts"
+      ],
       "@sports-ui/redeem": ["libs/redeem/src/index.ts"],
+      "@sports-ui/redeem-data-access": [
+        "libs/redeem/redeem-data-access/src/index.ts"
+      ],
       "@sports-ui/roaster": ["libs/roaster/feature-roaster/src/index.ts"],
       "@sports-ui/roaster-data-access": [
         "libs/roaster/roaster-data-access/src/index.ts"

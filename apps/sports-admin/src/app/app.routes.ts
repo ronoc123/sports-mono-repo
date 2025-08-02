@@ -23,8 +23,41 @@ export const appRoutes: Route[] = [
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
       },
-      // Admin-specific routes will be added later
-      // For now, all routes redirect to dashboard
+
+      // Profile route
+      {
+        path: "profile",
+        loadChildren: () =>
+          import("@sports-ui/profile").then((m) => m.profileRoutes),
+      },
+
+      // Redeem route
+      {
+        path: "redeem",
+        loadChildren: () =>
+          import("@sports-ui/feature-redeem").then((m) => m.redeemRoutes),
+      },
+
+      // User management routes (placeholder - redirect to dashboard for now)
+      {
+        path: "users",
+        loadChildren: () =>
+          import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
+      },
+
+      // Organization route (placeholder - redirect to dashboard for now)
+      {
+        path: "organization",
+        loadChildren: () =>
+          import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
+      },
+
+      // Settings route
+      {
+        path: "settings",
+        loadChildren: () =>
+          import("@sports-ui/profile").then((m) => m.profileRoutes),
+      },
     ],
   },
 

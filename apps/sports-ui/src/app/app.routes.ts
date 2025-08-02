@@ -68,25 +68,36 @@ export const appRoutes: Route[] = [
       },
       {
         path: "redeem",
-        loadComponent: () => import("@sports-ui/redeem").then((m) => m.Redeem),
+        loadChildren: () =>
+          import("@sports-ui/feature-redeem").then((m) => m.redeemRoutes),
       },
 
       // Profile route
       {
         path: "profile",
-        loadComponent: () =>
-          import("./pages/profile/profile.component").then(
-            (m) => m.ProfileComponent
-          ),
+        loadChildren: () =>
+          import("@sports-ui/profile").then((m) => m.profileRoutes),
       },
 
-      // Settings route
+      // Organization route (placeholder - redirect to dashboard for now)
+      {
+        path: "organization",
+        loadChildren: () =>
+          import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
+      },
+
+      // Theme route (placeholder - redirect to profile for now)
+      {
+        path: "themes",
+        loadChildren: () =>
+          import("@sports-ui/profile").then((m) => m.profileRoutes),
+      },
+
+      // Settings route (placeholder for now)
       {
         path: "settings",
         loadComponent: () =>
-          import("./pages/settings/settings.component").then(
-            (m) => m.SettingsComponent
-          ),
+          import("@sports-ui/profile").then((m) => m.Profile),
       },
     ],
   },

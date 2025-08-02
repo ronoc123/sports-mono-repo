@@ -1,0 +1,23 @@
+<div class="profile-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Profile</mat-card-title>
+      <mat-card-subtitle>Navigation is working!</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>✅ Profile feature loaded successfully!</p>
+      <p>✅ Navigation from sidebar is working!</p>
+      <p>✅ Route configuration is correct!</p>
+
+      <div *ngIf="isLoading()">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p>Loading profile data...</p>
+      </div>
+
+      <div *ngIf="!isLoading()">
+        <p><strong>Status:</strong> Profile store loaded</p>
+        <p><strong>Full Name:</strong> {{ fullName() }}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
