@@ -1,0 +1,129 @@
+<div class="redeem-feature">
+  <div class="header">
+    <h1>Redeem Codes</h1>
+    <p class="subtitle">
+      Enter codes to receive votes for your favorite organizations
+    </p>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-banner" *ngIf="error()">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ error() }}</span>
+    <button mat-icon-button (click)="clearError()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-tab-group>
+    <!-- Redeem Code Tab -->
+    <mat-tab label="Redeem Code">
+      <div class="tab-content">
+        <div class="redeem-section">
+          <lib-code-redemption
+            [loading]="loading()"
+            [error]="error()"
+            (redeemCode)="onRedeemCode($event)"
+          ></lib-code-redemption>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- My Codes Tab -->
+    <mat-tab label="My Codes">
+      <div class="tab-content">
+        <div class="codes-section">
+          <div class="section-header">
+            <h2>Your Redeemed Codes</h2>
+            <button
+              mat-icon-button
+              (click)="loadUserCodes()"
+              [disabled]="loading()"
+            >
+              <mat-icon>refresh</mat-icon>
+            </button>
+          </div>
+
+          <!-- Loading -->
+          <div class="loading-container" *ngIf="loading()">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading your codes...</p>
+          </div>
+
+          <!-- Codes Table -->
+          <div class="codes-table" *ngIf="!loading() && userCodes().length > 0">
+            <mat-table [dataSource]="userCodes()" class="codes-table">
+              <!-- Code Value Column -->
+              <ng-container matColumnDef="codeValue">
+                <mat-header-cell *matHeaderCellDef>Code</mat-header-cell>
+                <mat-cell *matCellDef="let code">
+                  <span class="code-value">{{ code.codeValue }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Organization Column -->
+              <ng-container matColumnDef="organizationName">
+                <mat-header-cell *matHeaderCellDef
+                  >Organization</mat-header-cell
+                >
+                <mat-cell *matCellDef="let code">
+                  {{ code.organization?.name || 'Unknown' }}
+                </mat-cell>
+              </ng-container>
+
+              <!-- Votes Column -->
+              <ng-container matColumnDef="votes">
+                <mat-header-cell *matHeaderCellDef>Votes</mat-header-cell>
+                <mat-cell *matCellDef="let code">
+                  <span class="votes-count">{{ code.votes }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Redeemed Date Column -->
+              <ng-container matColumnDef="redeemedAt">
+                <mat-header-cell *matHeaderCellDef>Redeemed</mat-header-cell>
+                <mat-cell *matCellDef="let code">
+                  {{ code.redeemedAt | date:'MMM d, y' }}
+                </mat-cell>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+                <mat-cell *matCellDef="let code">
+                  <mat-chip [color]="getCodeStatusColor(code)" selected>
+                    {{ getCodeStatusText(code) }}
+                  </mat-chip>
+                </mat-cell>
+              </ng-container>
+
+              <mat-header-row
+                *matHeaderRowDef="displayedColumns"
+              ></mat-header-row>
+              <mat-row
+                *matRowDef="let row; columns: displayedColumns;"
+              ></mat-row>
+            </mat-table>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            class="empty-state"
+            *ngIf="!loading() && userCodes().length === 0"
+          >
+            <mat-icon>redeem</mat-icon>
+            <h3>No codes redeemed yet</h3>
+            <p>
+              Start by redeeming your first code to earn votes for your favorite
+              organizations.
+            </p>
+            <button mat-raised-button color="primary" (click)="goToRedeemTab()">
+              <mat-icon>add</mat-icon>
+              Redeem Code
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

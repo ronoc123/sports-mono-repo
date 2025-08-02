@@ -1,0 +1,113 @@
+<div class="profile-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>Profile</h1>
+    <p class="subtitle">Manage your account settings and preferences</p>
+  </div>
+
+  <!-- User Profile Card -->
+  <mat-card class="profile-card" *ngIf="currentUser()">
+    <mat-card-content>
+      <div class="profile-content">
+        <!-- Avatar Section -->
+        <div class="avatar-section">
+          <div class="avatar" *ngIf="!currentUser()?.profilePictureUrl">
+            {{ getUserInitials() }}
+          </div>
+          <img 
+            *ngIf="currentUser()?.profilePictureUrl" 
+            [src]="currentUser()?.profilePictureUrl" 
+            [alt]="currentUser()?.userName || 'User'"
+            class="avatar-image"
+          />
+          <div class="avatar-info">
+            <h2>{{ currentUser()?.userName || 'User' }}</h2>
+            <p class="email">{{ currentUser()?.email }}</p>
+            <mat-chip-set>
+              <mat-chip *ngIf="isGoogleUser()" color="primary">
+                <mat-icon>account_circle</mat-icon>
+                Google Account
+              </mat-chip>
+              <mat-chip *ngIf="currentUser()?.emailVerified" color="accent">
+                <mat-icon>verified</mat-icon>
+                Verified
+              </mat-chip>
+              <mat-chip *ngIf="currentUser()?.isActive" color="primary">
+                <mat-icon>check_circle</mat-icon>
+                Active
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+
+        <!-- Profile Details -->
+        <div class="profile-details">
+          <div class="detail-row">
+            <span class="label">Full Name:</span>
+            <span class="value">
+              {{ (currentUser()?.firstName || '') + ' ' + (currentUser()?.lastName || '') || 'Not provided' }}
+            </span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Email:</span>
+            <span class="value">{{ currentUser()?.email || 'Not provided' }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Member Since:</span>
+            <span class="value">{{ getJoinDate() }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Last Login:</span>
+            <span class="value">{{ getLastLoginDate() }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="label">Account Provider:</span>
+            <span class="value">{{ isGoogleUser() ? 'Google' : 'Local Account' }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Actions Card -->
+  <mat-card class="actions-card">
+    <mat-card-header>
+      <mat-card-title>Account Actions</mat-card-title>
+      <mat-card-subtitle>Manage your account settings</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" (click)="onEditProfile()">
+          <mat-icon>edit</mat-icon>
+          Edit Profile
+        </button>
+        
+        <button mat-raised-button (click)="onChangePassword()" [disabled]="isGoogleUser()">
+          <mat-icon>lock</mat-icon>
+          Change Password
+        </button>
+        
+        <button mat-raised-button color="warn" (click)="onSignOut()">
+          <mat-icon>logout</mat-icon>
+          Sign Out
+        </button>
+      </div>
+      
+      <div class="action-note" *ngIf="isGoogleUser()">
+        <mat-icon>info</mat-icon>
+        <span>Password changes are managed through your Google account.</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="!currentUser()">
+    <mat-icon>person</mat-icon>
+    <h3>Loading Profile...</h3>
+    <p>Please wait while we load your profile information.</p>
+  </div>
+</div>

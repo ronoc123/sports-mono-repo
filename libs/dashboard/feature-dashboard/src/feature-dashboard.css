@@ -1,0 +1,28 @@
+.dynamic-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 24px;
+}
+
+.card {
+  border: 2px solid #ccc;
+  padding: 24px;
+  border-radius: 12px;
+  background: #f9f9f9;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Widths based on type */
+.card-normal {
+  flex: 1 1 300px;
+}
+
+.card-wide {
+  flex: 1 1 500px;
+}
+
+.card-full {
+  flex: 1 1 100%;
+}

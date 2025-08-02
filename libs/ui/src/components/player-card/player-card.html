@@ -1,0 +1,5 @@
+<div class="player-card" *ngIf="player()">
+  <div class="player-img">{{ player().position }}</div>
+  <div class="label">{{ player().name }}</div>
+  <div class="team">{{ player().teamName || 'Team' }}</div>
+</div>

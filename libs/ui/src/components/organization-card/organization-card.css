@@ -1,0 +1,129 @@
+.organization-card {
+  max-width: 400px;
+  margin: 16px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.organization-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.organization-card.locked {
+  border-left: 4px solid #f44336;
+  opacity: 0.8;
+}
+
+.organization-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+}
+
+.org-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-short {
+  font-weight: 500;
+  color: #666;
+}
+
+.status-chip {
+  margin-left: auto;
+}
+
+.org-details {
+  margin: 16px 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  gap: 8px;
+}
+
+.detail-row mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #666;
+}
+
+.description {
+  margin: 16px 0;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border-left: 3px solid #2196f3;
+}
+
+.description p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.venue-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #666;
+}
+
+.venue-info mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.action-spacer {
+  flex: 1;
+}
+
+.card-actions button {
+  margin-right: 8px;
+}
+
+.card-actions button:last-child {
+  margin-right: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .organization-card {
+    max-width: 100%;
+    margin: 8px;
+  }
+  
+  .card-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .action-spacer {
+    display: none;
+  }
+}

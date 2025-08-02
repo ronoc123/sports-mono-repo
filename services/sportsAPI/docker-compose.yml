@@ -1,0 +1,53 @@
+services:
+  webapi:
+    build:
+      context: .
+      dockerfile: src/SportsAPI/WebAPI/Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sports.database;Database=SportsDb;User=sa;Password=Test123!;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+
+  identityapi:
+    build:
+      context: ./src/IdentityService
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sports.database;Database=Platform;User=sa;Password=Test123!;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  notificationapi:
+    build:
+      context: ./src/NotificationAPI
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sports.database
+    ports:
+      - "1433:1433"
+    environment:
+      - SA_PASSWORD=Test123!
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
+    volumes:
+      - sql_data:/var/opt/mssql
+
+volumes:
+  sql_data:

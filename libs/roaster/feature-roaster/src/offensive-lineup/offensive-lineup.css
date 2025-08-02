@@ -1,0 +1,53 @@
+.offense-field {
+  text-align: center;
+  width: 100%;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 150px;
+}
+
+.position {
+  background: white;
+  border-radius: 50%;
+  height: 80px;
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  border: 2px solid #ccc;
+  padding: 4px;
+}
+
+.qb-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.player-img {
+  height: 70px;
+  width: 70px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.team {
+  font-size: 0.8rem;
+  color: #666;
+}

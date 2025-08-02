@@ -1,0 +1,191 @@
+<div class="settings-container">
+  <!-- Header -->
+  <div class="settings-header">
+    <h1>Settings</h1>
+    <p class="subtitle">Customize your Sports UI experience</p>
+  </div>
+
+  <!-- Appearance Settings -->
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>Appearance</mat-card-title>
+      <mat-card-subtitle>Customize the look and feel</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Theme</h4>
+          <p>Choose your preferred color scheme</p>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Theme</mat-label>
+          <mat-select 
+            [value]="settings().theme"
+            (selectionChange)="updateSetting('theme', $event.value)"
+          >
+            <mat-option *ngFor="let theme of themes" [value]="theme.value">
+              {{ theme.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Language</h4>
+          <p>Select your preferred language</p>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Language</mat-label>
+          <mat-select 
+            [value]="settings().language"
+            (selectionChange)="updateSetting('language', $event.value)"
+          >
+            <mat-option *ngFor="let lang of languages" [value]="lang.value">
+              {{ lang.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Notification Settings -->
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>Notifications</mat-card-title>
+      <mat-card-subtitle>Control how you receive notifications</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Push Notifications</h4>
+          <p>Receive notifications in your browser</p>
+        </div>
+        <mat-slide-toggle 
+          [checked]="settings().notifications"
+          (change)="updateSetting('notifications', $event.checked)"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Email Notifications</h4>
+          <p>Receive notifications via email</p>
+        </div>
+        <mat-slide-toggle 
+          [checked]="settings().emailNotifications"
+          (change)="updateSetting('emailNotifications', $event.checked)"
+        ></mat-slide-toggle>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- General Settings -->
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>General</mat-card-title>
+      <mat-card-subtitle>General application settings</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Auto Refresh</h4>
+          <p>Automatically refresh data every 30 seconds</p>
+        </div>
+        <mat-slide-toggle 
+          [checked]="settings().autoRefresh"
+          (change)="updateSetting('autoRefresh', $event.checked)"
+        ></mat-slide-toggle>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Timezone</h4>
+          <p>Select your timezone for accurate timestamps</p>
+        </div>
+        <mat-form-field appearance="outline">
+          <mat-label>Timezone</mat-label>
+          <mat-select 
+            [value]="settings().timezone"
+            (selectionChange)="updateSetting('timezone', $event.value)"
+          >
+            <mat-option *ngFor="let tz of timezones" [value]="tz.value">
+              {{ tz.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Data Management -->
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>Data Management</mat-card-title>
+      <mat-card-subtitle>Import, export, and manage your data</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" (click)="saveSettings()">
+          <mat-icon>save</mat-icon>
+          Save Settings
+        </button>
+
+        <button mat-raised-button (click)="exportSettings()">
+          <mat-icon>download</mat-icon>
+          Export Settings
+        </button>
+
+        <button mat-raised-button>
+          <mat-icon>upload</mat-icon>
+          Import Settings
+          <input 
+            type="file" 
+            accept=".json" 
+            (change)="onFileSelected($event)"
+            style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer;"
+          />
+        </button>
+
+        <button mat-raised-button (click)="resetSettings()">
+          <mat-icon>refresh</mat-icon>
+          Reset to Defaults
+        </button>
+
+        <button mat-raised-button color="warn" (click)="clearData()">
+          <mat-icon>delete_forever</mat-icon>
+          Clear All Data
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- User Info -->
+  <mat-card class="settings-card" *ngIf="currentUser()">
+    <mat-card-header>
+      <mat-card-title>Account Information</mat-card-title>
+      <mat-card-subtitle>Your account details</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="user-info">
+        <div class="info-row">
+          <span class="label">Username:</span>
+          <span class="value">{{ currentUser()?.userName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Email:</span>
+          <span class="value">{{ currentUser()?.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Member Since:</span>
+          <span class="value">{{ currentUser()?.createdAt | date:'MMM d, y' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Account Type:</span>
+          <span class="value">{{ currentUser()?.provider === 'google' ? 'Google Account' : 'Local Account' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

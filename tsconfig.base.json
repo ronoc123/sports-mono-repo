@@ -1,0 +1,63 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sports-ui/api-types": ["libs/core/api-types/src/index.ts"],
+      "@sports-ui/auth": ["libs/core/auth/src/index.ts"],
+      "@sports-ui/auth-data-access": [
+        "libs/auth/auth-data-access/src/index.ts"
+      ],
+      "@sports-ui/feature-auth": ["libs/auth/feature-auth/src/index.ts"],
+      "@sports-ui/dashboard-data-access": [
+        "libs/dashboard/dashboard-data-access/src/index.ts"
+      ],
+      "@sports-ui/data-access": ["libs/core/data-access/src/index.ts"],
+      "@sports-ui/error-handler": ["libs/core/error-handler/src/index.ts"],
+      "@sports-ui/feature-dashboard": [
+        "libs/dashboard/feature-dashboard/src/index.ts"
+      ],
+      "@sports-ui/feature-player-option": [
+        "libs/player-options/feature-player-option/src/index.ts"
+      ],
+      "@sports-ui/feature-roaster": [
+        "libs/roaster/feature-roaster/src/index.ts"
+      ],
+      "@sports-ui/feature-organization": ["libs/organization/src/index.ts"],
+      "@sports-ui/feature-admin": ["libs/admin/src/index.ts"],
+      "@sports-ui/feature-profile": ["libs/profile/src/index.ts"],
+      "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
+      "@sports-ui/feature-error": ["libs/error/src/index.ts"],
+      "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
+      "@sports-ui/player-options": ["libs/player-options/src/index.ts"],
+      "@sports-ui/player-options-data-access": [
+        "libs/player-options/player-option-data-access/src/index.ts"
+      ],
+      "@sports-ui/profile": ["libs/profile/src/index.ts"],
+      "@sports-ui/redeem": ["libs/redeem/src/index.ts"],
+      "@sports-ui/roaster": ["libs/roaster/feature-roaster/src/index.ts"],
+      "@sports-ui/roaster-data-access": [
+        "libs/roaster/roaster-data-access/src/index.ts"
+      ],
+      "@sports-ui/ui": ["libs/ui/src/index.ts"],
+      "@sports-ui/ui-feature-theme": ["libs/theme/feature-theme/src/index.ts"],
+      "@sports-ui/ui-theme": ["libs/theme/feature-theme/src/index.ts"],
+      "@sports-ui/ui-theme-data-access": [
+        "libs/theme/theme-data-access/src/index.ts"
+      ]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

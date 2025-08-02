@@ -1,0 +1,22 @@
+<div class="offense-field">
+  <div class="row">
+    <ng-container *ngIf="getPlayer('WR') as wr1">
+      <lib-player-card [player]="wr1" />
+    </ng-container>
+    <ng-container *ngIf="getPlayer('WR', 1) as wr2">
+      <lib-player-card [player]="wr2" />
+    </ng-container>
+  </div>
+
+  <div class="row">
+    <ng-container *ngIf="getPlayer('TE') as te">
+      <lib-player-card [player]="te" />
+    </ng-container>
+    <ng-container *ngIf="getPlayer('QB') as qb">
+      <lib-player-card [player]="qb" />
+    </ng-container>
+    <ng-container *ngIf="getPlayer('RB') as rb">
+      <lib-player-card [player]="rb" />
+    </ng-container>
+  </div>
+</div>

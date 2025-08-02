@@ -1,0 +1,110 @@
+.layout-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidenav-container {
+  flex: 1;
+  display: flex;
+}
+
+.sidenav {
+  background-color: #fafafa;
+  border-right: 1px solid #e0e0e0;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  min-height: 0; /* Important for flex scrolling */
+  padding: 24px;
+}
+
+.footer {
+  background-color: #fff;
+  border-top: 1px solid #e0e0e0;
+  padding: 16px 24px;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-content p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-content {
+    padding: 16px;
+  }
+  
+  .footer {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: 8px;
+  }
+}
+
+/* Dark theme support */
+.dark-theme {
+  .sidenav {
+    background-color: #303030;
+    border-right-color: #424242;
+  }
+  
+  .page-content {
+    background-color: #121212;
+  }
+  
+  .footer {
+    background-color: #1e1e1e;
+    border-top-color: #424242;
+  }
+  
+  .footer-content p {
+    color: #ccc;
+  }
+}
+
+/* High contrast theme support */
+.high-contrast-theme {
+  .sidenav {
+    border-right: 2px solid #000;
+  }
+  
+  .navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .footer {
+    border-top: 2px solid #000;
+  }
+}

@@ -1,0 +1,9 @@
+<div class="dynamic-layout">
+  <div
+    *ngFor="let card of testCards"
+    class="card"
+    [ngClass]="getCardClass(card.type)"
+  >
+    {{ card.label }}
+  </div>
+</div>

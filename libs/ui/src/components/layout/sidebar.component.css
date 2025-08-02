@@ -1,0 +1,427 @@
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #fafafa;
+  overflow: hidden;
+  border-right: 1px solid #e0e0e0;
+  width: 280px;
+}
+
+/* Organization Selector */
+.organization-selector {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: white;
+}
+
+.selector-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.organization-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.organization-dropdown-trigger:hover {
+  border-color: #2196f3;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.selected-org {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.org-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e0e0e0;
+}
+
+.org-name {
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expand-icon {
+  color: #666;
+  transition: transform 0.2s ease;
+}
+
+.organization-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 300px;
+  overflow: hidden;
+  animation: dropdown-slide 0.2s ease;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  font-weight: 600;
+  color: #333;
+}
+
+.dropdown-content {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: #666;
+}
+
+.organizations-list {
+  padding: 8px 0;
+}
+
+.organization-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.organization-option:hover {
+  background-color: #f5f5f5;
+}
+
+.organization-option.selected {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.org-logo-option {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e0e0e0;
+}
+
+.org-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.org-info .org-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.org-details {
+  font-size: 12px;
+  color: #666;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  color: #999;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+/* User Info Section */
+.user-info-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #2196f3;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Guest Section */
+.guest-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
+  color: #666;
+}
+
+/* Navigation Menu */
+.navigation-menu {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.nav-tree {
+  padding: 0;
+}
+
+.nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 12px 16px;
+  margin: 2px 0;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  transition: all 0.2s ease;
+  text-transform: none;
+}
+
+.nav-item:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.nav-item.active-route {
+  background-color: #2196f3;
+  color: white;
+}
+
+.nav-item.active-route .nav-icon {
+  color: white;
+}
+
+.nav-icon {
+  margin-right: 12px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+.nav-text {
+  flex: 1;
+}
+
+.expandable-node {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.toggle-button {
+  margin-right: 4px;
+  color: #666;
+}
+
+.toggle-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.nav-item.expandable {
+  flex: 1;
+  margin-left: 0;
+}
+
+/* Quick Actions */
+.quick-actions {
+  padding: 16px;
+  background-color: white;
+}
+
+.actions-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.action-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: 4px 0;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  color: #555;
+  transition: all 0.2s ease;
+  text-transform: none;
+}
+
+.action-button:hover {
+  background-color: #f5f5f5;
+  color: #2196f3;
+}
+
+/* Footer */
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background-color: white;
+}
+
+.app-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-icon {
+  color: #2196f3;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.app-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.app-version {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Animations */
+@keyframes dropdown-slide {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Global Sidebar Overrides */
+::ng-deep mat-sidenav {
+  border-right: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+::ng-deep .mat-tree-node {
+  min-height: auto !important;
+}
+
+::ng-deep .mat-tree {
+  background: transparent !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar-container {
+    width: 260px;
+  }
+
+  .user-email {
+    display: none;
+  }
+
+  .org-details {
+    display: none;
+  }
+}

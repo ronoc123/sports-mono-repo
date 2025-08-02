@@ -1,0 +1,46 @@
+<div class="layout-container">
+  <mat-sidenav-container class="sidenav-container">
+    <!-- Sidebar -->
+    <mat-sidenav
+      #drawer
+      class="sidenav"
+      [mode]="getSidenavMode()"
+      [opened]="getSidenavOpened()"
+      [style.width]="getSidenavWidth()"
+    >
+      <ui-sidebar
+        [navItems]="navItems()"
+        [appTitle]="config().appTitle"
+        [appLogo]="config().appLogo || ''"
+        [currentUser]="currentUser()"
+        [organizations]="organizations()"
+        [selectedOrganization]="selectedOrganization()"
+        [permissionChecker]="permissionChecker()"
+        [showOrganizationSelector]="organizations().length > 0"
+      ></ui-sidebar>
+    </mat-sidenav>
+
+    <!-- Main Content -->
+    <mat-sidenav-content class="main-content">
+      <!-- Top Navigation Bar -->
+      <ui-navbar
+        [config]="config()"
+        [drawer]="drawer"
+        [currentUser]="currentUser()"
+        class="navbar"
+      ></ui-navbar>
+
+      <!-- Page Content -->
+      <main class="page-content">
+        <router-outlet></router-outlet>
+      </main>
+
+      <!-- Footer (Optional) -->
+      <footer class="footer" *ngIf="config().showFooter">
+        <div class="footer-content">
+          <p>&copy; 2024 {{ config().appTitle }}. All rights reserved.</p>
+        </div>
+      </footer>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

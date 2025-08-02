@@ -1,0 +1,98 @@
+<mat-card class="organization-card" [class.locked]="organization().isLocked">
+  <mat-card-header>
+    <div mat-card-avatar class="organization-avatar">
+      <img 
+        [src]="organization().mediaAssets.logoUrl || '/assets/default-org-logo.png'" 
+        [alt]="organization().name + ' logo'"
+        class="org-logo"
+      />
+    </div>
+    <mat-card-title>{{ organization().name }}</mat-card-title>
+    <mat-card-subtitle>
+      {{ organization().teamName || organization().name }}
+      <span *ngIf="organization().teamShortName" class="team-short">
+        ({{ organization().teamShortName }})
+      </span>
+    </mat-card-subtitle>
+    
+    <div class="status-chip">
+      <mat-chip [color]="getStatusColor()" selected>
+        <mat-icon>{{ organization().isLocked ? 'lock' : 'sports' }}</mat-icon>
+        {{ getStatusText() }}
+      </mat-chip>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="org-details">
+      <div class="detail-row" *ngIf="organization().sport">
+        <mat-icon>sports</mat-icon>
+        <span>{{ organization().sport }}</span>
+      </div>
+      
+      <div class="detail-row" *ngIf="organization().formedYear">
+        <mat-icon>calendar_today</mat-icon>
+        <span>Founded {{ organization().formedYear }}</span>
+      </div>
+      
+      <div class="detail-row">
+        <mat-icon>people</mat-icon>
+        <span>{{ organization().activePlayersCount }} Active Players</span>
+      </div>
+      
+      <div class="detail-row">
+        <mat-icon>how_to_vote</mat-icon>
+        <span>{{ organization().activePlayerOptionsCount }} Active Options</span>
+      </div>
+      
+      <div class="detail-row">
+        <mat-icon>thumb_up</mat-icon>
+        <span>{{ organization().totalVotes }} Total Votes</span>
+      </div>
+    </div>
+
+    <div class="description" *ngIf="organization().description">
+      <p>{{ organization().description }}</p>
+    </div>
+
+    <div class="venue-info" *ngIf="organization().venue">
+      <mat-icon>location_on</mat-icon>
+      <span>{{ organization().venue.name }}, {{ organization().venue.address.city }}</span>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions *ngIf="showActions()" class="card-actions">
+    <button mat-button (click)="onSelect()" color="primary">
+      <mat-icon>visibility</mat-icon>
+      View
+    </button>
+    
+    <button mat-button (click)="onViewPlayers()" color="accent">
+      <mat-icon>people</mat-icon>
+      Players
+    </button>
+    
+    <button mat-button (click)="onViewPlayerOptions()">
+      <mat-icon>how_to_vote</mat-icon>
+      Options
+    </button>
+    
+    <div class="action-spacer"></div>
+    
+    <button mat-icon-button (click)="onEdit()" [disabled]="organization().isLocked">
+      <mat-icon>edit</mat-icon>
+    </button>
+    
+    <button 
+      mat-icon-button 
+      (click)="organization().isLocked ? onUnlock() : onLock()"
+      [color]="organization().isLocked ? 'warn' : 'primary'"
+    >
+      <mat-icon>{{ organization().isLocked ? 'lock_open' : 'lock' }}</mat-icon>
+    </button>
+    
+    <button mat-icon-button (click)="onDelete()" color="warn" [disabled]="organization().isLocked">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </mat-card-actions>
+</mat-card>

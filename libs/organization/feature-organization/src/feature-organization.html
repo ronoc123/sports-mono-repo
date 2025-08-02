@@ -1,0 +1,221 @@
+<div class="organization-feature">
+  <div class="header">
+    <h1>Organizations</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="onCreateOrganization()">
+        <mat-icon>add</mat-icon>
+        Create Organization
+      </button>
+      <button mat-icon-button (click)="onRefresh()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-banner" *ngIf="error()">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ error() }}</span>
+    <button mat-icon-button (click)="clearError()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-tab-group [selectedIndex]="selectedTabIndex()" (selectedIndexChange)="selectedTabIndex.set($event)">
+    <!-- Organizations List Tab -->
+    <mat-tab label="All Organizations">
+      <div class="tab-content">
+        <!-- Filters -->
+        <div class="filters">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search organizations</mat-label>
+            <input 
+              matInput 
+              [value]="currentFilter().searchTerm"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Search by name, sport, or location"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Sport</mat-label>
+            <mat-select 
+              [value]="currentFilter().sport || ''"
+              (selectionChange)="onSportFilterChange($event.value)"
+            >
+              <mat-option value="">All Sports</mat-option>
+              <mat-option *ngFor="let sport of getSportOptions()" [value]="sport">
+                {{ sport }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Sort by</mat-label>
+            <mat-select 
+              [value]="currentFilter().sortBy"
+              (selectionChange)="onSortChange($event.value)"
+            >
+              <mat-option *ngFor="let option of getSortOptions()" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading-container" *ngIf="loading()">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading organizations...</p>
+        </div>
+
+        <!-- Organizations Grid -->
+        <div class="organizations-grid" *ngIf="!loading()">
+          <lib-organization-card
+            *ngFor="let org of organizations(); trackBy: trackByOrganizationId"
+            [organization]="org"
+            [showActions]="true"
+            (selected)="onOrganizationSelected($event)"
+            (edit)="onOrganizationEdit($event)"
+            (delete)="onOrganizationDelete($event)"
+            (lock)="onOrganizationLock($event)"
+            (unlock)="onOrganizationUnlock($event)"
+            (viewPlayers)="onViewPlayers($event)"
+            (viewPlayerOptions)="onViewPlayerOptions($event)"
+          ></lib-organization-card>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="!loading() && organizations().length === 0">
+          <mat-icon>business</mat-icon>
+          <h3>No organizations found</h3>
+          <p *ngIf="currentFilter().searchTerm">
+            No organizations match your search criteria. Try adjusting your filters.
+          </p>
+          <p *ngIf="!currentFilter().searchTerm">
+            Get started by creating your first organization.
+          </p>
+          <button mat-raised-button color="primary" (click)="onCreateOrganization()">
+            <mat-icon>add</mat-icon>
+            Create Organization
+          </button>
+        </div>
+
+        <!-- Pagination -->
+        <mat-paginator
+          *ngIf="!loading() && organizations().length > 0"
+          [length]="totalCount()"
+          [pageSize]="pageSize()"
+          [pageIndex]="pageNumber() - 1"
+          [pageSizeOptions]="[6, 12, 24, 48]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+    </mat-tab>
+
+    <!-- Organization Details Tab -->
+    <mat-tab label="Details" [disabled]="!selectedOrganization()">
+      <div class="tab-content" *ngIf="selectedOrganization()">
+        <div class="organization-details">
+          <div class="details-header">
+            <div class="org-info">
+              <img 
+                [src]="selectedOrganization()!.mediaAssets.logoUrl || '/assets/default-org-logo.png'"
+                [alt]="selectedOrganization()!.name + ' logo'"
+                class="org-logo-large"
+              />
+              <div class="org-text">
+                <h2>{{ selectedOrganization()!.name }}</h2>
+                <p class="org-subtitle">{{ selectedOrganization()!.teamName }}</p>
+                <div class="org-meta">
+                  <span *ngIf="selectedOrganization()!.sport">{{ selectedOrganization()!.sport }}</span>
+                  <span *ngIf="selectedOrganization()!.formedYear">Founded {{ selectedOrganization()!.formedYear }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="details-actions">
+              <button mat-raised-button color="primary" (click)="onOrganizationEdit(selectedOrganization()!)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            </div>
+          </div>
+
+          <div class="details-content">
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <mat-icon>people</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ selectedOrganization()!.activePlayersCount }}</span>
+                  <span class="stat-label">Active Players</span>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <mat-icon>how_to_vote</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ selectedOrganization()!.activePlayerOptionsCount }}</span>
+                  <span class="stat-label">Active Options</span>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <mat-icon>thumb_up</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">{{ selectedOrganization()!.totalVotes }}</span>
+                  <span class="stat-label">Total Votes</span>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <mat-icon>attach_money</mat-icon>
+                <div class="stat-content">
+                  <span class="stat-value">${{ selectedOrganization()!.totalMarketValue | number:'1.0-0' }}</span>
+                  <span class="stat-label">Market Value</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="description-section" *ngIf="selectedOrganization()!.description">
+              <h3>About</h3>
+              <p>{{ selectedOrganization()!.description }}</p>
+            </div>
+
+            <!-- Venue Information -->
+            <div class="venue-section" *ngIf="selectedOrganization()!.venue">
+              <h3>Venue</h3>
+              <div class="venue-info">
+                <mat-icon>location_on</mat-icon>
+                <div class="venue-details">
+                  <h4>{{ selectedOrganization()!.venue.name }}</h4>
+                  <p>{{ selectedOrganization()!.venue.address.street }}</p>
+                  <p>{{ selectedOrganization()!.venue.address.city }}, {{ selectedOrganization()!.venue.address.state }} {{ selectedOrganization()!.venue.address.postalCode }}</p>
+                  <p *ngIf="selectedOrganization()!.venue.capacity">Capacity: {{ selectedOrganization()!.venue.capacity | number }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+              <h3>Quick Actions</h3>
+              <div class="action-buttons">
+                <button mat-stroked-button (click)="onViewPlayers(selectedOrganization()!)">
+                  <mat-icon>people</mat-icon>
+                  View Players
+                </button>
+                <button mat-stroked-button (click)="onViewPlayerOptions(selectedOrganization()!)">
+                  <mat-icon>how_to_vote</mat-icon>
+                  View Player Options
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

@@ -1,0 +1,177 @@
+<!-- Sidebar Wrapper -->
+<div class="sidebar-container">
+  <!-- Organization Selector -->
+  <div class="organization-selector" *ngIf="isAuthenticated()">
+    <div class="selector-header">
+      <mat-icon>business</mat-icon>
+      <span class="header-text">Organization</span>
+    </div>
+
+    <button
+      class="organization-dropdown-trigger"
+      (click)="toggleOrganizationDropdown()"
+    >
+      <div class="selected-org">
+        <img
+          [src]="getSelectedOrganizationLogo()"
+          [alt]="getSelectedOrganizationName()"
+          class="org-logo"
+        />
+        <span class="org-name">{{ getSelectedOrganizationName() }}</span>
+      </div>
+      <mat-icon class="expand-icon">
+        {{ isOrganizationDropdownOpen() ? "expand_less" : "expand_more" }}
+      </mat-icon>
+    </button>
+
+    <!-- Organization Dropdown -->
+    <div class="organization-dropdown" *ngIf="isOrganizationDropdownOpen()">
+      <div class="dropdown-header">
+        <span>Select Organization</span>
+        <button mat-icon-button matTooltip="Refresh organizations">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+
+      <div class="dropdown-content">
+        <div class="organizations-list">
+          <button
+            class="organization-option"
+            *ngFor="let org of organizations(); trackBy: trackByOrgId"
+            (click)="selectOrganization(org)"
+            [class.selected]="selectedOrganization()?.id === org.id"
+          >
+            <img
+              [src]="org.mediaAssets.logoUrl || '/assets/default-org-logo.png'"
+              [alt]="org.name"
+              class="org-logo-option"
+            />
+            <div class="org-info">
+              <span class="org-name">{{
+                org.teamShortName || org.teamName || org.name
+              }}</span>
+              <span class="org-details"
+                >{{ org.sport }} • {{ org.activePlayersCount }} players</span
+              >
+            </div>
+          </button>
+
+          <div class="empty-state" *ngIf="organizations().length === 0">
+            <mat-icon>business</mat-icon>
+            <span>No organizations available</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Info Section -->
+  <div class="user-info-section" *ngIf="isAuthenticated()">
+    <div class="user-avatar">
+      {{ (currentUser()?.userName || "U").substring(0, 2).toUpperCase() }}
+    </div>
+    <div class="user-details">
+      <span class="user-name">{{ currentUser()?.userName || "User" }}</span>
+      <span class="user-email">{{ currentUser()?.email }}</span>
+    </div>
+  </div>
+
+  <!-- Guest Section -->
+  <div class="guest-section" *ngIf="!isAuthenticated()">
+    <mat-icon>person_outline</mat-icon>
+    <span>Guest User</span>
+    <button
+      mat-button
+      color="primary"
+      (click)="router.navigate(['/auth/login'])"
+    >
+      Login
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Navigation Menu -->
+  <div class="navigation-menu">
+    <mat-tree
+      [dataSource]="dataSource"
+      [treeControl]="treeControl"
+      class="nav-tree"
+    >
+      <!-- Leaf node -->
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+        <button
+          mat-button
+          (click)="navigateTo(node.route)"
+          [class.active-route]="isSelected(node.route)"
+          class="nav-item"
+        >
+          <mat-icon *ngIf="node.icon" class="nav-icon">{{
+            node.icon
+          }}</mat-icon>
+          <span class="nav-text">{{ node.name }}</span>
+        </button>
+      </mat-tree-node>
+
+      <!-- Expandable node -->
+      <mat-tree-node
+        *matTreeNodeDef="let node; when: hasChild"
+        matTreeNodePadding
+      >
+        <div class="expandable-node">
+          <button mat-icon-button matTreeNodeToggle class="toggle-button">
+            <mat-icon class="toggle-icon">
+              {{
+                treeControl.isExpanded(node) ? "expand_more" : "chevron_right"
+              }}
+            </mat-icon>
+          </button>
+
+          <button
+            mat-button
+            (click)="navigateTo(node.route)"
+            [class.active-route]="isSelected(node.route)"
+            class="nav-item expandable"
+          >
+            <mat-icon *ngIf="node.icon" class="nav-icon">{{
+              node.icon
+            }}</mat-icon>
+            <span class="nav-text">{{ node.name }}</span>
+          </button>
+        </div>
+      </mat-tree-node>
+    </mat-tree>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions" *ngIf="isAuthenticated()">
+    <mat-divider></mat-divider>
+    <div class="actions-header">
+      <mat-icon>flash_on</mat-icon>
+      <span>Quick Actions</span>
+    </div>
+    <button mat-button class="action-button" (click)="navigateTo('/redeem')">
+      <mat-icon>redeem</mat-icon>
+      <span>Redeem Code</span>
+    </button>
+    <button
+      mat-button
+      class="action-button"
+      (click)="navigateTo('/player-option')"
+    >
+      <mat-icon>how_to_vote</mat-icon>
+      <span>Vote</span>
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="app-info">
+      <mat-icon class="footer-icon">sports</mat-icon>
+      <div class="app-details">
+        <span class="app-name">Sports UI</span>
+        <span class="app-version">v1.0.0</span>
+      </div>
+    </div>
+  </div>
+</div>

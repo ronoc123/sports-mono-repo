@@ -1,0 +1,42 @@
+.defense-field {
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  margin-top: 32px;
+  min-height: 33vh;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.middle {
+  justify-content: center;
+}
+
+.position {
+  background: white;
+  border-radius: 50%;
+  height: 100px;
+  width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-align: center;
+  border: 2px solid #ccc;
+  padding: 4px;
+  line-height: 1.1;
+}
+
+.label {
+  font-weight: bold;
+  margin-top: 8px;
+  font-size: 1rem;
+}

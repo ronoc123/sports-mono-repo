@@ -1,0 +1,124 @@
+<mat-card
+  class="voting-panel"
+  [class.expired]="playerOption().isExpired"
+  [class.user-voted]="hasUserVoted()"
+>
+  <mat-card-header>
+    <div mat-card-avatar class="player-avatar">
+      <img
+        [src]="playerOption().player?.imageUrl || '/assets/default-player.png'"
+        [alt]="playerOption().player?.name || 'Player'"
+        class="player-image"
+      />
+    </div>
+
+    <mat-card-title>{{ playerOption().title }}</mat-card-title>
+    <mat-card-subtitle>
+      <span *ngIf="playerOption().player"
+        >{{ playerOption().player?.name }} - {{ playerOption().player?.position
+        }}</span
+      >
+    </mat-card-subtitle>
+
+    <div class="status-indicators">
+      <mat-chip [color]="getStatusColor()" class="status-chip">
+        <mat-icon>{{ getStatusIcon() }}</mat-icon>
+        {{ playerOption().popularityLevel }}
+      </mat-chip>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Vote Count and Progress -->
+    <div class="vote-stats">
+      <div class="vote-count">
+        <mat-icon>thumb_up</mat-icon>
+        <span class="count">{{ playerOption().votes }}</span>
+        <span class="label">votes</span>
+      </div>
+
+      <div class="engagement-score" *ngIf="playerOption().engagementScore > 0">
+        <mat-icon>trending_up</mat-icon>
+        <span
+          >{{ playerOption().engagementScore | number:'1.1-1' }}
+          engagement</span
+        >
+      </div>
+    </div>
+
+    <!-- Vote Progress Bar -->
+    <div class="vote-progress">
+      <mat-progress-bar
+        mode="determinate"
+        [value]="getVotePercentage()"
+        [color]="getStatusColor() || 'primary'"
+      ></mat-progress-bar>
+      <span class="progress-text"
+        >{{ getVotePercentage() | number:'1.0-0' }}%</span
+      >
+    </div>
+
+    <!-- Time Remaining -->
+    <div class="time-remaining" [class.expired]="playerOption().isExpired">
+      <mat-icon>schedule</mat-icon>
+      <span>{{ getTimeRemainingText() }}</span>
+    </div>
+
+    <!-- Description (expandable) -->
+    <div class="description">
+      <p [class.collapsed]="!isExpanded()">{{ playerOption().description }}</p>
+      <button
+        mat-button
+        (click)="toggleExpanded()"
+        class="expand-button"
+        *ngIf="playerOption().description.length > 100"
+      >
+        {{ isExpanded() ? 'Show Less' : 'Show More' }}
+        <mat-icon>{{ isExpanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- User Vote Status -->
+    <div class="user-vote-status" *ngIf="hasUserVoted()">
+      <mat-icon color="primary">check_circle</mat-icon>
+      <span>You voted for this option</span>
+    </div>
+
+    <!-- Vote Availability -->
+    <div class="vote-availability" *ngIf="!playerOption().isExpired">
+      <mat-icon>how_to_vote</mat-icon>
+      <span>You have {{ userVotesAvailable() }} votes available</span>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions class="voting-actions">
+    <!-- Vote Button -->
+    <button
+      mat-raised-button
+      [color]="hasUserVoted() ? 'warn' : 'primary'"
+      (click)="hasUserVoted() ? onRemoveVote() : onVote()"
+      [disabled]="!canUserVote() && !hasUserVoted()"
+      class="vote-button"
+      [matTooltip]="!canUserVote() && !hasUserVoted() ? 'No votes available or option expired' : ''"
+    >
+      <mat-icon>{{ getVoteButtonIcon() }}</mat-icon>
+      {{ getVoteButtonText() }}
+    </button>
+
+    <!-- View Details Button -->
+    <button mat-button (click)="onViewDetails()" class="details-button">
+      <mat-icon>visibility</mat-icon>
+      Details
+    </button>
+
+    <!-- Additional Info -->
+    <div class="action-info">
+      <span class="created-date">
+        Created {{ playerOption().createdAt | date:'MMM d, y' }}
+      </span>
+      <span class="expires-date">
+        Expires {{ playerOption().expiresAt | date:'MMM d, y' }}
+      </span>
+    </div>
+  </mat-card-actions>
+</mat-card>

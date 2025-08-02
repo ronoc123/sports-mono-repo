@@ -1,0 +1,28 @@
+<div class="defense-field">
+  <!-- Bottom row: DE, DT, LB, LB, CB, S -->
+  <div class="row bottom">
+    <ng-container *ngIf="getPlayer('DE') as de">
+      <lib-player-card [player]="de" />
+    </ng-container>
+
+    <ng-container *ngIf="getPlayer('DT') as dt">
+      <lib-player-card [player]="dt" />
+    </ng-container>
+
+    <ng-container *ngIf="getPlayer('LB', 0) as lb1">
+      <lib-player-card [player]="lb1" />
+    </ng-container>
+
+    <ng-container *ngIf="getPlayer('LB', 1) as lb2">
+      <lib-player-card [player]="lb2" />
+    </ng-container>
+
+    <ng-container *ngIf="getPlayer('CB') as cb">
+      <lib-player-card [player]="cb" />
+    </ng-container>
+
+    <ng-container *ngIf="getPlayer('S') as s">
+      <lib-player-card [player]="s" />
+    </ng-container>
+  </div>
+</div>

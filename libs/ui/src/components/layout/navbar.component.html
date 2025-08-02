@@ -1,0 +1,97 @@
+<mat-toolbar class="navbar">
+  <div class="navbar-left">
+    <!-- Hamburger Icon -->
+    <button
+      mat-icon-button
+      (click)="toggleSidebar()"
+      matTooltip="Toggle sidebar"
+      class="menu-button"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- App Title/Logo -->
+    <div class="app-title">
+      <mat-icon class="app-icon">sports</mat-icon>
+      <span class="title-text">Sports UI</span>
+    </div>
+  </div>
+
+  <div class="navbar-center">
+    <!-- Search Bar (Optional) -->
+    <!-- <mat-form-field appearance="outline" class="search-field">
+      <input matInput placeholder="Search..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field> -->
+  </div>
+
+  <div class="navbar-right">
+    <!-- Notifications -->
+    <button
+      mat-icon-button
+      (click)="navigateToNotifications()"
+      matTooltip="Notifications"
+      class="notification-button"
+    >
+      <mat-icon
+        [matBadge]="getNotificationCount()"
+        matBadgeColor="warn"
+        [matBadgeHidden]="getNotificationCount() === 0"
+      >
+        notifications
+      </mat-icon>
+    </button>
+
+    <!-- User Menu -->
+    <div class="user-section" *ngIf="isAuthenticated(); else loginButton">
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+        <div class="user-avatar">
+          {{ getUserInitials() }}
+        </div>
+        <span class="user-name">{{ getUserDisplayName() }}</span>
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" class="user-menu">
+        <div class="user-info">
+          <div class="user-avatar-large">
+            {{ getUserInitials() }}
+          </div>
+          <div class="user-details">
+            <div class="user-name-large">{{ getUserDisplayName() }}</div>
+            <div class="user-email" *ngIf="currentUser()?.email">
+              {{ currentUser()?.email }}
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <button mat-menu-item (click)="navigateToProfile()">
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+
+        <button mat-menu-item (click)="navigateToSettings()">
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+
+        <mat-divider></mat-divider>
+
+        <button mat-menu-item (click)="logout()" class="logout-item">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </div>
+
+    <!-- Login Button (when not authenticated) -->
+    <ng-template #loginButton>
+      <button mat-raised-button color="primary" class="login-button">
+        <mat-icon>login</mat-icon>
+        Login
+      </button>
+    </ng-template>
+  </div>
+</mat-toolbar>

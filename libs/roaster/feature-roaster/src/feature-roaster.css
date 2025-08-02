@@ -1,0 +1,49 @@
+.layout {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 24px;
+}
+.field {
+  position: relative;
+  background-color: #f6f5f3;
+  border-radius: 8px;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+}
+
+.field-hash-left,
+.field-hash-right {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 80px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.field-hash-left {
+  left: 0;
+}
+
+.field-hash-right {
+  right: 0;
+}
+
+.hash {
+  position: absolute;
+  width: 80px;
+  height: 4px;
+  background-color: white;
+  transform: translateY(-50%);
+}
+.field-center-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 7px;
+  background-color: white;
+  transform: translateY(-50%);
+  z-index: 0;
+}

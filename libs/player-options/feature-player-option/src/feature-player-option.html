@@ -1,0 +1,93 @@
+<div class="player-options-feature">
+  <div class="header">
+    <h1>Player Options</h1>
+    <div class="header-actions">
+      <div class="votes-info" *ngIf="currentUser()">
+        <mat-icon>how_to_vote</mat-icon>
+        <span>{{ userVotesAvailable() }} votes available</span>
+      </div>
+      <button mat-icon-button (click)="onRefresh()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-banner" *ngIf="error()">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ error() }}</span>
+    <button mat-icon-button (click)="playerOptionStore.clearError()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Filter by</mat-label>
+      <mat-select
+        [value]="filterType()"
+        (selectionChange)="onFilterChange($event.value)"
+      >
+        <mat-option value="all">All Options</mat-option>
+        <mat-option value="active">Active</mat-option>
+        <mat-option value="trending">Trending</mat-option>
+        <mat-option value="popular">Popular</mat-option>
+        <mat-option value="expired">Expired</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-container" *ngIf="loading()">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading player options...</p>
+  </div>
+
+  <!-- Player Options Grid -->
+  <div class="player-options-grid" *ngIf="!loading()">
+    <lib-voting-panel
+      *ngFor="let option of getFilteredPlayerOptions(); trackBy: trackByOptionId"
+      [playerOption]="option"
+      [userVotesAvailable]="userVotesAvailable()"
+      [hasUserVoted]="hasUserVoted(option.id)"
+      [canVote]="canUserVote()"
+      [loading]="false"
+      (vote)="onVote($event)"
+      (removeVote)="onRemoveVote($event)"
+      (viewDetails)="onViewDetails($event)"
+      class="voting-panel-item"
+    ></lib-voting-panel>
+  </div>
+
+  <!-- Empty State -->
+  <div
+    class="empty-state"
+    *ngIf="!loading() && getFilteredPlayerOptions().length === 0"
+  >
+    <mat-icon>how_to_vote</mat-icon>
+    <h3>No player options found</h3>
+    <p *ngIf="filterType() !== 'all'">
+      No player options match your current filter. Try changing the filter or
+      check back later.
+    </p>
+    <p *ngIf="filterType() === 'all'">
+      There are no player options available for this organization yet.
+    </p>
+    <button mat-raised-button color="primary" (click)="onRefresh()">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <!-- User Not Logged In -->
+  <div class="login-prompt" *ngIf="!currentUser()">
+    <mat-icon>person_outline</mat-icon>
+    <h3>Login to Vote</h3>
+    <p>You need to be logged in to vote on player options.</p>
+    <button mat-raised-button color="primary" routerLink="/auth/login">
+      <mat-icon>login</mat-icon>
+      Login
+    </button>
+  </div>
+</div>

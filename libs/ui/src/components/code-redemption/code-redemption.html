@@ -1,0 +1,111 @@
+<mat-card class="code-redemption-card">
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>redeem</mat-icon>
+      Redeem Code
+    </mat-card-title>
+    <mat-card-subtitle>
+      Enter your code to receive votes for your favorite organization
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Redemption Form -->
+    <form [formGroup]="redemptionForm" (ngSubmit)="onSubmit()" *ngIf="!showResult()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Enter Code</mat-label>
+        <input 
+          matInput 
+          formControlName="codeValue"
+          placeholder="ABC123XYZ"
+          (input)="onCodeInput($event)"
+          [disabled]="loading()"
+          autocomplete="off"
+          maxlength="20"
+        />
+        <mat-icon matSuffix>confirmation_number</mat-icon>
+        <mat-error *ngIf="codeValue?.hasError('required')">
+          Code is required
+        </mat-error>
+        <mat-error *ngIf="codeValue?.hasError('minlength')">
+          Code must be at least 6 characters
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Error Message -->
+      <div class="error-message" *ngIf="error()">
+        <mat-icon color="warn">error</mat-icon>
+        <span>{{ error() }}</span>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="submit"
+          [disabled]="!isFormValid || loading()"
+          class="redeem-button"
+        >
+          <mat-spinner diameter="20" *ngIf="loading()"></mat-spinner>
+          <mat-icon *ngIf="!loading()">redeem</mat-icon>
+          {{ loading() ? 'Redeeming...' : 'Redeem Code' }}
+        </button>
+        
+        <button 
+          mat-button 
+          type="button"
+          (click)="clearForm()"
+          [disabled]="loading()"
+        >
+          Clear
+        </button>
+      </div>
+    </form>
+
+    <!-- Success/Error Result -->
+    <div class="redemption-result" *ngIf="showResult() && redemptionResult()">
+      <div class="result-icon" [class.success]="redemptionResult()!.success" [class.error]="!redemptionResult()!.success">
+        <mat-icon>{{ redemptionResult()!.success ? 'check_circle' : 'error' }}</mat-icon>
+      </div>
+      
+      <div class="result-content">
+        <h3>{{ redemptionResult()!.success ? 'Code Redeemed Successfully!' : 'Redemption Failed' }}</h3>
+        <p>{{ redemptionResult()!.message }}</p>
+        
+        <div class="redemption-details" *ngIf="redemptionResult()!.success">
+          <div class="detail-item" *ngIf="redemptionResult()!.votesAdded">
+            <mat-icon>how_to_vote</mat-icon>
+            <span><strong>{{ redemptionResult()!.votesAdded }}</strong> votes added</span>
+          </div>
+          
+          <div class="detail-item" *ngIf="redemptionResult()!.organizationName">
+            <mat-icon>business</mat-icon>
+            <span>For <strong>{{ redemptionResult()!.organizationName }}</strong></span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="result-actions">
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="clearForm()"
+        >
+          Redeem Another Code
+        </button>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions" *ngIf="!showResult()">
+      <h4>How to redeem codes:</h4>
+      <ul>
+        <li>Enter the code exactly as provided</li>
+        <li>Codes are case-insensitive</li>
+        <li>Each code can only be used once</li>
+        <li>Votes will be added to your account for the specified organization</li>
+      </ul>
+    </div>
+  </mat-card-content>
+</mat-card>

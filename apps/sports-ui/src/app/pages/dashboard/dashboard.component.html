@@ -1,0 +1,133 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>{{ getUserGreeting() }}</h1>
+    <p class="subtitle">Welcome to your Sports UI dashboard</p>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">business</mat-icon>
+          <div class="stat-info">
+            <h3>{{ getActiveOrganizationsCount() }}</h3>
+            <p>Active Organizations</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">how_to_vote</mat-icon>
+          <div class="stat-info">
+            <h3>{{ getActivePlayerOptionsCount() }}</h3>
+            <p>Active Player Options</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">people</mat-icon>
+          <div class="stat-info">
+            <h3>24</h3>
+            <p>Active Players</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <mat-icon class="stat-icon">sports</mat-icon>
+          <div class="stat-info">
+            <h3>3</h3>
+            <p>Active Leagues</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="actions-section">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <mat-card class="action-card" (click)="navigateToPlayerOptions()">
+        <mat-card-content>
+          <mat-icon>how_to_vote</mat-icon>
+          <h3>Vote on Player Options</h3>
+          <p>Cast your votes on the latest player options</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="action-card" (click)="navigateToActiveRoster()">
+        <mat-card-content>
+          <mat-icon>people_alt</mat-icon>
+          <h3>View Active Roster</h3>
+          <p>See all active players in your organization</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="action-card" (click)="navigateToRedeem()">
+        <mat-card-content>
+          <mat-icon>redeem</mat-icon>
+          <h3>Redeem Codes</h3>
+          <p>Enter codes to unlock rewards and benefits</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="action-card" (click)="navigateToOrganizations()">
+        <mat-card-content>
+          <mat-icon>business</mat-icon>
+          <h3>Manage Organizations</h3>
+          <p>View and manage your organizations</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="recent-activity-section">
+    <h2>Recent Player Options</h2>
+    <div class="activity-list">
+      <mat-card class="activity-card" *ngFor="let option of playerOptions().slice(0, 3)">
+        <mat-card-content>
+          <div class="activity-content">
+            <div class="activity-info">
+              <h4>{{ option.title }}</h4>
+              <p>{{ option.description }}</p>
+              <div class="activity-meta">
+                <span class="votes">{{ option.votes }} votes</span>
+                <span class="date">{{ option.createdAt | date:'MMM d, y' }}</span>
+              </div>
+            </div>
+            <div class="activity-actions">
+              <button mat-button color="primary" (click)="navigateToPlayerOptions()">
+                <mat-icon>how_to_vote</mat-icon>
+                Vote
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Empty state -->
+      <div class="empty-state" *ngIf="playerOptions().length === 0">
+        <mat-icon>how_to_vote</mat-icon>
+        <h3>No recent player options</h3>
+        <p>Check back later for new voting opportunities</p>
+        <button mat-raised-button color="primary" (click)="navigateToPlayerOptions()">
+          View All Options
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

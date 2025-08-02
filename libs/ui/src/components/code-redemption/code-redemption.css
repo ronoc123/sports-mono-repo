@@ -1,0 +1,144 @@
+.code-redemption-card {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.code-redemption-card mat-card-header {
+  margin-bottom: 24px;
+}
+
+.code-redemption-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f44336;
+  margin: 16px 0;
+  padding: 12px;
+  background-color: #ffebee;
+  border-radius: 4px;
+  border-left: 4px solid #f44336;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  align-items: center;
+}
+
+.redeem-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+}
+
+.redemption-result {
+  text-align: center;
+  padding: 24px;
+}
+
+.result-icon {
+  margin-bottom: 16px;
+}
+
+.result-icon mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.result-icon.success mat-icon {
+  color: #4caf50;
+}
+
+.result-icon.error mat-icon {
+  color: #f44336;
+}
+
+.result-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+}
+
+.result-content p {
+  margin: 0 0 16px 0;
+  color: #666;
+}
+
+.redemption-details {
+  margin: 16px 0;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  justify-content: center;
+}
+
+.detail-item mat-icon {
+  color: #4caf50;
+}
+
+.result-actions {
+  margin-top: 24px;
+}
+
+.instructions {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+}
+
+.instructions h4 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.instructions ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.instructions li {
+  margin: 8px 0;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .code-redemption-card {
+    margin: 8px;
+    max-width: calc(100% - 16px);
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .redeem-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
