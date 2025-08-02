@@ -1,9 +1,101 @@
-<div class="dynamic-layout">
-  <div
-    *ngFor="let card of testCards"
-    class="card"
-    [ngClass]="getCardClass(card.type)"
-  >
-    {{ card.label }}
+<div class="dashboard-container">
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <mat-card class="welcome-card">
+      <mat-card-content>
+        <div class="welcome-content">
+          <div class="welcome-text">
+            <h1>
+              Welcome back, {{ currentUser()?.firstName || currentUser()?.email
+              || 'User' }}!
+            </h1>
+            <p>Here's what's happening in your organization today.</p>
+          </div>
+          <div class="welcome-icon">
+            <mat-icon>dashboard</mat-icon>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Stats Cards Section -->
+  <div class="stats-section">
+    <h2>Overview</h2>
+    <div class="stats-grid">
+      <mat-card
+        *ngFor="let card of statsCards"
+        class="stat-card"
+        [ngClass]="'stat-card-' + card.color"
+      >
+        <mat-card-content>
+          <div class="stat-header">
+            <div class="stat-icon">
+              <mat-icon>{{ card.icon }}</mat-icon>
+            </div>
+            <div class="stat-info">
+              <h3>{{ card.title }}</h3>
+              <div class="stat-value">{{ card.value }}</div>
+              <div class="stat-subtitle" *ngIf="card.subtitle">
+                {{ card.subtitle }}
+              </div>
+            </div>
+          </div>
+          <div class="stat-action" *ngIf="card.action">
+            <button
+              mat-button
+              color="primary"
+              (click)="navigateTo(card.action.route)"
+            >
+              {{ card.action.label }}
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Quick Actions Section -->
+  <div class="actions-section">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <mat-card *ngFor="let action of quickActions" class="action-card">
+        <mat-card-content>
+          <button
+            mat-raised-button
+            [color]="action.color"
+            (click)="navigateTo(action.route)"
+            class="action-button"
+          >
+            <mat-icon>{{ action.icon }}</mat-icon>
+            {{ action.label }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="activity-section">
+    <h2>Recent Activity</h2>
+    <mat-card class="activity-card">
+      <mat-card-content>
+        <div class="activity-list">
+          <div *ngFor="let activity of recentActivities" class="activity-item">
+            <div class="activity-icon" [ngClass]="'activity-' + activity.type">
+              <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">{{ activity.title }}</div>
+              <div class="activity-description">{{ activity.description }}</div>
+              <div class="activity-time">
+                {{ getTimeAgo(activity.timestamp) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

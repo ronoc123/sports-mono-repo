@@ -160,47 +160,59 @@ import { LoginCredentials } from "../services/auth.service";
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         padding: 20px;
       }
 
       .login-card {
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
         padding: 0;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        border-radius: 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
       }
 
       .login-header {
         text-align: center;
-        padding: 24px 24px 0;
+        padding: 32px 24px 0;
+        color: white;
       }
 
       .app-logo {
         height: 64px;
         width: auto;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
+        filter: brightness(0) invert(1);
       }
 
       .login-header h1 {
-        margin: 0 0 8px 0;
-        font-size: 28px;
-        font-weight: 500;
-        color: #333;
+        margin: 0 0 12px 0;
+        font-size: 32px;
+        font-weight: 600;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .login-subtitle {
         margin: 0;
-        color: #666;
-        font-size: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        font-weight: 400;
       }
 
       .login-form {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        padding: 24px;
+        gap: 20px;
+        padding: 32px 28px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        margin: 0 16px 16px 16px;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       }
 
       .full-width {
@@ -211,30 +223,53 @@ import { LoginCredentials } from "../services/auth.service";
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #f44336;
+        color: #dc2626;
         font-size: 14px;
-        padding: 8px 12px;
-        background-color: #ffebee;
-        border-radius: 4px;
-        border-left: 4px solid #f44336;
+        padding: 12px 16px;
+        background-color: rgba(254, 226, 226, 0.9);
+        border-radius: 8px;
+        border-left: 4px solid #dc2626;
+        backdrop-filter: blur(10px);
       }
 
       .login-button {
-        height: 48px;
+        height: 52px;
         font-size: 16px;
-        font-weight: 500;
-        margin-top: 8px;
+        font-weight: 600;
+        margin-top: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        text-transform: none;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .login-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
       }
 
       .login-actions {
-        padding: 0 24px 24px;
+        padding: 0 28px 32px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
       }
 
       .forgot-password {
         text-align: center;
+      }
+
+      .forgot-password button {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .forgot-password button:hover {
+        color: white;
       }
 
       .register-link {
@@ -247,21 +282,74 @@ import { LoginCredentials } from "../services/auth.service";
       }
 
       .register-link span {
-        color: #666;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .register-link button {
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .register-link button:hover {
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      /* Input field styling */
+      ::ng-deep .mat-mdc-form-field {
+        width: 100%;
+      }
+
+      ::ng-deep .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+      }
+
+      ::ng-deep .mat-mdc-form-field-focus-overlay {
+        background-color: transparent;
+      }
+
+      ::ng-deep .mdc-text-field--focused .mdc-line-ripple::before {
+        border-bottom-color: #667eea;
       }
 
       /* Responsive adjustments */
       @media (max-width: 480px) {
         .login-container {
-          padding: 16px;
+          padding: 12px;
         }
 
         .login-card {
           max-width: 100%;
+          margin: 0;
+        }
+
+        .login-header {
+          padding: 24px 20px 0;
         }
 
         .login-header h1 {
+          font-size: 28px;
+        }
+
+        .login-form {
+          padding: 24px 20px;
+          margin: 0 12px 12px 12px;
+        }
+
+        .login-actions {
+          padding: 0 20px 24px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .login-header h1 {
           font-size: 24px;
+        }
+
+        .login-subtitle {
+          font-size: 14px;
         }
       }
     `,

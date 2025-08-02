@@ -2,8 +2,9 @@ import { Component } from "@angular/core";
 import { RouterModule } from "@angular/router";
 
 @Component({
-  imports: [RouterModule],
   selector: "app-root",
+  standalone: true,
+  imports: [RouterModule],
   template: `<router-outlet></router-outlet>`,
   styles: [
     `
@@ -15,5 +16,5 @@ import { RouterModule } from "@angular/router";
   ],
 })
 export class App {
-  protected title = "sports-admin";
+  protected title = "sports-gm";
 }

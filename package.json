@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "nx serve sports-ui"
+    "start sports-ui": "nx serve sports-ui",
+    "start sports-admin": "nx serve sports-admin"
   },
   "private": true,
   "dependencies": {

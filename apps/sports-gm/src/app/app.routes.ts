@@ -23,7 +23,7 @@ export const appRoutes: Route[] = [
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
       },
-      // Admin-specific routes will be added later
+      // GM-specific routes will be added later
       // For now, all routes redirect to dashboard
     ],
   },

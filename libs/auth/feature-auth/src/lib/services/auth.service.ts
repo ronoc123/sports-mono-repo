@@ -1,7 +1,9 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { Router } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 import { BehaviorSubject, Observable, of, throwError } from "rxjs";
 import { delay, tap, catchError } from "rxjs/operators";
+import { EnvironmentService } from "@sports-ui/http-client";
 
 export interface User {
   id: string;
@@ -29,6 +31,8 @@ export interface LoginResponse {
 })
 export class AuthService {
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly environmentService = inject(EnvironmentService);
 
   // Signals for reactive state management
   private readonly _currentUser = signal<User | null>(null);
@@ -59,8 +63,12 @@ export class AuthService {
     this._isLoading.set(true);
     this._error.set(null);
 
-    // Mock login - replace with actual API call
-    return this.mockLogin(credentials).pipe(
+    // Use real or mock authentication based on environment
+    const loginObservable = this.environmentService.enableRealAuth
+      ? this.realLogin(credentials)
+      : this.mockLogin(credentials);
+
+    return loginObservable.pipe(
       tap((response) => {
         this.setAuthenticatedUser(response.user, response.token);
         this._isLoading.set(false);
@@ -170,6 +178,15 @@ export class AuthService {
     localStorage.removeItem("refreshToken");
   }
 
+  // Real API implementation
+  private realLogin(credentials: LoginCredentials): Observable<LoginResponse> {
+    const loginUrl = this.environmentService.getIdentityEndpoint("auth/login");
+
+    return this.http
+      .post<LoginResponse>(loginUrl, credentials)
+      .pipe(tap(() => console.log("Real login successful")));
+  }
+
   // Mock implementations - replace with actual API calls
   private mockLogin(credentials: LoginCredentials): Observable<LoginResponse> {
     // Simulate API delay
@@ -191,9 +208,14 @@ export class AuthService {
     );
   }
 
-  private mockRefreshToken(refreshToken: string): Observable<LoginResponse> {
+  private mockRefreshToken(_refreshToken: string): Observable<LoginResponse> {
+    const currentUser = this._currentUser();
+    if (!currentUser) {
+      return throwError(() => new Error("No current user"));
+    }
+
     return of({
-      user: this._currentUser()!,
+      user: currentUser,
       token: "mock-jwt-token-refreshed-" + Date.now(),
       refreshToken: "mock-refresh-token-refreshed-" + Date.now(),
     }).pipe(delay(500));

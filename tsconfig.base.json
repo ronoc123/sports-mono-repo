@@ -20,26 +20,26 @@
       "@sports-ui/auth-data-access": [
         "libs/auth/auth-data-access/src/index.ts"
       ],
-      "@sports-ui/feature-auth": ["libs/auth/feature-auth/src/index.ts"],
       "@sports-ui/dashboard-data-access": [
         "libs/dashboard/dashboard-data-access/src/index.ts"
       ],
       "@sports-ui/data-access": ["libs/core/data-access/src/index.ts"],
       "@sports-ui/error-handler": ["libs/core/error-handler/src/index.ts"],
+      "@sports-ui/feature-admin": ["libs/admin/src/index.ts"],
+      "@sports-ui/feature-auth": ["libs/auth/feature-auth/src/index.ts"],
       "@sports-ui/feature-dashboard": [
         "libs/dashboard/feature-dashboard/src/index.ts"
       ],
+      "@sports-ui/feature-error": ["libs/error/src/index.ts"],
+      "@sports-ui/feature-organization": ["libs/organization/src/index.ts"],
       "@sports-ui/feature-player-option": [
         "libs/player-options/feature-player-option/src/index.ts"
       ],
+      "@sports-ui/feature-profile": ["libs/profile/src/index.ts"],
       "@sports-ui/feature-roaster": [
         "libs/roaster/feature-roaster/src/index.ts"
       ],
-      "@sports-ui/feature-organization": ["libs/organization/src/index.ts"],
-      "@sports-ui/feature-admin": ["libs/admin/src/index.ts"],
-      "@sports-ui/feature-profile": ["libs/profile/src/index.ts"],
       "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
-      "@sports-ui/feature-error": ["libs/error/src/index.ts"],
       "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
       "@sports-ui/player-options": ["libs/player-options/src/index.ts"],
       "@sports-ui/player-options-data-access": [
