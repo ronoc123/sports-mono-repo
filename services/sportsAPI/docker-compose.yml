@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: src/SportsAPI/WebAPI/Dockerfile
     ports:
-      - "5000:80"
+      - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sports.database;Database=SportsDb;User=sa;Password=Test123!;TrustServerCertificate=True

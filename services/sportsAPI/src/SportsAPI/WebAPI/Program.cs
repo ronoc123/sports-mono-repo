@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -17,13 +17,36 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Add CORS services
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    if (builder.Environment.IsDevelopment())
     {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // ONLY needed if you use cookies or auth headers
-    });
+        // More permissive policy for development
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    }
+    else
+    {
+        // Restrictive policy for production
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins(
+                    "http://localhost:4200",   // Angular default
+                    "http://localhost:3000",   // React default
+                    "http://localhost:5173",   // Vite default
+                    "http://localhost:8080",   // Vue default
+                    "https://localhost:4200",  // HTTPS versions
+                    "https://localhost:3000",
+                    "https://localhost:5173",
+                    "https://localhost:8080"
+                  )
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+    }
 });
 
 // Add JWT Authentication - configured to validate tokens from Identity Service
@@ -106,21 +129,15 @@ builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-app.UseCors("AllowFrontend");
-
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Add("Cross-Origin-Opener-Policy", "same-origin");
-    context.Response.Headers.Add("Cross-Origin-Embedder-Policy", "require-corp");
-    await next.Invoke();
-});
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// CORS must be called before UseAuthentication and UseAuthorization
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 
