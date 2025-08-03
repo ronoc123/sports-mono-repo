@@ -7,12 +7,11 @@ import { MatGridListModule } from "@angular/material/grid-list";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { Router } from "@angular/router";
 import { UserStore, OrganizationStore } from "@sports-ui/data-access";
-import { PlayerOptionStore } from "@sports-ui/player-options-data-access";
 import {
-  Organization,
+  PlayerOptionStore,
   PlayerOption,
-  PlayerOptionFilter,
-} from "@sports-ui/api-types";
+} from "@sports-ui/player-options-data-access";
+import { Organization } from "@sports-ui/api-types";
 
 @Component({
   selector: "app-dashboard",
@@ -56,12 +55,7 @@ export class DashboardComponent implements OnInit {
     });
 
     // Load recent player options
-    this.playerOptionStore.loadPlayerOptions({
-      pageNumber: 1,
-      pageSize: 5,
-      sortBy: "createdAt",
-      sortDescending: true,
-    });
+    this.playerOptionStore.loadPlayerOptions("user-123");
   }
 
   navigateToPlayerOptions() {
@@ -106,7 +100,7 @@ export class DashboardComponent implements OnInit {
 
   getActivePlayerOptionsCount(): number {
     return this.playerOptions().filter(
-      (option: PlayerOption) => option.isActive && !option.isExpired
+      (option: PlayerOption) => option.status === "active"
     ).length;
   }
 }

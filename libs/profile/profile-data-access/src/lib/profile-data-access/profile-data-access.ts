@@ -124,184 +124,194 @@ export const ProfileStore = signalStore(
       }
     }),
   })),
-  withMethods((store, http = inject(HttpClient)) => ({
-    // Load user profile
-    loadProfile(): void {
-      patchState(store, { isLoading: true, error: null });
+  withMethods((store, http = inject(HttpClient)) => {
+    const API_BASE_URL = "http://localhost:5000/api"; // Update this to match your API URL
 
-      // Mock API call - replace with actual API
-      const mockProfile: UserProfile = {
-        id: "user-123",
-        email: "john.doe@example.com",
-        firstName: "John",
-        lastName: "Doe",
-        username: "johndoe",
-        phone: "+1 (555) 123-4567",
-        dateOfBirth: "1990-05-15",
-        bio: "Sports enthusiast and team player. Love making strategic decisions for my favorite teams!",
-        avatar: "/assets/default-avatar.png",
-        preferences: {
-          emailNotifications: true,
-          pushNotifications: false,
-          theme: "auto",
-          language: "en",
-          timezone: "America/New_York",
-          privacy: {
-            profileVisibility: "public",
-            showEmail: false,
-            showPhone: false,
+    return {
+      // Load user profile
+      loadProfile(userId: string = "user-123"): void {
+        patchState(store, { isLoading: true, error: null });
+
+        // Try real API call first, fallback to mock data
+        const mockProfile: UserProfile = {
+          id: "user-123",
+          email: "john.doe@example.com",
+          firstName: "John",
+          lastName: "Doe",
+          username: "johndoe",
+          phone: "+1 (555) 123-4567",
+          dateOfBirth: "1990-05-15",
+          bio: "Sports enthusiast and team player. Love making strategic decisions for my favorite teams!",
+          avatar: "/assets/default-avatar.png",
+          preferences: {
+            emailNotifications: true,
+            pushNotifications: false,
+            theme: "auto",
+            language: "en",
+            timezone: "America/New_York",
+            privacy: {
+              profileVisibility: "public",
+              showEmail: false,
+              showPhone: false,
+            },
           },
-        },
-        stats: {
-          totalVotes: 1000,
-          votesUsed: 750,
-          votesRemaining: 250,
-          optionsParticipated: 45,
-          organizationsJoined: 3,
-          accountLevel: "gold",
-          joinDate: "2023-01-15",
-        },
-        createdAt: "2023-01-15T10:00:00Z",
-        updatedAt: "2024-01-15T14:30:00Z",
-      };
+          stats: {
+            totalVotes: 1000,
+            votesUsed: 750,
+            votesRemaining: 250,
+            optionsParticipated: 45,
+            organizationsJoined: 3,
+            accountLevel: "gold",
+            joinDate: "2023-01-15",
+          },
+          createdAt: "2023-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T14:30:00Z",
+        };
 
-      of(mockProfile)
-        .pipe(
-          delay(1000), // Simulate network delay
-          catchError((error) => {
+        // Try real API call first
+        http
+          .get<{ success: boolean; data: UserProfile; message: string }>(
+            `${API_BASE_URL}/User/profile/${userId}`
+          )
+          .pipe(
+            map((response) => response.data),
+            catchError((error) => {
+              console.warn("API call failed, using mock data:", error);
+              // Fallback to mock data for development
+              return of(mockProfile).pipe(delay(500));
+            })
+          )
+          .subscribe((profile) => {
             patchState(store, {
+              profile,
               isLoading: false,
-              error: "Failed to load profile. Please try again.",
+              error: null,
+              lastUpdated: new Date().toISOString(),
             });
-            return throwError(() => error);
-          })
-        )
-        .subscribe((profile) => {
-          patchState(store, {
-            profile,
-            isLoading: false,
-            error: null,
-            lastUpdated: new Date().toISOString(),
           });
-        });
-    },
+      },
 
-    // Update profile information
-    updateProfile(updates: UpdateProfileRequest): void {
-      const currentProfile = store.profile();
-      if (!currentProfile) return;
+      // Update profile information
+      updateProfile(updates: UpdateProfileRequest): void {
+        const currentProfile = store.profile();
+        if (!currentProfile) return;
 
-      patchState(store, { isUpdating: true, error: null });
+        patchState(store, { isUpdating: true, error: null });
 
-      // Mock API call - replace with actual API
-      of({ ...currentProfile, ...updates, updatedAt: new Date().toISOString() })
-        .pipe(
-          delay(800),
-          catchError((error) => {
+        // Mock API call - replace with actual API
+        of({
+          ...currentProfile,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+          .pipe(
+            delay(800),
+            catchError((error) => {
+              patchState(store, {
+                isUpdating: false,
+                error: "Failed to update profile. Please try again.",
+              });
+              return throwError(() => error);
+            })
+          )
+          .subscribe((updatedProfile) => {
             patchState(store, {
+              profile: updatedProfile,
               isUpdating: false,
-              error: "Failed to update profile. Please try again.",
+              error: null,
+              lastUpdated: new Date().toISOString(),
             });
-            return throwError(() => error);
-          })
-        )
-        .subscribe((updatedProfile) => {
-          patchState(store, {
-            profile: updatedProfile,
-            isUpdating: false,
-            error: null,
-            lastUpdated: new Date().toISOString(),
           });
-        });
-    },
+      },
 
-    // Update user preferences
-    updatePreferences(updates: UpdatePreferencesRequest): void {
-      const currentProfile = store.profile();
-      if (!currentProfile) return;
+      // Update user preferences
+      updatePreferences(updates: UpdatePreferencesRequest): void {
+        const currentProfile = store.profile();
+        if (!currentProfile) return;
 
-      patchState(store, { isUpdating: true, error: null });
+        patchState(store, { isUpdating: true, error: null });
 
-      const updatedPreferences = {
-        ...currentProfile.preferences,
-        ...updates,
-        privacy: {
-          ...currentProfile.preferences.privacy,
-          ...(updates.privacy || {}),
-        },
-      };
-      const updatedProfile = {
-        ...currentProfile,
-        preferences: updatedPreferences,
-        updatedAt: new Date().toISOString(),
-      };
+        const updatedPreferences = {
+          ...currentProfile.preferences,
+          ...updates,
+          privacy: {
+            ...currentProfile.preferences.privacy,
+            ...(updates.privacy || {}),
+          },
+        };
+        const updatedProfile = {
+          ...currentProfile,
+          preferences: updatedPreferences,
+          updatedAt: new Date().toISOString(),
+        };
 
-      // Mock API call - replace with actual API
-      of(updatedProfile)
-        .pipe(
-          delay(500),
-          catchError((error) => {
+        // Mock API call - replace with actual API
+        of(updatedProfile)
+          .pipe(
+            delay(500),
+            catchError((error) => {
+              patchState(store, {
+                isUpdating: false,
+                error: "Failed to update preferences. Please try again.",
+              });
+              return throwError(() => error);
+            })
+          )
+          .subscribe((profile) => {
             patchState(store, {
+              profile,
               isUpdating: false,
-              error: "Failed to update preferences. Please try again.",
+              error: null,
+              lastUpdated: new Date().toISOString(),
             });
-            return throwError(() => error);
-          })
-        )
-        .subscribe((profile) => {
-          patchState(store, {
-            profile,
-            isUpdating: false,
-            error: null,
-            lastUpdated: new Date().toISOString(),
           });
-        });
-    },
+      },
 
-    // Upload avatar
-    uploadAvatar(file: File): void {
-      const currentProfile = store.profile();
-      if (!currentProfile) return;
+      // Upload avatar
+      uploadAvatar(file: File): void {
+        const currentProfile = store.profile();
+        if (!currentProfile) return;
 
-      patchState(store, { isUpdating: true, error: null });
+        patchState(store, { isUpdating: true, error: null });
 
-      // Mock file upload - replace with actual API
-      const mockAvatarUrl = URL.createObjectURL(file);
-      const updatedProfile = {
-        ...currentProfile,
-        avatar: mockAvatarUrl,
-        updatedAt: new Date().toISOString(),
-      };
+        // Mock file upload - replace with actual API
+        const mockAvatarUrl = URL.createObjectURL(file);
+        const updatedProfile = {
+          ...currentProfile,
+          avatar: mockAvatarUrl,
+          updatedAt: new Date().toISOString(),
+        };
 
-      of(updatedProfile)
-        .pipe(
-          delay(1500),
-          catchError((error) => {
+        of(updatedProfile)
+          .pipe(
+            delay(1500),
+            catchError((error) => {
+              patchState(store, {
+                isUpdating: false,
+                error: "Failed to upload avatar. Please try again.",
+              });
+              return throwError(() => error);
+            })
+          )
+          .subscribe((profile) => {
             patchState(store, {
+              profile,
               isUpdating: false,
-              error: "Failed to upload avatar. Please try again.",
+              error: null,
+              lastUpdated: new Date().toISOString(),
             });
-            return throwError(() => error);
-          })
-        )
-        .subscribe((profile) => {
-          patchState(store, {
-            profile,
-            isUpdating: false,
-            error: null,
-            lastUpdated: new Date().toISOString(),
           });
-        });
-    },
+      },
 
-    // Clear error
-    clearError(): void {
-      patchState(store, { error: null });
-    },
+      // Clear error
+      clearError(): void {
+        patchState(store, { error: null });
+      },
 
-    // Reset store
-    reset(): void {
-      patchState(store, initialState);
-    },
-  }))
+      // Reset store
+      reset(): void {
+        patchState(store, initialState);
+      },
+    };
+  })
 );

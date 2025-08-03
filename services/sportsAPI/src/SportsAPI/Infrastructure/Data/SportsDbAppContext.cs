@@ -5,6 +5,7 @@ using Domain.Organizations.Entities;
 using Domain.SharedKernal;
 using Domain.Users;
 using Domain.Organizations;
+using Domain.ValueObjects.ConcreteTypes;
 using System.Reflection;
 using Application.Common.Interfaces;
 
@@ -37,11 +38,15 @@ namespace Infrastructure.Data
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.UserVotesId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.ThemeId>();
 
-            // Ignore value objects
+            // Ignore complex value objects
             modelBuilder.Ignore<Domain.ValueObjects.TeamColors>();
             modelBuilder.Ignore<Domain.ValueObjects.Venue>();
             modelBuilder.Ignore<Domain.ValueObjects.MediaAssets>();
             modelBuilder.Ignore<Domain.ValueObjects.SocialLinks>();
+
+            // Ignore nested classes that are used as value objects
+            modelBuilder.Ignore<Domain.Users.Entities.PrivacySettings>();
+            modelBuilder.Ignore<Domain.Users.Entities.UserPreferences>();
 
             // Apply entity configurations
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

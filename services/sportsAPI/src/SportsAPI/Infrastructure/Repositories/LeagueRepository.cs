@@ -1,5 +1,6 @@
 using Domain.Leagues;
 using Domain.Repositories;
+using Domain.ValueObjects.ConcreteTypes;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,14 +17,17 @@ public class LeagueRepository : ILeagueRepository
 
     public async Task<League?> GetByIdAsync(Guid leagueId)
     {
+        // Create the LeagueId value object for comparison
+        var leagueIdVO = LeagueId.Of(leagueId);
         return await _db.Leagues
-            .FirstOrDefaultAsync(l => l.Id.Value == leagueId);
+            .FirstOrDefaultAsync(l => l.Id == leagueIdVO);
     }
 
     public async Task<List<League>> GetLeaguesByOrganizationIdAsync(Guid organizationId)
     {
+        var organizationIdVO = OrganizationId.Of(organizationId);
         return await _db.Leagues
-            .Where(l => l.Organization.Any(o => o.Id.Value == organizationId))
+            .Where(l => l.Organization.Any(o => o.Id == organizationIdVO))
             .ToListAsync();
     }
 
@@ -41,9 +45,10 @@ public class LeagueRepository : ILeagueRepository
 
     public async Task DeleteLeagueAsync(Guid leagueId)
     {
+        var leagueIdVO = LeagueId.Of(leagueId);
         var league = await _db.Leagues
-            .FirstOrDefaultAsync(l => l.Id.Value == leagueId);
-        
+            .FirstOrDefaultAsync(l => l.Id == leagueIdVO);
+
         if (league != null)
         {
             _db.Leagues.Remove(league);

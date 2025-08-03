@@ -1,5 +1,6 @@
 ﻿using Domain.Organizations;
 using Domain.Repositories;
+using Domain.ValueObjects.ConcreteTypes;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,8 +23,9 @@ namespace Infrastructure.Repositories
 
         public async Task DeleteOrganizationAsync(Guid organizationId)
         {
+            var organizationIdVO = OrganizationId.Of(organizationId);
             var organization = await _db.Organizations
-                .FirstOrDefaultAsync(o => o.Id.Value == organizationId);
+                .FirstOrDefaultAsync(o => o.Id == organizationIdVO);
 
             if (organization != null)
             {
@@ -39,8 +41,9 @@ namespace Infrastructure.Repositories
 
         public async Task<Organization?> GetOrganizationByIdAsync(Guid organizationId)
         {
+            var organizationIdVO = OrganizationId.Of(organizationId);
             return await _db.Organizations
-                .FirstOrDefaultAsync(o => o.Id.Value == organizationId);
+                .FirstOrDefaultAsync(o => o.Id == organizationIdVO);
         }
 
         public async Task UpdateOrganizationAsync(Organization organization)

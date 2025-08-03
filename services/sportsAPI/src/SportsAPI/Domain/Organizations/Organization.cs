@@ -84,9 +84,24 @@ namespace Domain.Organizations
             TeamColors teamColors,
             string? description)
         {
-            return new Organization(
-                id, leagueId, name, teamId, teamName, teamShortName,
-                formedYear, sport, venue, mediaAssets, socialLinks, teamColors, description);
+            return new Organization
+            {
+                Id = id,
+                LeagueId = leagueId,
+                Name = name,
+                TeamId = teamId,
+                TeamName = teamName,
+                TeamShortName = teamShortName,
+                FormedYear = formedYear,
+                Sport = sport,
+                Venue = venue,
+                MediaAssets = mediaAssets,
+                SocialLinks = socialLinks,
+                TeamColors = teamColors,
+                Description = description,
+                CreatedAt = DateTime.UtcNow,
+                IsLocked = false
+            };
         }
 
         public void UpdateTeamInfo(string? teamId, string? teamName, string? teamShortName, string? sport)

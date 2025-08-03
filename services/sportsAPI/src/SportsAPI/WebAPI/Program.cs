@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Application;
 using Infrastructure;
+using Infrastructure.Data;
 // using BuildingBlocks.Messageing.MassTransit; // Temporarily disabled
 
 
@@ -130,18 +131,19 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Database seeding (commented out for now - needs to be updated for new architecture)
-/*
+// Database seeding
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
     try
     {
-        var db = services.GetRequiredService<SportsDbAppContext>();
+        var context = services.GetRequiredService<SportsDbAppContext>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
 
-        var seeder = services.GetRequiredService<DatabaseSeeder>();
-        await seeder.SeedNFLDataAsync();
+        logger.LogInformation("Starting database seeding...");
+        await SeedData.SeedAsync(context);
+        logger.LogInformation("Database seeding completed successfully.");
     }
     catch (Exception ex)
     {
@@ -149,7 +151,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
     }
 }
-*/
 
 app.Run();
 

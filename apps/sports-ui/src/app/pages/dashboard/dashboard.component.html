@@ -98,19 +98,28 @@
   <div class="recent-activity-section">
     <h2>Recent Player Options</h2>
     <div class="activity-list">
-      <mat-card class="activity-card" *ngFor="let option of playerOptions().slice(0, 3)">
+      <mat-card
+        class="activity-card"
+        *ngFor="let option of playerOptions().slice(0, 3)"
+      >
         <mat-card-content>
           <div class="activity-content">
             <div class="activity-info">
               <h4>{{ option.title }}</h4>
               <p>{{ option.description }}</p>
               <div class="activity-meta">
-                <span class="votes">{{ option.votes }} votes</span>
-                <span class="date">{{ option.createdAt | date:'MMM d, y' }}</span>
+                <span class="votes">{{ option.totalVotes }} votes</span>
+                <span class="date">{{
+                  option.createdAt | date : "MMM d, y"
+                }}</span>
               </div>
             </div>
             <div class="activity-actions">
-              <button mat-button color="primary" (click)="navigateToPlayerOptions()">
+              <button
+                mat-button
+                color="primary"
+                (click)="navigateToPlayerOptions()"
+              >
                 <mat-icon>how_to_vote</mat-icon>
                 Vote
               </button>
@@ -124,7 +133,11 @@
         <mat-icon>how_to_vote</mat-icon>
         <h3>No recent player options</h3>
         <p>Check back later for new voting opportunities</p>
-        <button mat-raised-button color="primary" (click)="navigateToPlayerOptions()">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="navigateToPlayerOptions()"
+        >
           View All Options
         </button>
       </div>

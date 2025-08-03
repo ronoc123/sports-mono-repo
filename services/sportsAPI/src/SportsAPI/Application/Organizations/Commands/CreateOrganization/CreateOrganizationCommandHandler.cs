@@ -76,8 +76,8 @@ public class CreateOrganizationCommandHandler : IRequestHandler<CreateOrganizati
                 request.Description
             );
 
-            // Add organization to league
-            league.AddOrganization(organization);
+            // Add organization to league - temporarily commented out to debug ID issue
+            // league.AddOrganization(organization);
 
             _context.Organizations.Add(organization);
             await _context.SaveChangesAsync(cancellationToken);

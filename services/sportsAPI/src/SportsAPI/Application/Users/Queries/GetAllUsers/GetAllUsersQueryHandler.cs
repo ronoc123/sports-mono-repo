@@ -45,7 +45,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, Result<
                 Id = u.Id.Value,
                 Email = u.Email,
                 UserName = u.UserName,
-                CreatedAt = u.CreatedAt ?? DateTime.MinValue,
+                CreatedAt = u.CreatedAt,
                 VoteCount = _context.Votes.Count(v => v.CreatedBy == u.Id.Value.ToString()),
                 RedeemedCodeCount = _context.Codes.Count(c => c.RedeemerId != null && c.RedeemerId == u.Id)
             });

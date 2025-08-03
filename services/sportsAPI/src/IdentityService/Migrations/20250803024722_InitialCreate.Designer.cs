@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IdentityService.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20250727232925_identiy")]
-    partial class identiy
+    [Migration("20250803024722_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -169,28 +169,28 @@ namespace IdentityService.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "174eb314-2901-4d61-b9e1-36bc67e3c12c",
+                            ConcurrencyStamp = "6265bd95-c31b-4977-9e8b-09cb421502f1",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "21a2c026-d5b2-4b22-8f1b-2e5fec769822",
+                            ConcurrencyStamp = "25d95643-0c1c-4056-a906-7ef99ff92a9c",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "1f03d036-e38c-4aa1-bbfc-807b2a5f950f",
+                            ConcurrencyStamp = "b55e67b0-7ca4-4596-8d1d-677ee0d9e21b",
                             Name = "CSP",
                             NormalizedName = "CSP"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "a67bd583-b26e-46ff-bf86-65397f135881",
+                            ConcurrencyStamp = "d1bbbe2a-2e21-4dd3-8ce1-4c597c7e0fdb",
                             Name = "GM",
                             NormalizedName = "GM"
                         });

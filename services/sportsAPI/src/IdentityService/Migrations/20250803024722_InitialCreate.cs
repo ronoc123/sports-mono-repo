@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IdentityService.Migrations
 {
     /// <inheritdoc />
-    public partial class identiy : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -190,10 +190,10 @@ namespace IdentityService.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "1", "174eb314-2901-4d61-b9e1-36bc67e3c12c", "Admin", "ADMIN" },
-                    { "2", "21a2c026-d5b2-4b22-8f1b-2e5fec769822", "User", "USER" },
-                    { "3", "1f03d036-e38c-4aa1-bbfc-807b2a5f950f", "CSP", "CSP" },
-                    { "4", "a67bd583-b26e-46ff-bf86-65397f135881", "GM", "GM" }
+                    { "1", "6265bd95-c31b-4977-9e8b-09cb421502f1", "Admin", "ADMIN" },
+                    { "2", "25d95643-0c1c-4056-a906-7ef99ff92a9c", "User", "USER" },
+                    { "3", "b55e67b0-7ca4-4596-8d1d-677ee0d9e21b", "CSP", "CSP" },
+                    { "4", "d1bbbe2a-2e21-4dd3-8ce1-4c597c7e0fdb", "GM", "GM" }
                 });
 
             migrationBuilder.CreateIndex(
