@@ -5,6 +5,7 @@ import { map, tap, catchError, finalize } from "rxjs/operators";
 import { UserStore } from "@sports-ui/data-access";
 import { User, ServiceResponse } from "@sports-ui/api-types";
 import { ApiService } from "@sports-ui/http-client";
+import { environment } from "../../../../environments";
 
 export interface LoginRequest {
   email: string;
@@ -74,7 +75,7 @@ export class AuthService {
       this.apiService
         // Route this to Identity: prefix with 'identity/'
         .post<AuthResponse, { googleToken: any }>(
-          "/auth/google", // NOT "/auth/google"
+          `${environment.identityApi}auth/google`, // NOT "/auth/google"
           { googleToken } // NOT { googleToken }
         )
         .pipe(

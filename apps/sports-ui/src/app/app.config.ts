@@ -3,9 +3,10 @@ import { ApplicationConfig } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { environment } from "../../../../libs/core/environments/index";
 
 import { appRoutes } from "./app.routes";
-import { environment } from "../environments/environment";
 import {
   API_URL,
   APP_ENVIRONMENT,
@@ -23,7 +24,7 @@ export const appConfig: ApplicationConfig = {
     // ✅ Only the CONFIG token is required
 
     { provide: APP_ENVIRONMENT, useValue: environment },
-    { provide: API_URL, useValue: environment.identityApiBaseUrl },
+    { provide: API_URL, useValue: environment.apiUrl },
     { provide: GOOGLE_CLIENT_ID, useValue: environment.googleClientId },
   ],
 };
