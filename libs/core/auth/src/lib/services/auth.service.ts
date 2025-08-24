@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from "@angular/core";
+import { Injectable, computed, inject, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, of, throwError } from "rxjs";
 import { map, tap, catchError, finalize } from "rxjs/operators";
@@ -44,6 +44,18 @@ export class AuthService {
   readonly authenticating = this.isAuthenticating.asReadonly();
   readonly error = this.authError.asReadonly();
 
+  // Signals for reactive state management
+  private readonly _currentUser = signal<User | null>(null);
+  private readonly _isLoading = signal(false);
+
+  // Public readonly signals
+  readonly currentUser = this._currentUser.asReadonly();
+  readonly isLoading = this._isLoading.asReadonly();
+  readonly isAuthenticated = computed(() => !!this._currentUser());
+
+  // Observable for guards and other reactive needs
+  readonly isAuthenticated$ = new BehaviorSubject<boolean>(false);
+
   constructor() {
     // Initialize authentication state on service creation
     this.initializeAuth();
@@ -61,6 +73,9 @@ export class AuthService {
       // Clear invalid token
       this.clearStoredToken();
     }
+
+    // Update the observable with initial value
+    this.isAuthenticated$.next(this.isAuthenticated());
   }
 
   /** 🔐 NEW: Login with Google ID token */
@@ -159,25 +174,6 @@ export class AuthService {
   }
 
   /**
-   * Logout user
-   */
-  logout(): Observable<boolean> {
-    return this.apiService
-      .post<ServiceResponse<boolean>, object>("api/auth/logout", {})
-      .pipe(
-        tap(() => {
-          this.handleLogout();
-        }),
-        map((response) => response.success),
-        catchError(() => {
-          // Even if logout API fails, clear local session
-          this.handleLogout();
-          return of(true);
-        })
-      );
-  }
-
-  /**
    * Refresh authentication token
    */
   refreshToken(): Observable<AuthResponse> {
@@ -207,14 +203,6 @@ export class AuthService {
           return throwError(() => error);
         })
       );
-  }
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    const token = this.getStoredToken();
-    return token !== null && this.isTokenValid(token);
   }
 
   /**
@@ -249,6 +237,8 @@ export class AuthService {
 
     // Clear loading state
     this.isAuthenticating.set(false);
+
+    this.isAuthenticated$.next(true);
 
     this.router.navigate(["/"]);
   }
@@ -327,7 +317,65 @@ export class AuthService {
     }
   }
 
+  logout(): void {
+    this._currentUser.set(null);
+    // this._error.set(null);
+    this.clearAuthData();
+
+    // Update the observable
+    this.isAuthenticated$.next(this.isAuthenticated());
+
+    this.router.navigate(["/login"]);
+  }
+
   /**
-   * Get return URL from query params
+   * Check if user has any of the specified roles
    */
+  hasAnyRole(): boolean {
+    const user = this._currentUser();
+    return user?.roles?.length ? true : false;
+  }
+
+  /**
+   * Refresh authentication token
+   */
+  // refreshToken(): Observable<LoginResponse> {}
+
+  private checkExistingSession(): void {
+    const token = localStorage.getItem("authToken");
+    const userJson = localStorage.getItem("currentUser");
+
+    if (token && userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        this._currentUser.set(user);
+      } catch (error) {
+        console.error("Error parsing stored user data:", error);
+        this.clearAuthData();
+      }
+    }
+  }
+
+  private setAuthenticatedUser(
+    user: User,
+    token: string,
+    refreshToken?: string
+  ): void {
+    this._currentUser.set(user);
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
+
+    // Update the observable
+    this.isAuthenticated$.next(this.isAuthenticated());
+  }
+
+  private clearAuthData(): void {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("refreshToken");
+  }
 }

@@ -18,6 +18,7 @@ export interface User {
   votes?: Vote[];
   codes?: Code[];
   votesAvailable?: UserVotes[];
+  roles?: string[];
 }
 
 export interface UserVotes {

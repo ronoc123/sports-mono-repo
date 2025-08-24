@@ -1,19 +1,19 @@
-import { Component, input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { map } from 'rxjs/operators';
+import { Component, input, inject } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
+import { MatToolbarModule } from "@angular/material/toolbar";
+import { MatSidenavModule } from "@angular/material/sidenav";
+import { MatListModule } from "@angular/material/list";
+import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from "@angular/material/button";
+import { MatMenuModule } from "@angular/material/menu";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { map } from "rxjs/operators";
 
-import { SidebarComponent } from './sidebar.component';
-import { NavbarComponent } from './navbar.component';
+import { SidebarComponent } from "./sidebar.component";
+import { NavbarComponent } from "./navbar.component";
 
 export interface NavItem {
   name: string;
@@ -31,13 +31,14 @@ export interface LayoutConfig {
   showUserMenu: boolean;
   showNotifications: boolean;
   showSearch: boolean;
-  sidenavMode: 'over' | 'push' | 'side';
+  sidenavMode: "over" | "push" | "side";
   sidenavOpened: boolean;
   showFooter?: boolean;
 }
 
 @Component({
-  selector: 'ui-main-layout',
+  // eslint-disable-next-line @angular-eslint/component-selector
+  selector: "ui-main-layout",
   standalone: true,
   imports: [
     CommonModule,
@@ -53,8 +54,8 @@ export interface LayoutConfig {
     SidebarComponent,
     NavbarComponent,
   ],
-  templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.css',
+  templateUrl: "./main-layout.component.html",
+  styleUrl: "./main-layout.component.css",
 })
 export class MainLayoutComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
@@ -62,11 +63,11 @@ export class MainLayoutComponent {
   // Inputs
   readonly navItems = input.required<NavItem[]>();
   readonly config = input<LayoutConfig>({
-    appTitle: 'Sports UI',
+    appTitle: "Sports UI",
     showUserMenu: true,
     showNotifications: true,
     showSearch: false,
-    sidenavMode: 'side',
+    sidenavMode: "side",
     sidenavOpened: true,
   });
 
@@ -79,29 +80,32 @@ export class MainLayoutComponent {
   readonly selectedOrganization = input<any>(null);
 
   // Responsive breakpoints
-  readonly isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset)
-    .pipe(map(result => result.matches));
+  readonly isHandset$ = this.breakpointObserver
+    .observe(Breakpoints.Handset)
+    .pipe(map((result) => result.matches));
 
-  readonly isTablet$ = this.breakpointObserver.observe(Breakpoints.Tablet)
-    .pipe(map(result => result.matches));
+  readonly isTablet$ = this.breakpointObserver
+    .observe(Breakpoints.Tablet)
+    .pipe(map((result) => result.matches));
 
-  readonly isDesktop$ = this.breakpointObserver.observe([Breakpoints.Large, Breakpoints.XLarge])
-    .pipe(map(result => result.matches));
+  readonly isDesktop$ = this.breakpointObserver
+    .observe([Breakpoints.Large, Breakpoints.XLarge])
+    .pipe(map((result) => result.matches));
 
   // Get responsive sidenav mode
-  getSidenavMode(): 'over' | 'push' | 'side' {
+  getSidenavMode(): "over" | "push" | "side" {
     // On mobile, always use 'over' mode
     if (this.breakpointObserver.isMatched(Breakpoints.Handset)) {
-      return 'over';
+      return "over";
     }
-    
+
     // On tablet, use 'push' mode
     if (this.breakpointObserver.isMatched(Breakpoints.Tablet)) {
-      return 'push';
+      return "push";
     }
-    
+
     // On desktop, use configured mode or default to 'side'
-    return this.config().sidenavMode || 'side';
+    return this.config().sidenavMode || "side";
   }
 
   // Get responsive sidenav opened state
@@ -110,7 +114,7 @@ export class MainLayoutComponent {
     if (this.breakpointObserver.isMatched(Breakpoints.Handset)) {
       return false;
     }
-    
+
     // On larger screens, use configured state
     return this.config().sidenavOpened;
   }
@@ -118,8 +122,8 @@ export class MainLayoutComponent {
   // Get responsive sidenav width
   getSidenavWidth(): string {
     if (this.breakpointObserver.isMatched(Breakpoints.Handset)) {
-      return '280px'; // Wider on mobile for better touch targets
+      return "280px"; // Wider on mobile for better touch targets
     }
-    return '260px'; // Standard width on desktop
+    return "260px"; // Standard width on desktop
   }
 }

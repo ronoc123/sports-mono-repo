@@ -1,10 +1,10 @@
-import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Observable, from, throwError, BehaviorSubject } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
-import { AuthService } from './auth.service';
-import { UserStore } from '@sports-ui/data-access';
-import { User } from '@sports-ui/api-types';
+import { Injectable, inject, signal, PLATFORM_ID } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
+import { Observable, from, throwError, BehaviorSubject } from "rxjs";
+import { map, catchError, tap } from "rxjs/operators";
+import { AuthService } from "./auth.service";
+import { UserStore } from "@sports-ui/data-access";
+import { User } from "@sports-ui/api-types";
 
 export interface GoogleAuthConfig {
   clientId: string;
@@ -33,7 +33,7 @@ declare global {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class GoogleAuthService {
   private readonly authService = inject(AuthService);
@@ -42,8 +42,9 @@ export class GoogleAuthService {
 
   // Configuration
   private readonly config: GoogleAuthConfig = {
-    clientId: '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com', // TODO: Replace with actual client ID
-    scopes: ['email', 'profile']
+    clientId:
+      "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com", // TODO: Replace with actual client ID
+    scopes: ["email", "profile"],
   };
 
   // State
@@ -69,7 +70,7 @@ export class GoogleAuthService {
     try {
       // Load Google Identity Services script
       await this.loadGoogleScript();
-      
+
       // Initialize Google Auth
       if (window.google?.accounts?.id) {
         window.google.accounts.id.initialize({
@@ -81,11 +82,11 @@ export class GoogleAuthService {
 
         this.isInitialized.set(true);
       } else {
-        throw new Error('Google Identity Services not loaded');
+        throw new Error("Google Identity Services not loaded");
       }
     } catch (error) {
-      console.error('Failed to initialize Google Auth:', error);
-      this.error.set('Failed to initialize Google authentication');
+      console.error("Failed to initialize Google Auth:", error);
+      this.error.set("Failed to initialize Google authentication");
     }
   }
 
@@ -99,14 +100,14 @@ export class GoogleAuthService {
         return;
       }
 
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.defer = true;
-      
+
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load Google script'));
-      
+      script.onerror = () => reject(new Error("Failed to load Google script"));
+
       document.head.appendChild(script);
     });
   }
@@ -114,14 +115,16 @@ export class GoogleAuthService {
   /**
    * Handle Google authentication response
    */
-  private async handleGoogleResponse(response: GoogleAuthResponse): Promise<void> {
+  private async handleGoogleResponse(
+    response: GoogleAuthResponse
+  ): Promise<void> {
     try {
       this.isLoading.set(true);
       this.error.set(null);
 
       // Decode the JWT token to get user info
       const userInfo = this.decodeJWT(response.credential);
-      
+
       // Convert Google user to our User format
       const user: User = {
         id: userInfo.sub,
@@ -135,7 +138,7 @@ export class GoogleAuthService {
         updatedAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         emailVerified: userInfo.email_verified || false,
-        provider: 'google'
+        provider: "google",
       };
 
       // Update user store
@@ -144,10 +147,10 @@ export class GoogleAuthService {
       // Store the Google credential for API calls
       this.storeGoogleCredential(response.credential);
 
-      console.log('Google sign-in successful:', user);
+      console.log("Google sign-in successful:", user);
     } catch (error) {
-      console.error('Google sign-in error:', error);
-      this.error.set('Google sign-in failed');
+      console.error("Google sign-in error:", error);
+      this.error.set("Google sign-in failed");
     } finally {
       this.isLoading.set(false);
     }
@@ -158,17 +161,17 @@ export class GoogleAuthService {
    */
   private decodeJWT(token: string): any {
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
         atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
       );
       return JSON.parse(jsonPayload);
     } catch (error) {
-      throw new Error('Invalid JWT token');
+      throw new Error("Invalid JWT token");
     }
   }
 
@@ -177,7 +180,7 @@ export class GoogleAuthService {
    */
   private storeGoogleCredential(credential: string): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('google_credential', credential);
+      localStorage.setItem("google_credential", credential);
     }
   }
 
@@ -186,99 +189,20 @@ export class GoogleAuthService {
    */
   getGoogleCredential(): string | null {
     if (isPlatformBrowser(this.platformId)) {
-      return localStorage.getItem('google_credential');
+      return localStorage.getItem("google_credential");
     }
     return null;
   }
 
   /**
-   * Sign in with Google
-   */
-  signInWithGoogle(): Observable<User> {
-    return new Observable(observer => {
-      if (!this.isInitialized()) {
-        observer.error(new Error('Google Auth not initialized'));
-        return;
-      }
-
-      try {
-        // Show Google One Tap or sign-in prompt
-        window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback to popup sign-in
-            this.showGoogleSignInPopup();
-          }
-        });
-
-        // Set up a temporary callback to handle the response
-        const originalCallback = window.googleAuthCallback;
-        window.googleAuthCallback = (response: GoogleAuthResponse) => {
-          this.handleGoogleResponse(response).then(() => {
-            const user = this.userStore.currentUser();
-            if (user) {
-              observer.next(user);
-              observer.complete();
-            } else {
-              observer.error(new Error('Failed to get user after Google sign-in'));
-            }
-          }).catch(error => {
-            observer.error(error);
-          });
-          
-          // Restore original callback
-          window.googleAuthCallback = originalCallback;
-        };
-
-      } catch (error) {
-        observer.error(error);
-      }
-    });
-  }
-
-  /**
-   * Show Google sign-in popup as fallback
-   */
-  private showGoogleSignInPopup(): void {
-    if (window.google?.accounts?.oauth2) {
-      const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: this.config.clientId,
-        scope: this.config.scopes?.join(' ') || 'email profile',
-        callback: (response: any) => {
-          if (response.access_token) {
-            this.getUserInfoFromToken(response.access_token);
-          }
-        },
-      });
-      client.requestAccessToken();
-    }
-  }
-
-  /**
    * Get user info from access token
-   */
-  private async getUserInfoFromToken(accessToken: string): Promise<void> {
-    try {
-      const response = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`);
-      const userInfo = await response.json();
-      
-      // Create a mock credential response
-      const mockResponse: GoogleAuthResponse = {
-        credential: accessToken,
-        select_by: 'popup'
-      };
-      
-      await this.handleGoogleResponse(mockResponse);
-    } catch (error) {
-      console.error('Failed to get user info from token:', error);
-      this.error.set('Failed to get user information');
-    }
-  }
+   *
 
   /**
    * Sign out from Google
    */
   signOut(): Observable<boolean> {
-    return new Observable(observer => {
+    return new Observable((observer) => {
       try {
         if (window.google?.accounts?.id) {
           window.google.accounts.id.disableAutoSelect();
@@ -286,7 +210,7 @@ export class GoogleAuthService {
 
         // Clear stored credential
         if (isPlatformBrowser(this.platformId)) {
-          localStorage.removeItem('google_credential');
+          localStorage.removeItem("google_credential");
         }
 
         // Clear user from store
@@ -305,17 +229,17 @@ export class GoogleAuthService {
    */
   renderSignInButton(elementId: string, options?: any): void {
     if (!this.isInitialized()) {
-      console.warn('Google Auth not initialized');
+      console.warn("Google Auth not initialized");
       return;
     }
 
     const defaultOptions = {
-      type: 'standard',
-      theme: 'outline',
-      size: 'large',
-      text: 'signin_with',
-      shape: 'rectangular',
-      logo_alignment: 'left',
+      type: "standard",
+      theme: "outline",
+      size: "large",
+      text: "signin_with",
+      shape: "rectangular",
+      logo_alignment: "left",
       width: 250,
     };
 

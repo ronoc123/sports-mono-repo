@@ -35,7 +35,7 @@ export const appRoutes: Route[] = [
   // Login route (accessible only to unauthenticated users)
   {
     path: "login",
-    canActivate: [],
+    canActivate: [loginGuard],
     loadComponent: () =>
       import("@sports-ui/feature-auth").then((m) => m.LoginComponent),
   },
@@ -43,7 +43,7 @@ export const appRoutes: Route[] = [
   // Main app shell with layout (protected routes)
   {
     path: "",
-    canActivate: [],
+    canActivate: [authGuard],
     loadComponent: () =>
       import("./shell/shell.component").then((m) => m.ShellComponent),
     children: [

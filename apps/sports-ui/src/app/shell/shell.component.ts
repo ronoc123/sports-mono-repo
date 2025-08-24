@@ -1,19 +1,16 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MainLayoutComponent, NavItem } from '@sports-ui/ui';
-import { AuthService } from '@sports-ui/feature-auth';
+import { Component, inject } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
+import { MainLayoutComponent, NavItem } from "@sports-ui/ui";
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { AuthService } from "@sports-ui/feature-auth";
 
 @Component({
-  selector: 'app-shell',
+  selector: "app-shell",
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MainLayoutComponent,
-  ],
+  imports: [CommonModule, RouterModule, MainLayoutComponent],
   template: `
-    <ui-main-layout 
+    <ui-main-layout
       [navItems]="navItems"
       [config]="layoutConfig"
       [permissionChecker]="checkPermission"
@@ -22,12 +19,14 @@ import { AuthService } from '@sports-ui/feature-auth';
       [selectedOrganization]="selectedOrganization"
     ></ui-main-layout>
   `,
-  styles: [`
-    :host {
-      display: block;
-      height: 100vh;
-    }
-  `],
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100vh;
+      }
+    `,
+  ],
 })
 export class ShellComponent {
   readonly authService = inject(AuthService);
@@ -38,12 +37,12 @@ export class ShellComponent {
 
   // Layout configuration for Sports UI
   layoutConfig = {
-    appTitle: 'Sports UI',
-    appLogo: '/assets/sports-logo.png',
+    appTitle: "Sports UI",
+    appLogo: "/assets/sports-logo.png",
     showUserMenu: true,
     showNotifications: true,
     showSearch: false,
-    sidenavMode: 'side' as const,
+    sidenavMode: "side" as const,
     sidenavOpened: true,
     showFooter: false,
   };
