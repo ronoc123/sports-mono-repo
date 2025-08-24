@@ -1,13 +1,14 @@
-import { Component, inject, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Component, inject, input } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterOutlet } from "@angular/router";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
-import { MainLayoutComponent, NavItem, LayoutConfig } from '@sports-ui/ui';
-import { AuthService } from '../services/auth.service';
+import { MainLayoutComponent, NavItem, LayoutConfig } from "@sports-ui/ui";
+import { AuthService } from "../services/auth.service";
 
 @Component({
-  selector: 'auth-app-shell',
+  // eslint-disable-next-line @angular-eslint/component-selector
+  selector: "auth-app-shell",
   standalone: true,
   imports: [
     CommonModule,
@@ -23,7 +24,7 @@ import { AuthService } from '../services/auth.service';
     </div>
 
     <!-- Authenticated State - Show Layout -->
-    <ui-main-layout 
+    <ui-main-layout
       *ngIf="authService.isAuthenticated() && !authService.isLoading()"
       [navItems]="navItems()"
       [config]="layoutConfig()"
@@ -34,30 +35,34 @@ import { AuthService } from '../services/auth.service';
     ></ui-main-layout>
 
     <!-- Unauthenticated State - Show Router Outlet (Login Page) -->
-    <router-outlet *ngIf="!authService.isAuthenticated() && !authService.isLoading()"></router-outlet>
+    <router-outlet
+      *ngIf="!authService.isAuthenticated() && !authService.isLoading()"
+    ></router-outlet>
   `,
-  styles: [`
-    :host {
-      display: block;
-      height: 100vh;
-      width: 100vw;
-    }
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100vh;
+        width: 100vw;
+      }
 
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      gap: 16px;
-    }
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        gap: 16px;
+      }
 
-    .loading-container p {
-      margin: 0;
-      color: #666;
-      font-size: 16px;
-    }
-  `],
+      .loading-container p {
+        margin: 0;
+        color: #666;
+        font-size: 16px;
+      }
+    `,
+  ],
 })
 export class AppShellComponent {
   readonly authService = inject(AuthService);

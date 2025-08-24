@@ -19,7 +19,7 @@ services:
       - "5001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sports.database;Database=Platform;User=sa;Password=Test123!;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=sports.database;Database=SportsIdentityDb;User=sa;Password=Test123!;TrustServerCertificate=True
     depends_on:
       - sqlserver
     healthcheck:

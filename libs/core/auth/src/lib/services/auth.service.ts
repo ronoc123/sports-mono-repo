@@ -1,10 +1,10 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
-import { UserStore } from '@sports-ui/data-access';
-import { User, ServiceResponse } from '@sports-ui/api-types';
-import { ApiService } from '@sports-ui/http-client';
+import { Injectable, inject, signal } from "@angular/core";
+import { Router } from "@angular/router";
+import { Observable, BehaviorSubject, of, throwError } from "rxjs";
+import { map, tap, catchError, finalize } from "rxjs/operators";
+import { UserStore } from "@sports-ui/data-access";
+import { User, ServiceResponse } from "@sports-ui/api-types";
+import { ApiService } from "@sports-ui/http-client";
 
 export interface LoginRequest {
   email: string;
@@ -18,16 +18,17 @@ export interface RegisterRequest {
   password: string;
   confirmPassword: string;
 }
-
 export interface AuthResponse {
-  user: User;
-  token: string;
+  success: boolean;
+  message?: string;
+  accessToken: string;
   refreshToken?: string;
-  expiresIn: number;
+  expiresAt: string; // ISO timestamp, e.g. "2025-08-24T06:15:30.364173Z"
+  user: User; // from @sports-ui/api-types
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class AuthService {
   private readonly apiService = inject(ApiService);
@@ -61,6 +62,39 @@ export class AuthService {
     }
   }
 
+  /** 🔐 NEW: Login with Google ID token */
+  loginWithGoogle(
+    googleToken: string,
+    rememberMe = true
+  ): Observable<AuthResponse> {
+    this.isAuthenticating.set(true);
+    this.authError.set(null);
+
+    return (
+      this.apiService
+        // Route this to Identity: prefix with 'identity/'
+        .post<AuthResponse, { googleToken: any }>(
+          "/auth/google", // NOT "/auth/google"
+          { googleToken } // NOT { googleToken }
+        )
+        .pipe(
+          tap((res) => {
+            console.log(res);
+            this.handleAuthSuccess(res, rememberMe);
+          }),
+          map((res) => {
+            if (res?.success && res) return res;
+            throw new Error(res?.message || "Google login failed");
+          }),
+          catchError((err) => {
+            this.authError.set(err?.message || "Google login failed");
+            return throwError(() => err);
+          }),
+          finalize(() => this.isAuthenticating.set(false))
+        )
+    );
+  }
+
   /**
    * Login with email and password
    */
@@ -68,20 +102,24 @@ export class AuthService {
     this.isAuthenticating.set(true);
     this.authError.set(null);
 
-    return this.apiService.post<ServiceResponse<AuthResponse>, LoginRequest>('api/auth/login', credentials)
+    return this.apiService
+      .post<ServiceResponse<AuthResponse>, LoginRequest>(
+        "api/auth/login",
+        credentials
+      )
       .pipe(
-        map(response => {
+        map((response) => {
           if (response.success && response.data) {
             return response.data;
           } else {
-            throw new Error(response.message || 'Login failed');
+            throw new Error(response.message || "Login failed");
           }
         }),
-        tap(authResponse => {
+        tap((authResponse) => {
           this.handleAuthSuccess(authResponse, credentials.rememberMe);
         }),
-        catchError(error => {
-          this.authError.set(error.message || 'Login failed');
+        catchError((error) => {
+          this.authError.set(error.message || "Login failed");
           this.isAuthenticating.set(false);
           return throwError(() => error);
         })
@@ -95,20 +133,24 @@ export class AuthService {
     this.isAuthenticating.set(true);
     this.authError.set(null);
 
-    return this.apiService.post<ServiceResponse<AuthResponse>, RegisterRequest>('api/auth/register', userData)
+    return this.apiService
+      .post<ServiceResponse<AuthResponse>, RegisterRequest>(
+        "api/auth/register",
+        userData
+      )
       .pipe(
-        map(response => {
+        map((response) => {
           if (response.success && response.data) {
             return response.data;
           } else {
-            throw new Error(response.message || 'Registration failed');
+            throw new Error(response.message || "Registration failed");
           }
         }),
-        tap(authResponse => {
+        tap((authResponse) => {
           this.handleAuthSuccess(authResponse, false);
         }),
-        catchError(error => {
-          this.authError.set(error.message || 'Registration failed');
+        catchError((error) => {
+          this.authError.set(error.message || "Registration failed");
           this.isAuthenticating.set(false);
           return throwError(() => error);
         })
@@ -119,12 +161,13 @@ export class AuthService {
    * Logout user
    */
   logout(): Observable<boolean> {
-    return this.apiService.post<ServiceResponse<boolean>, {}>('api/auth/logout', {})
+    return this.apiService
+      .post<ServiceResponse<boolean>, object>("api/auth/logout", {})
       .pipe(
         tap(() => {
           this.handleLogout();
         }),
-        map(response => response.success),
+        map((response) => response.success),
         catchError(() => {
           // Even if logout API fails, clear local session
           this.handleLogout();
@@ -139,22 +182,26 @@ export class AuthService {
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.getStoredRefreshToken();
     if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available'));
+      return throwError(() => new Error("No refresh token available"));
     }
 
-    return this.apiService.post<ServiceResponse<AuthResponse>, { refreshToken: string }>('api/auth/refresh', { refreshToken })
+    return this.apiService
+      .post<ServiceResponse<AuthResponse>, { refreshToken: string }>(
+        "api/auth/refresh",
+        { refreshToken }
+      )
       .pipe(
-        map(response => {
+        map((response) => {
           if (response.success && response.data) {
             return response.data;
           } else {
-            throw new Error(response.message || 'Token refresh failed');
+            throw new Error(response.message || "Token refresh failed");
           }
         }),
-        tap(authResponse => {
+        tap((authResponse) => {
           this.handleAuthSuccess(authResponse, true);
         }),
-        catchError(error => {
+        catchError((error) => {
           this.handleLogout();
           return throwError(() => error);
         })
@@ -186,9 +233,12 @@ export class AuthService {
   /**
    * Handle successful authentication
    */
-  private handleAuthSuccess(authResponse: AuthResponse, rememberMe: boolean = false): void {
+  private handleAuthSuccess(
+    authResponse: AuthResponse,
+    rememberMe = false
+  ): void {
     // Store tokens
-    this.storeToken(authResponse.token, rememberMe);
+    this.storeToken(authResponse.accessToken, rememberMe);
     if (authResponse.refreshToken) {
       this.storeRefreshToken(authResponse.refreshToken, rememberMe);
     }
@@ -199,9 +249,7 @@ export class AuthService {
     // Clear loading state
     this.isAuthenticating.set(false);
 
-    // Navigate to dashboard or return URL
-    const returnUrl = this.getReturnUrl();
-    this.router.navigate([returnUrl || '/']);
+    this.router.navigate(["/"]);
   }
 
   /**
@@ -211,51 +259,57 @@ export class AuthService {
     this.clearStoredToken();
     this.clearStoredRefreshToken();
     this.userStore.setCurrentUser(null);
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(["/auth/login"]);
   }
 
   /**
    * Token storage methods
    */
-  private storeToken(token: string, persistent: boolean = false): void {
-    if (typeof window !== 'undefined') {
+  private storeToken(token: string, persistent = false): void {
+    if (typeof window !== "undefined") {
       const storage = persistent ? localStorage : sessionStorage;
-      storage.setItem('auth_token', token);
+      storage.setItem("auth_token", token);
     }
   }
 
   private getStoredToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem("auth_token") ||
+        sessionStorage.getItem("auth_token")
+      );
     }
     return null;
   }
 
   private clearStoredToken(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      sessionStorage.removeItem('auth_token');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_token");
     }
   }
 
-  private storeRefreshToken(token: string, persistent: boolean = false): void {
-    if (typeof window !== 'undefined') {
+  private storeRefreshToken(token: string, persistent = false): void {
+    if (typeof window !== "undefined") {
       const storage = persistent ? localStorage : sessionStorage;
-      storage.setItem('refresh_token', token);
+      storage.setItem("refresh_token", token);
     }
   }
 
   private getStoredRefreshToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem("refresh_token") ||
+        sessionStorage.getItem("refresh_token")
+      );
     }
     return null;
   }
 
   private clearStoredRefreshToken(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('refresh_token');
-      sessionStorage.removeItem('refresh_token');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("refresh_token");
+      sessionStorage.removeItem("refresh_token");
     }
   }
 
@@ -264,7 +318,7 @@ export class AuthService {
    */
   private isTokenValid(token: string): boolean {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       const currentTime = Math.floor(Date.now() / 1000);
       return payload.exp > currentTime;
     } catch {
@@ -275,11 +329,4 @@ export class AuthService {
   /**
    * Get return URL from query params
    */
-  private getReturnUrl(): string | null {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('returnUrl');
-    }
-    return null;
-  }
 }

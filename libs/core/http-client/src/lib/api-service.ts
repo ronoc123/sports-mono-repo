@@ -1,9 +1,9 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { API_URL } from './api-url.token';
+import { Injectable, inject } from "@angular/core";
+import { HttpClient, HttpParams, HttpHeaders } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { API_URL } from "./api-url.token";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly api_url = inject(API_URL);
@@ -17,9 +17,8 @@ export class ApiService {
   }
 
   post<T, D>(url: string, data?: D): Observable<T> {
-    return this.http.post<T>(`${this.api_url}${url}`, JSON.stringify(data), {
+    return this.http.post<T>(`${this.api_url}${url}`, data, {
       headers: this.headers,
-      withCredentials: true,
     });
   }
 
@@ -39,8 +38,8 @@ export class ApiService {
 
   get headers(): HttpHeaders {
     const headersConfig = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
+      "Content-Type": "application/json",
+      Accept: "application/json",
     };
 
     return new HttpHeaders(headersConfig);

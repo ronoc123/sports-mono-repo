@@ -1,6 +1,7 @@
 import { Route } from "@angular/router";
 import { Component } from "@angular/core";
 import { RouterModule } from "@angular/router";
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { authGuard, loginGuard } from "@sports-ui/feature-auth";
 
 // Simple error components
@@ -34,15 +35,15 @@ export const appRoutes: Route[] = [
   // Login route (accessible only to unauthenticated users)
   {
     path: "login",
-    canActivate: [loginGuard],
+    canActivate: [],
     loadComponent: () =>
-      import("@sports-ui/feature-auth").then((m) => m.LoginPageComponent),
+      import("@sports-ui/feature-auth").then((m) => m.LoginComponent),
   },
 
   // Main app shell with layout (protected routes)
   {
     path: "",
-    canActivate: [authGuard],
+    canActivate: [],
     loadComponent: () =>
       import("./shell/shell.component").then((m) => m.ShellComponent),
     children: [

@@ -1,25 +1,29 @@
-import {
-  ApplicationConfig,
-  provideBrowserGlobalErrorListeners,
-  provideZoneChangeDetection,
-} from "@angular/core";
+// apps/sports-ui/src/app/app.config.ts
+import { ApplicationConfig } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 
 import { appRoutes } from "./app.routes";
 import { environment } from "../environments/environment";
-import { APP_ENVIRONMENT, apiBaseUrlInterceptor } from "@sports-ui/http-client";
+import {
+  API_URL,
+  APP_ENVIRONMENT,
+  apiBaseUrlInterceptor,
+} from "@sports-ui/http-client";
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { GOOGLE_CLIENT_ID } from "@sports-ui/feature-auth";
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
     provideHttpClient(withInterceptors([apiBaseUrlInterceptor])),
     provideAnimationsAsync(),
 
-    // Provide environment configuration
+    // ✅ Only the CONFIG token is required
+
     { provide: APP_ENVIRONMENT, useValue: environment },
+    { provide: API_URL, useValue: environment.identityApiBaseUrl },
+    { provide: GOOGLE_CLIENT_ID, useValue: environment.googleClientId },
   ],
 };

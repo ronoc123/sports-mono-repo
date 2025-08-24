@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using System.Text.Json;
 using IdentityService.DTOs;
 using IdentityService.Models;
+using Google.Apis.Auth;
+using Microsoft.Extensions.Options;
+
 
 namespace IdentityService.Services;
 
@@ -11,18 +14,21 @@ public class GoogleAuthService : IGoogleAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenService _tokenService;
     private readonly ILogger<GoogleAuthService> _logger;
+  private readonly GoogleAuthOptions _options;
 
-    public GoogleAuthService(
+  public GoogleAuthService(
         HttpClient httpClient,
         UserManager<ApplicationUser> userManager,
         ITokenService tokenService,
-        ILogger<GoogleAuthService> logger)
+        ILogger<GoogleAuthService> logger,
+        IOptions<GoogleAuthOptions> options)
     {
         _httpClient = httpClient;
         _userManager = userManager;
         _tokenService = tokenService;
         _logger = logger;
-    }
+        _options = options.Value;
+  }
 
     public async Task<GoogleUserInfo?> GetGoogleUserInfoAsync(string googleToken)
     {
@@ -52,117 +58,120 @@ public class GoogleAuthService : IGoogleAuthService
         }
     }
 
-    public async Task<AuthenticationResponse> AuthenticateGoogleUserAsync(string googleToken)
+  public async Task<AuthenticationResponse> AuthenticateGoogleUserAsync(string idToken)
+  {
+    GoogleJsonWebSignature.Payload payload;
+    try
     {
-        try
-        {
-            // Get user info from Google
-            var googleUserInfo = await GetGoogleUserInfoAsync(googleToken);
-            if (googleUserInfo == null)
-            {
-                return new AuthenticationResponse
-                {
-                    Success = false,
-                    Message = "Failed to get user information from Google"
-                };
-            }
+      var settings = new GoogleJsonWebSignature.ValidationSettings
+      {
+        // Ensure the token was meant for YOUR app
+        Audience = _options.ClientIds
+      };
 
-            // Check if user exists by Google ID
-            var existingUser = await _userManager.FindByEmailAsync(googleUserInfo.Email);
-            
-            ApplicationUser user;
-            bool isNewUser = false;
-
-            if (existingUser != null)
-            {
-                // Update existing user with Google info if not already set
-                if (string.IsNullOrEmpty(existingUser.GoogleId))
-                {
-                    existingUser.GoogleId = googleUserInfo.Id;
-                    existingUser.FirstName = googleUserInfo.GivenName;
-                    existingUser.LastName = googleUserInfo.FamilyName;
-                    existingUser.ProfilePictureUrl = googleUserInfo.Picture;
-                    existingUser.Locale = googleUserInfo.Locale;
-                    existingUser.EmailConfirmed = googleUserInfo.VerifiedEmail;
-                    
-                    await _userManager.UpdateAsync(existingUser);
-                }
-                
-                user = existingUser;
-            }
-            else
-            {
-                // Create new user
-                user = new ApplicationUser
-                {
-                    UserName = googleUserInfo.Email,
-                    Email = googleUserInfo.Email,
-                    EmailConfirmed = googleUserInfo.VerifiedEmail,
-                    GoogleId = googleUserInfo.Id,
-                    FirstName = googleUserInfo.GivenName,
-                    LastName = googleUserInfo.FamilyName,
-                    ProfilePictureUrl = googleUserInfo.Picture,
-                    Locale = googleUserInfo.Locale,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                var createResult = await _userManager.CreateAsync(user);
-                if (!createResult.Succeeded)
-                {
-                    return new AuthenticationResponse
-                    {
-                        Success = false,
-                        Message = $"Failed to create user: {string.Join(", ", createResult.Errors.Select(e => e.Description))}"
-                    };
-                }
-
-                // Assign default role
-                await _userManager.AddToRoleAsync(user, "User");
-                isNewUser = true;
-            }
-
-            // Update last login
-            user.LastLoginAt = DateTime.UtcNow;
-            await _userManager.UpdateAsync(user);
-
-            // Generate tokens
-            var accessToken = await _tokenService.GenerateAccessTokenAsync(user);
-            var refreshToken = _tokenService.GenerateRefreshToken();
-            await _tokenService.SaveRefreshTokenAsync(user, refreshToken);
-
-            // Get user roles
-            var roles = await _userManager.GetRolesAsync(user);
-
-            return new AuthenticationResponse
-            {
-                Success = true,
-                Message = isNewUser ? "User created and authenticated successfully" : "User authenticated successfully",
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60), // Should match token expiration
-                User = new UserInfo
-                {
-                    Id = user.Id,
-                    Email = user.Email!,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    FullName = user.FullName,
-                    ProfilePictureUrl = user.ProfilePictureUrl,
-                    IsGoogleUser = user.IsGoogleUser,
-                    Roles = roles.ToList(),
-                    CreatedAt = user.CreatedAt,
-                    LastLoginAt = user.LastLoginAt
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error authenticating Google user");
-            return new AuthenticationResponse
-            {
-                Success = false,
-                Message = "An error occurred during authentication"
-            };
-        }
+      payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
     }
+    catch (Exception ex)
+    {
+      _logger.LogWarning(ex, "Invalid Google ID token");
+      return new AuthenticationResponse { Success = false, Message = "Invalid Google token" };
+    }
+
+    // Map payload
+    var email = payload.Email;
+    var emailVerified = payload.EmailVerified;
+    var googleId = payload.Subject;                // stable Google user id (sub)
+    var firstName = payload.GivenName ?? "";
+    var lastName = payload.FamilyName ?? "";
+    var fullName = payload.Name ?? $"{firstName} {lastName}".Trim();
+    var picture = payload.Picture;
+    var locale = payload.Locale;
+
+    if (string.IsNullOrWhiteSpace(email))
+    {
+      return new AuthenticationResponse { Success = false, Message = "Google token missing email" };
+    }
+
+    // Find or create Identity user
+    var user = await _userManager.FindByEmailAsync(email);
+    var isNew = false;
+
+    if (user == null)
+    {
+      user = new ApplicationUser
+      {
+        UserName = email,
+        Email = email,
+        EmailConfirmed = emailVerified,
+        GoogleId = googleId,
+        FirstName = firstName,
+        LastName = lastName,
+        ProfilePictureUrl = picture,
+        Locale = locale,
+        CreatedAt = DateTime.UtcNow
+      };
+
+      var create = await _userManager.CreateAsync(user);
+      if (!create.Succeeded)
+      {
+        return new AuthenticationResponse
+        {
+          Success = false,
+          Message = string.Join("; ", create.Errors.Select(e => e.Description))
+        };
+      }
+
+      // optional default role
+      await _userManager.AddToRoleAsync(user, "User");
+      isNew = true;
+    }
+    else
+    {
+      // Link fields if missing / update profile
+      if (string.IsNullOrEmpty(user.GoogleId))
+        user.GoogleId = googleId;
+
+      user.FirstName = string.IsNullOrEmpty(user.FirstName) ? firstName : user.FirstName;
+      user.LastName = string.IsNullOrEmpty(user.LastName) ? lastName : user.LastName;
+      user.ProfilePictureUrl ??= picture;
+      user.Locale ??= locale;
+      if (emailVerified) user.EmailConfirmed = true;
+
+      await _userManager.UpdateAsync(user);
+    }
+
+    user.LastLoginAt = DateTime.UtcNow;
+    await _userManager.UpdateAsync(user);
+
+    // Issue tokens
+    var accessToken = await _tokenService.GenerateAccessTokenAsync(user);
+    var refreshToken = _tokenService.GenerateRefreshToken();
+    await _tokenService.SaveRefreshTokenAsync(user, refreshToken);
+
+    var roles = await _userManager.GetRolesAsync(user);
+
+    return new AuthenticationResponse
+    {
+      Success = true,
+      Message = isNew ? "User created and authenticated successfully" : "User authenticated successfully",
+      AccessToken = accessToken,
+      RefreshToken = refreshToken,
+      ExpiresAt = DateTime.UtcNow.AddMinutes(
+            Convert.ToDouble(Environment.GetEnvironmentVariable("Jwt__AccessTokenExpirationMinutes") ?? "60")
+        ),
+      User = new UserInfo
+      {
+        Id = user.Id,
+        Email = user.Email!,
+        FirstName = user.FirstName,
+        LastName = user.LastName,
+        FullName = user.FullName,
+        ProfilePictureUrl = user.ProfilePictureUrl,
+        IsGoogleUser = user.IsGoogleUser,
+        Roles = roles.ToList(),
+        CreatedAt = user.CreatedAt,
+        LastLoginAt = user.LastLoginAt
+      }
+    };
+  }
 }

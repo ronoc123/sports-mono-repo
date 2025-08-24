@@ -196,38 +196,25 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("google")]
-    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+    public async Task<IActionResult> Google([FromBody] GoogleLoginRequest request)
+  {
+    if (string.IsNullOrWhiteSpace(request.GoogleToken))
     {
-        try
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new AuthenticationResponse
-                {
-                    Success = false,
-                    Message = "Invalid Google token"
-                });
-            }
-
-            var result = await _googleAuthService.AuthenticateGoogleUserAsync(request.GoogleToken);
-            
-            if (!result.Success)
-            {
-                return Unauthorized(result);
-            }
-
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during Google authentication");
-            return StatusCode(500, new AuthenticationResponse
-            {
-                Success = false,
-                Message = "An error occurred during Google authentication"
-            });
-        }
+      return BadRequest(new AuthenticationResponse { Success = false, Message = "Missing idToken" });
     }
+
+    try
+    {
+      var result = await _googleAuthService.AuthenticateGoogleUserAsync(request.GoogleToken);
+      if (!result.Success) return Unauthorized(result);
+      return Ok(result);
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error during Google authentication");
+      return StatusCode(500, new AuthenticationResponse { Success = false, Message = "Server error" });
+    }
+  }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)

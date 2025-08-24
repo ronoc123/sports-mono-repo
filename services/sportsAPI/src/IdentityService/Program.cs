@@ -73,11 +73,22 @@ builder.Services.AddAuthentication(options =>
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    // Restrictive policy for production
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+      policy.WithOrigins(
+              "http://localhost:4200",   // Angular default
+              "http://localhost:3000",   // React default
+              "http://localhost:5173",   // Vite default
+              "http://localhost:8080",   // Vue default
+              "https://localhost:4200",  // HTTPS versions
+              "https://localhost:3000",
+              "https://localhost:5173",
+              "https://localhost:8080"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -85,6 +96,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
+builder.Services.Configure<GoogleAuthOptions>(builder.Configuration.GetSection("GoogleAuth"));
+
 
 // Add health checks
 builder.Services.AddHealthChecks()
@@ -140,7 +153,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

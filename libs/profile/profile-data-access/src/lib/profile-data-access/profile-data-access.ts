@@ -129,7 +129,7 @@ export const ProfileStore = signalStore(
 
     return {
       // Load user profile
-      loadProfile(userId: string = "user-123"): void {
+      loadProfile(userId = "user-123"): void {
         patchState(store, { isLoading: true, error: null });
 
         // Try real API call first, fallback to mock data

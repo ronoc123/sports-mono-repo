@@ -18,7 +18,6 @@ import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatDividerModule } from "@angular/material/divider";
 import { AuthService, LoginRequest } from "@sports-ui/auth";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
-import { User } from "@sports-ui/api-types";
 
 @Component({
   selector: "lib-login",
@@ -101,16 +100,6 @@ export class LoginComponent {
 
   clearError() {
     this.authService.clearError();
-  }
-
-  onGoogleSignInSuccess(user: User) {
-    console.log("Google sign-in successful:", user);
-    // The GoogleSignInComponent already handles navigation
-  }
-
-  onGoogleSignInError(error: string) {
-    console.error("Google sign-in error:", error);
-    // The GoogleSignInComponent already shows the error
   }
 
   private markFormGroupTouched() {

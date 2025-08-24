@@ -59,27 +59,8 @@ export class AuthService {
   /**
    * Login with email and password
    */
-  login(credentials: LoginCredentials): Observable<LoginResponse> {
-    this._isLoading.set(true);
-    this._error.set(null);
-
-    // Use real or mock authentication based on environment
-    const loginObservable = this.environmentService.enableRealAuth
-      ? this.realLogin(credentials)
-      : this.mockLogin(credentials);
-
-    return loginObservable.pipe(
-      tap((response) => {
-        this.setAuthenticatedUser(response.user, response.token);
-        this._isLoading.set(false);
-      }),
-      catchError((error) => {
-        this._error.set(error.message || "Login failed");
-        this._isLoading.set(false);
-        return throwError(() => error);
-      })
-    );
-  }
+  // login(credentials: LoginCredentials): Observable<LoginResponse> {
+  // }
 
   /**
    * Logout user
@@ -122,23 +103,7 @@ export class AuthService {
   /**
    * Refresh authentication token
    */
-  refreshToken(): Observable<LoginResponse> {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      return throwError(() => new Error("No refresh token available"));
-    }
-
-    // Mock refresh - replace with actual API call
-    return this.mockRefreshToken(refreshToken).pipe(
-      tap((response) => {
-        this.setAuthenticatedUser(response.user, response.token);
-      }),
-      catchError((error) => {
-        this.logout();
-        return throwError(() => error);
-      })
-    );
-  }
+  // refreshToken(): Observable<LoginResponse> {}
 
   private checkExistingSession(): void {
     const token = localStorage.getItem("authToken");
@@ -185,39 +150,5 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(loginUrl, credentials)
       .pipe(tap(() => console.log("Real login successful")));
-  }
-
-  // Mock implementations - replace with actual API calls
-  private mockLogin(credentials: LoginCredentials): Observable<LoginResponse> {
-    // Simulate API delay
-    return of({
-      user: {
-        id: "1",
-        email: credentials.email,
-        firstName: "John",
-        lastName: "Doe",
-        userName: "johndoe",
-        role: "admin",
-        permissions: ["VIEW_USERS", "EDIT_USERS", "VIEW_ORGANIZATIONS"],
-      },
-      token: "mock-jwt-token-" + Date.now(),
-      refreshToken: "mock-refresh-token-" + Date.now(),
-    }).pipe(
-      delay(1000), // Simulate network delay
-      tap(() => console.log("Mock login successful"))
-    );
-  }
-
-  private mockRefreshToken(_refreshToken: string): Observable<LoginResponse> {
-    const currentUser = this._currentUser();
-    if (!currentUser) {
-      return throwError(() => new Error("No current user"));
-    }
-
-    return of({
-      user: currentUser,
-      token: "mock-jwt-token-refreshed-" + Date.now(),
-      refreshToken: "mock-refresh-token-refreshed-" + Date.now(),
-    }).pipe(delay(500));
   }
 }

@@ -3,7 +3,7 @@
     <mat-card-header class="login-header">
       <div class="logo-section">
         <mat-icon class="app-logo">sports</mat-icon>
-        <h1>Sports UI</h1>
+        <h1>Sports UI dfasdfasf</h1>
       </div>
       <mat-card-title>Welcome Back</mat-card-title>
       <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
@@ -114,12 +114,7 @@
 
       <!-- Google Sign-In -->
       <div class="google-signin-section">
-        <lib-google-signin
-          [useCustomButton]="true"
-          [buttonText]="'Sign in with Google'"
-          (signInSuccess)="onGoogleSignInSuccess($event)"
-          (signInError)="onGoogleSignInError($event)"
-        ></lib-google-signin>
+        <lib-google-signin></lib-google-signin>
       </div>
     </mat-card-content>
 
@@ -137,21 +132,4 @@
       </div>
     </mat-card-actions>
   </mat-card>
-
-  <!-- Demo Credentials -->
-  <div class="demo-info">
-    <mat-card class="demo-card">
-      <mat-card-header>
-        <mat-card-title>Demo Credentials</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="demo-credential">
-          <strong>Admin:</strong> admin&#64;sportsui.com / admin123
-        </div>
-        <div class="demo-credential">
-          <strong>User:</strong> user&#64;sportsui.com / user123
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
 </div>
