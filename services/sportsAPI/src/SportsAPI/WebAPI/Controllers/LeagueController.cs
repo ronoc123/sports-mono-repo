@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using Application.Leagues.Commands.CreateLeague;
 using Application.Leagues.Commands.UpdateLeague;
 using Application.Leagues.Commands.DeleteLeague;
 using Application.Leagues.Queries.GetAllLeagues;
 using sportsAPI.DTO;
+using Domain.ValueObjects.ConcreteTypes;
 
 namespace sportsAPI.Controllers
 {
@@ -107,7 +108,7 @@ namespace sportsAPI.Controllers
 
         // Delete a League
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteLeague(Guid id)
+        public async Task<IActionResult> DeleteLeague(LeagueId id)
         {
             var command = new DeleteLeagueCommand(id);
             var result = await _mediator.Send(command);

@@ -1,11 +1,12 @@
 using Application.Common.Models;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.Organizations.Commands.CreateOrganization;
 
 public record CreateOrganizationCommand(
     string Name,
-    Guid LeagueId,
+    LeagueId LeagueId,
     string? TeamId,
     string? TeamName,
     string? TeamShortName,

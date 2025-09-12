@@ -29,7 +29,7 @@ public class GetOrganizationDetailsQueryHandler : IRequestHandler<GetOrganizatio
 
             // Get player options for this organization
             var playerOptions = await _context.PlayerOptions
-                .Where(po => po.OrganizationId.Value == request.OrganizationId)
+                .Where(po => po.OrganizationId.Value == request.OrganizationId.Value)
                 .Include(po => po.PlayerId)
                 .ToListAsync(cancellationToken);
 

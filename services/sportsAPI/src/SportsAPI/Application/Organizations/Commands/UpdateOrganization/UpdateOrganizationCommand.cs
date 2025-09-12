@@ -1,10 +1,11 @@
 using Application.Common.Models;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.Organizations.Commands.UpdateOrganization;
 
 public record UpdateOrganizationCommand(
-    Guid OrganizationId,
+    OrganizationId OrganizationId,
     string Name,
     string? TeamId,
     string? TeamName,

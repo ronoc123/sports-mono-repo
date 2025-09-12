@@ -27,24 +27,24 @@ public class CreatePlayerCommandHandler : IRequestHandler<CreatePlayerCommand, R
     {
         try
         {
-            // Validate league exists
+            // Validate league exists  
             var league = await _leagueRepository.GetByIdAsync(request.LeagueId);
             if (league == null)
             {
                 return Result<Guid>.Failure("League not found");
             }
 
-            // Validate organization exists if provided
+            // Validate organization exists if provided  
             OrganizationId? organizationId = null;
             if (request.OrganizationId.HasValue)
             {
-                var organization = await _organizationRepository.GetOrganizationByIdAsync(request.OrganizationId.Value);
+                var organization = await _organizationRepository.GetOrganizationByIdAsync(request.OrganizationId);
                 if (organization == null)
                 {
                     return Result<Guid>.Failure("Organization not found");
                 }
 
-                if (organization.LeagueId.Value != request.LeagueId)
+                if (organization.LeagueId.Value != request.LeagueId.Value)
                 {
                     return Result<Guid>.Failure("Organization must be in the same league as the player");
                 }
@@ -52,19 +52,19 @@ public class CreatePlayerCommandHandler : IRequestHandler<CreatePlayerCommand, R
                 organizationId = OrganizationId.Of(request.OrganizationId.Value);
             }
 
-            // Create player using domain factory method
+            // Create player using domain factory method  
             var player = Player.Create(
                 request.Name,
                 request.Position,
                 request.ImageUrl,
                 request.Age,
-                LeagueId.Of(request.LeagueId),
+                request.LeagueId,
                 organizationId);
 
-            // Add player to league
+            // Add player to league  
             league.AddPlayer(request.Name, request.Position, request.ImageUrl, request.Age, organizationId);
 
-            // Save changes
+            // Save changes  
             await _context.SaveChangesAsync(cancellationToken);
 
             return Result<Guid>.Success(player.Id.Value);

@@ -37,7 +37,7 @@ public class GenerateCodeCommandHandler : IRequestHandler<GenerateCodeCommand, R
                 IsRedeemed = false,
                 RedeemedAt = null,
                 RedeemerId = null,
-                OrganizationId = OrganizationId.Of(request.OrganizationId),
+                OrganizationId = request.OrganizationId,
                 CreatedAt = DateTime.UtcNow
             };
 

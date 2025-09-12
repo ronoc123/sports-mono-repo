@@ -1,9 +1,11 @@
+using Domain.ValueObjects.ConcreteTypes;
+
 namespace sportsAPI.DTO;
 
 public class CreateOrganizationRequest
 {
     public string Name { get; set; } = string.Empty;
-    public Guid LeagueId { get; set; }
+    public LeagueId LeagueId { get; set; }
     public string? TeamId { get; set; }
     public string? TeamName { get; set; }
     public string? TeamShortName { get; set; }

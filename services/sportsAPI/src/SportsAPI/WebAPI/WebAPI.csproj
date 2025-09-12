@@ -26,11 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\Code Repository\" />
-    <Folder Include="Repositories\Vote Repository\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Messaging\BuildingBlocks.Messageing\BuildingBlocks.Messageing.csproj" />
     <ProjectReference Include="..\..\Messaging\BuildingBlocks\BuildingBlocks.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />

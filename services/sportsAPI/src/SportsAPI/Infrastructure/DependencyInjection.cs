@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Domain.Repositories;
@@ -24,9 +24,8 @@ namespace Infrastructure
             services.AddScoped<IOrganizationRepository, OrganizationRepository>();
             services.AddScoped<ILeagueRepository, LeagueRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IVoteRepository, VoteRepository>();
 
-            return services;
+      return services;
         }
     }
 }

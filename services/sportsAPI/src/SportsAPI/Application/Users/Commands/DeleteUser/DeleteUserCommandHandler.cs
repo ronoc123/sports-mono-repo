@@ -32,18 +32,10 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Resul
             }
 
             // Check business rules before deletion
-            // Check if user has active votes
-            var hasVotes = await _context.Votes
-                .AnyAsync(v => v.CreatedBy == request.UserId.ToString(), cancellationToken);
-            
-            if (hasVotes)
-            {
-                return Result<bool>.Failure("Cannot delete user with active votes. Please remove votes first.");
-            }
 
             // Check if user has redeemed codes
             var hasRedeemedCodes = await _context.Codes
-                .AnyAsync(c => c.RedeemerId != null && c.RedeemerId.Value == request.UserId, cancellationToken);
+                .AnyAsync(c => c.RedeemerId != null && c.RedeemerId.Value == request.UserId.Value, cancellationToken);
             
             if (hasRedeemedCodes)
             {

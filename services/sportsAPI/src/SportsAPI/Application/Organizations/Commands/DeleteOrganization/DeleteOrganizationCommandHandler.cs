@@ -30,11 +30,6 @@ public class DeleteOrganizationCommandHandler : IRequestHandler<DeleteOrganizati
                 return Result<bool>.Failure("Organization not found");
             }
 
-            // Check if organization can be deleted (business rules)
-            if (organization.IsLocked)
-            {
-                return Result<bool>.Failure("Cannot delete a locked organization");
-            }
 
             // TODO: Add additional business rules
             // - Check if organization has active codes

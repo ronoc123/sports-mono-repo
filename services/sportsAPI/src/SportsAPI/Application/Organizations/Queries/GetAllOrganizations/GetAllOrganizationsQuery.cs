@@ -9,7 +9,6 @@ public record GetAllOrganizationsQuery(
     string? SearchTerm = null,
     Guid? LeagueId = null,
     string? Sport = null,
-    bool? IsLocked = null,
     string? SortBy = "Name",
     bool SortDescending = false
 ) : IRequest<Result<PaginatedList<OrganizationDto>>>;
@@ -25,7 +24,6 @@ public class OrganizationDto
     public int? FormedYear { get; set; }
     public string? Sport { get; set; }
     public string? Description { get; set; }
-    public bool IsLocked { get; set; }
     public DateTime CreatedAt { get; set; }
     
     // Venue properties

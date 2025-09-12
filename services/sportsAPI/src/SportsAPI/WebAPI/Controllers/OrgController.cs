@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using Application.Organizations.Queries.GetOrganizationDetails;
 using Application.Organizations.Queries.GetAllOrganizations;
@@ -7,6 +7,7 @@ using Application.Organizations.Commands.UpdateOrganization;
 using Application.Organizations.Commands.DeleteOrganization;
 using Application.Themes.Queries.GetTheme;
 using sportsAPI.DTO;
+using Domain.ValueObjects.ConcreteTypes;
 
 namespace sportsAPI.Controllers
 {
@@ -28,12 +29,11 @@ namespace sportsAPI.Controllers
             [FromQuery] string? searchTerm = null,
             [FromQuery] Guid? leagueId = null,
             [FromQuery] string? sport = null,
-            [FromQuery] bool? isLocked = null,
             [FromQuery] string? sortBy = "Name",
             [FromQuery] bool sortDescending = false)
         {
             var query = new GetAllOrganizationsQuery(
-                pageNumber, pageSize, searchTerm, leagueId, sport, isLocked, sortBy, sortDescending);
+                pageNumber, pageSize, searchTerm, leagueId, sport, sortBy, sortDescending);
 
             var result = await _mediator.Send(query);
 
@@ -77,7 +77,7 @@ namespace sportsAPI.Controllers
         }
 
         [HttpDelete("deleteOrganization/{organizationId}")]
-        public async Task<ActionResult> DeleteOrganization(Guid organizationId)
+        public async Task<ActionResult> DeleteOrganization(OrganizationId organizationId)
         {
             var command = new DeleteOrganizationCommand(organizationId);
             var result = await _mediator.Send(command);
@@ -136,9 +136,9 @@ namespace sportsAPI.Controllers
         }
 
         [HttpGet("organizationDetails")]
-        public async Task<IActionResult> GetOrganizationDetails([FromQuery] string organizationId)
+        public async Task<IActionResult> GetOrganizationDetails([FromQuery] OrganizationId organizationId)
         {
-            if (string.IsNullOrWhiteSpace(organizationId) || !Guid.TryParse(organizationId, out var orgId))
+            if (organizationId.Value == Guid.Empty)
             {
                 return BadRequest(new ServiceResponse<OrganizationDetailsDto>
                 {
@@ -148,7 +148,7 @@ namespace sportsAPI.Controllers
             }
 
             // Use MediatR to get organization details
-            var query = new GetOrganizationDetailsQuery(orgId);
+            var query = new GetOrganizationDetailsQuery(organizationId);
             var result = await _mediator.Send(query);
 
             if (!result.IsSuccess)
@@ -194,7 +194,7 @@ namespace sportsAPI.Controllers
         [HttpPost("addOrganization")]
         public async Task<IActionResult> AddOrganization([FromBody] CreateOrganizationRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Name) || request.LeagueId == Guid.Empty)
+            if (string.IsNullOrWhiteSpace(request.Name) || request.LeagueId.Value == Guid.Empty)
             {
                 return BadRequest(new ServiceResponse<Guid>
                 {

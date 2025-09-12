@@ -1,9 +1,10 @@
 using Application.Common.Models;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.Leagues.Commands.UpdateLeague;
 
 public record UpdateLeagueCommand(
-    Guid LeagueId,
+    LeagueId LeagueId,
     string Name
 ) : IRequest<Result<bool>>;

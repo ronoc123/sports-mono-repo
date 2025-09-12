@@ -1,51 +1,41 @@
 using Domain.Repositories;
 using Domain.Users;
+using Domain.ValueObjects.ConcreteTypes;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
-public class UserRepository : IUserRepository
+public sealed class UserRepository
+    : EfRepository<User, UserId>, IUserRepository
 {
-    private readonly SportsDbAppContext _db;
+  private readonly SportsDbAppContext _db;
 
-    public UserRepository(SportsDbAppContext db)
-    {
-        _db = db;
-    }
+  public UserRepository(SportsDbAppContext db) : base(db)
+  {
+    _db = db;
+  }
 
-    public async Task<User?> GetUserByIdAsync(Guid userId)
-    {
-        return await _db.Users
-            .FirstOrDefaultAsync(u => u.Id.Value == userId);
-    }
+  // Bridge Guid -> UserId; you can also expose FindAsync(UserId) from IRepository<,>
+  public Task<User?> GetUserByIdAsync(UserId userId)
+      => FindAsync(userId);
 
-    public async Task<List<User>> GetAllUsersAsync()
-    {
-        return await _db.Users.ToListAsync();
-    }
+  public Task<List<User>> GetAllUsersAsync()
+      => _db.Users.AsNoTracking().ToListAsync();
 
-    public async Task AddUserAsync(User user)
-    {
-        await _db.Users.AddAsync(user);
-        await _db.SaveChangesAsync();
-    }
+  public Task AddUserAsync(User user)
+      => _db.Users.AddAsync(user).AsTask();
 
-    public async Task UpdateUserAsync(User user)
-    {
-        _db.Users.Update(user);
-        await _db.SaveChangesAsync();
-    }
+  public Task UpdateUserAsync(User user)
+  {
+    _db.Users.Update(user);
+    return Task.CompletedTask;
+  }
 
-    public async Task DeleteUserAsync(Guid userId)
-    {
-        var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Id.Value == userId);
-        
-        if (user != null)
-        {
-            _db.Users.Remove(user);
-            await _db.SaveChangesAsync();
-        }
-    }
+  public async Task DeleteUserAsync(UserId userId)
+  {
+    var entity = await FindAsync(userId);
+    if (entity is null) return;
+    _db.Users.Remove(entity);
+  }
 }

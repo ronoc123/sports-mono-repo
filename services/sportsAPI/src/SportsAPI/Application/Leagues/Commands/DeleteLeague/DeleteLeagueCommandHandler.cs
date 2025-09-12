@@ -35,7 +35,7 @@ public class DeleteLeagueCommandHandler : IRequestHandler<DeleteLeagueCommand, R
 
             // Check if league has organizations (business rule)
             var organizations = await _organizationRepository.GetAllOrganizationsAsync();
-            var hasOrganizations = organizations.Any(o => o.LeagueId.Value == request.LeagueId);
+            var hasOrganizations = organizations.Any(o => o.LeagueId.Value == request.LeagueId.Value);
             
             if (hasOrganizations)
             {

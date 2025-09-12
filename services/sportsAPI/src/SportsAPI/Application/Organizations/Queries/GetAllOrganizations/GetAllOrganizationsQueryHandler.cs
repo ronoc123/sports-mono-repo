@@ -43,11 +43,6 @@ public class GetAllOrganizationsQueryHandler : IRequestHandler<GetAllOrganizatio
                 query = query.Where(o => o.Sport != null && o.Sport.ToLower() == request.Sport.ToLower());
             }
 
-            if (request.IsLocked.HasValue)
-            {
-                query = query.Where(o => o.IsLocked == request.IsLocked.Value);
-            }
-
             // Apply sorting
             query = request.SortBy?.ToLower() switch
             {
@@ -71,7 +66,6 @@ public class GetAllOrganizationsQueryHandler : IRequestHandler<GetAllOrganizatio
                 FormedYear = o.FormedYear,
                 Sport = o.Sport,
                 Description = o.Description,
-                IsLocked = o.IsLocked,
                 CreatedAt = o.CreatedAt ?? DateTime.MinValue,
                 // TODO: Add value object properties when they're properly configured
                 // Stadium = o.Venue.Stadium,

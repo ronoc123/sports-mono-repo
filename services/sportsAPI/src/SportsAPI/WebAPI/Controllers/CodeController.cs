@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using sportsAPI.DTO.Code;
 using MediatR;
 using Application.Codes.Commands.GenerateCode;
@@ -24,7 +24,7 @@ namespace sportsAPI.Controllers
         [HttpPost("generate")]
         public async Task<IActionResult> GenerateCode([FromBody] GenerateCodeRequestDto request)
         {
-            if (request == null || request.OrganizationId == Guid.Empty)
+            if (request == null || request.OrganizationId.Value == Guid.Empty)
             {
                 return BadRequest(new ServiceResponse<Guid>
                 {
@@ -59,7 +59,7 @@ namespace sportsAPI.Controllers
         [HttpPost("redeem")]
         public async Task<IActionResult> RedeemCode([FromBody] RedeemCodeRequestDto request)
         {
-            if (request == null || request.CodeId == Guid.Empty || request.UserId == Guid.Empty)
+            if (request == null || request.CodeId.Value == Guid.Empty || request.UserId.Value == Guid.Empty)
             {
                 return BadRequest(new ServiceResponse<bool>
                 {
@@ -92,37 +92,11 @@ namespace sportsAPI.Controllers
         [HttpGet("available/{userId:guid}")]
         public async Task<ActionResult<ServiceResponse<List<RedeemCodeDto>>>> GetAvailableCodes(Guid userId)
         {
-            // Mock data - replace with actual repository call
-            var codes = new List<RedeemCodeDto>
-            {
-                new RedeemCodeDto
-                {
-                    Id = Guid.NewGuid(),
-                    Code = "WELCOME100",
-                    Type = "votes",
-                    Value = 100,
-                    Description = "Welcome bonus - 100 free votes",
-                    ExpiresAt = DateTime.UtcNow.AddDays(30),
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow.AddDays(-5)
-                },
-                new RedeemCodeDto
-                {
-                    Id = Guid.NewGuid(),
-                    Code = "PREMIUM30",
-                    Type = "premium",
-                    Value = 30,
-                    Description = "30 days premium access",
-                    ExpiresAt = DateTime.UtcNow.AddDays(60),
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow.AddDays(-10)
-                }
-            };
 
             return Ok(new ServiceResponse<List<RedeemCodeDto>>
             {
                 Success = true,
-                Data = codes,
+                Data = null,
                 Message = "Available codes retrieved successfully."
             });
         }

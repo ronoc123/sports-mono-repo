@@ -1,6 +1,7 @@
 using Application.Common.Models;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.Codes.Commands.GenerateCode;
 
-public record GenerateCodeCommand(Guid OrganizationId) : IRequest<Result<Guid>>;
+public record GenerateCodeCommand(OrganizationId OrganizationId) : IRequest<Result<Guid>>;

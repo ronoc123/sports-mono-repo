@@ -6,53 +6,34 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories;
 
-public class LeagueRepository : ILeagueRepository
+public sealed class LeagueRepository
+    : EfRepository<League, LeagueId>, ILeagueRepository
 {
-    private readonly SportsDbAppContext _db;
+  private readonly SportsDbAppContext _db;
 
-    public LeagueRepository(SportsDbAppContext db)
-    {
-        _db = db;
-    }
+  public LeagueRepository(SportsDbAppContext db) : base(db)
+  {
+    _db = db;
+  }
 
-    public async Task<League?> GetByIdAsync(Guid leagueId)
-    {
-        // Create the LeagueId value object for comparison
-        var leagueIdVO = LeagueId.Of(leagueId);
-        return await _db.Leagues
-            .FirstOrDefaultAsync(l => l.Id == leagueIdVO);
-    }
+  // Bridge Guid -> LeagueId and reuse the base FindAsync
+  public Task<League?> GetByIdAsync(LeagueId leagueId)
+      => FindAsync(leagueId);
 
-    public async Task<List<League>> GetLeaguesByOrganizationIdAsync(Guid organizationId)
-    {
-        var organizationIdVO = OrganizationId.Of(organizationId);
-        return await _db.Leagues
-            .Where(l => l.Organization.Any(o => o.Id == organizationIdVO))
-            .ToListAsync();
-    }
+  public Task AddLeagueAsync(League league)
+      => _db.Set<League>().AddAsync(league).AsTask();
 
-    public async Task AddLeagueAsync(League league)
-    {
-        await _db.Leagues.AddAsync(league);
-        await _db.SaveChangesAsync();
-    }
+  public Task UpdateLeagueAsync(League league)
+  {
+    _db.Set<League>().Update(league);
+    return Task.CompletedTask;
+  }
 
-    public async Task UpdateLeagueAsync(League league)
-    {
-        _db.Leagues.Update(league);
-        await _db.SaveChangesAsync();
-    }
+  public async Task DeleteLeagueAsync(LeagueId leagueId)
+  {
+    var entity = await FindAsync(leagueId);
+    if (entity is null) return;
+    _db.Set<League>().Remove(entity);
+  }
 
-    public async Task DeleteLeagueAsync(Guid leagueId)
-    {
-        var leagueIdVO = LeagueId.Of(leagueId);
-        var league = await _db.Leagues
-            .FirstOrDefaultAsync(l => l.Id == leagueIdVO);
-
-        if (league != null)
-        {
-            _db.Leagues.Remove(league);
-            await _db.SaveChangesAsync();
-        }
-    }
 }

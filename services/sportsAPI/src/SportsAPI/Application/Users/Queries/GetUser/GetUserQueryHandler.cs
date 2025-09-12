@@ -30,21 +30,6 @@ public class GetUserQueryHandler : IRequestHandler<GetUserQuery, Result<UserDto>
                 Email = user.Email,
                 UserName = user.UserName,
                 CreatedAt = user.CreatedAt,
-                VotesAvailable = user.VotesAvailable.Select(v => new UserVoteDto
-                {
-                    OrganizationId = v.OrganizationId.Value,
-                    VotesRemaining = v.VotesRemaining
-                }).ToList(),
-                Votes = user.Votes.Select(v => new VoteDto
-                {
-                    Id = v.Id.Value,
-                    CreatedAt = v.CreatedAt ?? DateTime.MinValue
-                }).ToList(),
-                RedeemedCodes = user.Codes.Select(c => new CodeDto
-                {
-                    Id = c.Id.Value,
-                    VotesAwarded = c.VotesAwarded
-                }).ToList()
             };
 
             return Result<UserDto>.Success(dto);

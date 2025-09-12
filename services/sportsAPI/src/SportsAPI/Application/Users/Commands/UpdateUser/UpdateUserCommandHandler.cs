@@ -33,7 +33,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
 
             // Check if email is already taken by another user
             var existingUserWithEmail = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id.Value != request.UserId, cancellationToken);
+                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Id.Value != request.UserId.Value, cancellationToken);
             
             if (existingUserWithEmail != null)
             {
@@ -42,7 +42,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, Resul
 
             // Check if username is already taken by another user
             var existingUserWithUsername = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == request.UserName && u.Id.Value != request.UserId, cancellationToken);
+                .FirstOrDefaultAsync(u => u.UserName == request.UserName && u.Id.Value != request.UserId.Value, cancellationToken);
             
             if (existingUserWithUsername != null)
             {

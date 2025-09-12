@@ -39,9 +39,6 @@ public class UpdateOrganizationCommandHandler : IRequestHandler<UpdateOrganizati
             // Update team info using the domain method
             organization.UpdateTeamInfo(request.TeamId, request.TeamName, request.TeamShortName, request.Sport);
 
-            // Note: For now, we're updating simple properties
-            // TODO: Update value objects (Venue, MediaAssets, SocialLinks, TeamColors) when they're properly configured
-
             // Update the organization
             await _organizationRepository.UpdateOrganizationAsync(organization);
             

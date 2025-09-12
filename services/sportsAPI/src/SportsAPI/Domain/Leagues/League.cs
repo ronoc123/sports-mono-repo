@@ -1,4 +1,4 @@
-﻿
+
 using Domain.Organizations;
 using Domain.Organizations.Entities;
 
@@ -13,8 +13,8 @@ namespace Domain.Leagues
         private readonly List<Player> _players = new();
         public IReadOnlyList<Player> Players => _players.AsReadOnly();
 
-        private readonly List<Organization> _organization = new();
-        public IReadOnlyList<Organization> Organization => _organization.AsReadOnly();
+        private readonly List<Organization> _organizations = new();
+        public IReadOnlyList<Organization> Organizations => _organizations.AsReadOnly();
 
         public static League Create(LeagueId id, string name)
         {
@@ -71,86 +71,35 @@ namespace Domain.Leagues
             if (organization.LeagueId != this.Id)
                 throw new InvalidOperationException("Organization must belong to this league");
 
-            if (_organization.Any(o => o.Name == organization.Name))
+            if (_organizations.Any(o => o.Name == organization.Name))
                 throw new InvalidOperationException("Organization with this name already exists in the league");
 
-            _organization.Add(organization);
+            _organizations.Add(organization);
             // TODO: Add domain event for organization added to league
         }
 
         // Domain method to remove organization
         public void RemoveOrganization(OrganizationId organizationId)
         {
-            var organization = _organization.FirstOrDefault(o => o.Id == organizationId);
+            var organization = _organizations.FirstOrDefault(o => o.Id == organizationId);
             if (organization == null)
                 throw new InvalidOperationException("Organization not found in league");
 
-            if (organization.HasActivePlayerOptions())
-                throw new InvalidOperationException("Cannot remove organization with active player options");
-
-            _organization.Remove(organization);
+            _organizations.Remove(organization);
             // TODO: Add domain event for organization removed from league
         }
 
-        // Business logic methods
-        public bool CanAddOrganization()
-        {
-            // Business rule: Maximum 20 organizations per league
-            return _organization.Count < 20;
-        }
 
-        public int GetTotalPlayers()
-        {
-            return _players.Count;
-        }
+        public int TotalPlayers => _players.Count;
+        public int ActivePlayers => _players.Count(p => p.IsActive);
+        public int TotalOrganizations => _organizations.Count;
+      }
 
-        public int GetActivePlayers()
-        {
-            return _players.Count(p => p.IsActive);
-        }
-
-        public int GetTotalOrganizations()
-        {
-            return _organization.Count;
-        }
-
-        public decimal GetAveragePlayerAge()
-        {
-            if (!_players.Any()) return 0;
-            return (decimal)_players.Average(p => p.Age);
-        }
-
-        public decimal GetTotalMarketValue()
-        {
-            return _players.Sum(p => p.GetMarketValue());
-        }
-
-        public IEnumerable<Player> GetYoungPlayers()
-        {
-            return _players.Where(p => p.IsYoungPlayer);
-        }
-
-        public IEnumerable<Player> GetVeteranPlayers()
-        {
-            return _players.Where(p => p.IsVeteran);
-        }
-
-        public Organization? GetMostActiveOrganization()
-        {
-            return _organization
-                .OrderByDescending(o => o.GetTotalVotes())
-                .FirstOrDefault();
-        }
-
-        public bool HasOrganizationWithName(string name)
-        {
-            return _organization.Any(o => o.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public bool CanDelete()
-        {
-            // Business rule: Can only delete league if no organizations have active player options
-            return !_organization.Any(o => o.HasActivePlayerOptions());
-        }
-    }
+      // Domain events TO DO
+      public sealed record LeagueCreated(LeagueId LeagueId, string Name);
+      public sealed record LeagueRenamed(LeagueId LeagueId, string Name);
+      public sealed record PlayerAddedToLeague(LeagueId LeagueId, PlayerId PlayerId);
+      public sealed record PlayerRemovedFromLeague(LeagueId LeagueId, PlayerId PlayerId);
+      public sealed record OrganizationAddedToLeague(LeagueId LeagueId, OrganizationId OrganizationId);
+      public sealed record OrganizationRemovedFromLeague(LeagueId LeagueId, OrganizationId OrganizationId);
 }

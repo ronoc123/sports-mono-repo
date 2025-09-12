@@ -62,7 +62,7 @@ public class CreateOrganizationCommandHandler : IRequestHandler<CreateOrganizati
             // Create organization using domain factory method
             var organization = Organization.Create(
                 OrganizationId.Of(Guid.NewGuid()),
-                LeagueId.Of(request.LeagueId),
+                request.LeagueId,
                 request.Name,
                 request.TeamId,
                 request.TeamName,

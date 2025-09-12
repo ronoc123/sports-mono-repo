@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Domain.Leagues;
 using Domain.User.Entities;
 using Domain.Organizations.Entities;
@@ -8,6 +8,8 @@ using Domain.Organizations;
 using Domain.ValueObjects.ConcreteTypes;
 using System.Reflection;
 using Application.Common.Interfaces;
+using Domain.PointsCode;
+using Domain.PointsWallet;
 
 namespace Infrastructure.Data
 {
@@ -19,13 +21,13 @@ namespace Infrastructure.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Code> Codes => Set<Code>();
         public DbSet<PlayerOption> PlayerOptions => Set<PlayerOption>();
-        public DbSet<Vote> Votes => Set<Vote>();
         public DbSet<Theme> Themes => Set<Theme>();
         public DbSet<Player> Players => Set<Player>();
-        public DbSet<UserVotes> UserVotes => Set<UserVotes>();
         public DbSet<League> Leagues => Set<League>();
+        public DbSet<PointsCode> PointsCodes => Set<PointsCode>();
+        public DbSet<PointsWallet> PointsWallets => Set<PointsWallet>();
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Explicitly ignore value object types to prevent EF Core from treating them as entities
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.OrganizationId>();
@@ -34,19 +36,15 @@ namespace Infrastructure.Data
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.PlayerOptionId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.UserId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.CodeId>();
-            modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.VoteId>();
-            modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.UserVotesId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.ThemeId>();
+            modelBuilder.Ignore<PointCodeId>();
+            modelBuilder.Ignore<PointsWalletId>();
 
             // Ignore complex value objects
             modelBuilder.Ignore<Domain.ValueObjects.TeamColors>();
-            modelBuilder.Ignore<Domain.ValueObjects.Venue>();
-            modelBuilder.Ignore<Domain.ValueObjects.MediaAssets>();
-            modelBuilder.Ignore<Domain.ValueObjects.SocialLinks>();
-
-            // Ignore nested classes that are used as value objects
-            modelBuilder.Ignore<Domain.Users.Entities.PrivacySettings>();
-            modelBuilder.Ignore<Domain.Users.Entities.UserPreferences>();
+                  modelBuilder.Ignore<Domain.ValueObjects.Venue>();
+                  modelBuilder.Ignore<Domain.ValueObjects.MediaAssets>();
+                  modelBuilder.Ignore<Domain.ValueObjects.SocialLinks>();
 
             // Apply entity configurations
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

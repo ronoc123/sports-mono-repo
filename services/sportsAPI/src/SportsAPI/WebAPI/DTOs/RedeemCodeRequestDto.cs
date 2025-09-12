@@ -1,7 +1,9 @@
+using Domain.ValueObjects.ConcreteTypes;
+
 namespace sportsAPI.DTO;
 
 public class RedeemCodeRequestDto
 {
-    public Guid CodeId { get; set; }
-    public Guid UserId { get; set; }
+    public CodeId CodeId { get; set; }
+    public UserId UserId { get; set; }
 }

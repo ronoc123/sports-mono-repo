@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,25 +6,25 @@ using System.Threading.Tasks;
 
 namespace Domain.ValueObjects.ConcreteTypes
 {
-    public record VoteId
+    public record PointCodeId
     {
         public Guid Value { get; }
 
-        private VoteId(Guid value)
+        private PointCodeId(Guid value)
         {
             Value = value;
         }
 
-        public static VoteId Of(Guid value)
+        public static PointCodeId Of(Guid value)
         {
             ArgumentNullException.ThrowIfNull(value);
 
             if (value == Guid.Empty)
             {
-                throw new DomainExceptions("VoteId cannot be empty");
+                throw new DomainExceptions("PointCodeId cannot be empty");
             }
 
-            return new VoteId(value);
+            return new PointCodeId(value);
         }
     }
 }

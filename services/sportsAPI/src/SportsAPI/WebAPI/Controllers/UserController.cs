@@ -6,6 +6,7 @@ using Application.Users.Commands.DeleteUser;
 using Application.Users.Queries.GetAllUsers;
 using Application.Users.Queries.GetUser;
 using sportsAPI.DTO;
+using Domain.ValueObjects.ConcreteTypes;
 
 namespace sportsAPI.Controllers
 {
@@ -51,7 +52,7 @@ namespace sportsAPI.Controllers
 
         // Get a specific User by ID
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUser(Guid userId)
+        public async Task<IActionResult> GetUser(UserId userId)
         {
             var query = new GetUserQuery(userId);
             var result = await _mediator.Send(query);
@@ -98,7 +99,7 @@ namespace sportsAPI.Controllers
 
         // Delete a User
         [HttpDelete("delete/{userId}")]
-        public async Task<IActionResult> DeleteUser(Guid userId)
+        public async Task<IActionResult> DeleteUser(UserId userId)
         {
             var command = new DeleteUserCommand(userId);
             var result = await _mediator.Send(command);

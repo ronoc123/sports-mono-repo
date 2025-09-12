@@ -1,4 +1,4 @@
-﻿using Domain.Organizations.Entities;
+using Domain.Organizations.Entities;
 using Domain.ValueObjects.ConcreteTypes;
 
 
@@ -45,7 +45,6 @@ namespace Domain.Organizations
             TeamColors = teamColors;
             Description = description;
             CreatedAt = DateTime.Now;
-            IsLocked = false;
         }
 
         private readonly List<PlayerOption> _playerOptions = new();
@@ -66,7 +65,6 @@ namespace Domain.Organizations
         public SocialLinks SocialLinks { get; private set; } = null!;
         public TeamColors TeamColors { get; private set; } = null!;
         public string? Description { get; set; }
-        public bool IsLocked { get; set; }
 
         // Factory method to create organization
         public static Organization Create(
@@ -100,7 +98,6 @@ namespace Domain.Organizations
                 TeamColors = teamColors,
                 Description = description,
                 CreatedAt = DateTime.UtcNow,
-                IsLocked = false
             };
         }
 
@@ -118,36 +115,13 @@ namespace Domain.Organizations
             if (!string.IsNullOrEmpty(sport) && sport.Length > 100)
                 throw new ArgumentException("Sport cannot exceed 100 characters", nameof(sport));
 
-            TeamId = teamId;
             TeamName = teamName;
             TeamShortName = teamShortName;
             Sport = sport;
         }
 
-        public void Lock(string reason)
-        {
-            if (IsLocked)
-                throw new InvalidOperationException("Organization is already locked");
-
-            ArgumentException.ThrowIfNullOrWhiteSpace(reason, nameof(reason));
-
-            IsLocked = true;
-            // TODO: Add domain event for organization locked
-        }
-
-        public void Unlock()
-        {
-            if (!IsLocked)
-                throw new InvalidOperationException("Organization is not locked");
-
-            IsLocked = false;
-            // TODO: Add domain event for organization unlocked
-        }
-
         public PlayerOption CreatePlayerOption(string title, string description, PlayerId playerId, DateTime? expiresAt = null)
         {
-            if (IsLocked)
-                throw new InvalidOperationException("Cannot create player options for locked organization");
 
             var playerOption = PlayerOption.Create(title, description, playerId, this.Id, expiresAt);
             _playerOptions.Add(playerOption);
@@ -173,9 +147,6 @@ namespace Domain.Organizations
         {
             ArgumentNullException.ThrowIfNull(player, nameof(player));
 
-            if (IsLocked)
-                throw new InvalidOperationException("Cannot add players to locked organization");
-
             if (player.LeagueId != this.LeagueId)
                 throw new InvalidOperationException("Player must be in the same league as the organization");
 
@@ -195,59 +166,23 @@ namespace Domain.Organizations
             // TODO: Add domain event for player removed
         }
 
-        // Business logic methods
-        public bool CanCreatePlayerOptions()
-        {
-            return !IsLocked && _players.Any();
-        }
-
-        public int GetActivePlayerOptionsCount()
-        {
-            return _playerOptions.Count(po => po.IsActive);
-        }
-
-        public int GetTotalVotes()
-        {
-            return _playerOptions.Sum(po => po.Votes);
-        }
-
-        public PlayerOption? GetMostPopularPlayerOption()
-        {
-            return _playerOptions
-                .Where(po => po.IsActive)
-                .OrderByDescending(po => po.Votes)
-                .FirstOrDefault();
-        }
-
-        public IEnumerable<PlayerOption> GetTrendingPlayerOptions()
-        {
-            return _playerOptions
-                .Where(po => po.IsTrending)
-                .OrderByDescending(po => po.Votes);
-        }
-
-        public bool HasActivePlayerOptions()
-        {
-            return _playerOptions.Any(po => po.IsActive);
-        }
-
-        public decimal GetAveragePlayerAge()
-        {
-            if (!_players.Any()) return 0;
-            return (decimal)_players.Average(p => p.Age);
-        }
-
-        public int GetActivePlayersCount()
-        {
-            return _players.Count(p => p.IsActive);
-        }
-
-        public decimal GetTotalMarketValue()
-        {
-            return _players.Sum(p => p.GetMarketValue());
-        }
-
         // TODO: Add methods to update value objects (Venue, MediaAssets, SocialLinks, TeamColors)
         // when they are properly configured in EF Core
     }
+
+    // --- Domain Events TODO
+    public sealed record OrganizationCreated(OrganizationId OrganizationId, LeagueId LeagueId, string Name);
+    public sealed record OrganizationRenamed(OrganizationId OrganizationId, string Name);
+    public sealed record OrganizationTeamInfoUpdated(OrganizationId OrganizationId, string? TeamId, string? TeamName, string? TeamShortName, string? Sport);
+    public sealed record OrganizationFormedYearUpdated(OrganizationId OrganizationId, int? FormedYear);
+    public sealed record OrganizationVenueUpdated(OrganizationId OrganizationId);
+    public sealed record OrganizationMediaAssetsUpdated(OrganizationId OrganizationId);
+    public sealed record OrganizationSocialLinksUpdated(OrganizationId OrganizationId);
+    public sealed record OrganizationTeamColorsUpdated(OrganizationId OrganizationId);
+    public sealed record OrganizationDescriptionUpdated(OrganizationId OrganizationId);
+
+    public sealed record PlayerOptionCreated(OrganizationId OrganizationId, PlayerOptionId PlayerOptionId, PlayerId PlayerId);
+    public sealed record PlayerOptionRemoved(OrganizationId OrganizationId, PlayerOptionId PlayerOptionId);
+    public sealed record PlayerAddedToOrganization(OrganizationId OrganizationId, PlayerId PlayerId);
+    public sealed record PlayerRemovedFromOrganization(OrganizationId OrganizationId, PlayerId PlayerId);
 }

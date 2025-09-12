@@ -1,11 +1,12 @@
 using Application.Common.Models;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.Votes.Commands.CastVote;
 
 public record CastVoteCommand(
-    Guid UserId,
-    Guid PlayerOptionId,
-    Guid OrganizationId,
+    UserId UserId,
+    PlayerOptionId PlayerOptionId,
+    OrganizationId OrganizationId,
     int VotesSpent
 ) : IRequest<Result<Guid>>;
