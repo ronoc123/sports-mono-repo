@@ -4,8 +4,8 @@ using Application.Leagues.Commands.CreateLeague;
 using Application.Leagues.Commands.UpdateLeague;
 using Application.Leagues.Commands.DeleteLeague;
 using Application.Leagues.Queries.GetAllLeagues;
-using sportsAPI.DTO;
 using Domain.ValueObjects.ConcreteTypes;
+using System.ComponentModel.DataAnnotations;
 
 namespace sportsAPI.Controllers
 {
@@ -22,36 +22,10 @@ namespace sportsAPI.Controllers
 
         // Add a new League
         [HttpPost("add")]
-        public async Task<IActionResult> AddLeague([FromBody] CreateLeagueRequestDto request)
+        public async Task<IActionResult> AddLeague([FromBody] CreateLeagueCommand command)
         {
-            // Validate input
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                return BadRequest(new ServiceResponse<Guid>
-                {
-                    Success = false,
-                    Message = "League name cannot be empty."
-                });
-            }
-
-            var command = new CreateLeagueCommand(request.Name);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<Guid>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<Guid>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "League added successfully."
-            });
+            return Ok(result);
         }
 
         // Get all Leagues with pagination
@@ -65,22 +39,7 @@ namespace sportsAPI.Controllers
         {
             var query = new GetAllLeaguesQuery(pageNumber, pageSize, searchTerm, sortBy, sortDescending);
             var result = await _mediator.Send(query);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<object>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<object>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Leagues retrieved successfully."
-            });
+            return Ok(result);
         }
 
         // Update a League
@@ -88,22 +47,7 @@ namespace sportsAPI.Controllers
         public async Task<IActionResult> UpdateLeague([FromBody] UpdateLeagueCommand command)
         {
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<bool>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "League updated successfully."
-            });
+            return Ok(result);
         }
 
         // Delete a League
@@ -112,22 +56,7 @@ namespace sportsAPI.Controllers
         {
             var command = new DeleteLeagueCommand(id);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<bool>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "League deleted successfully."
-            });
+            return Ok(result);
         }
     }
 }

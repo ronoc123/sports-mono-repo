@@ -42,98 +42,34 @@ namespace sportsAPI.Controllers
                 position, minAge, maxAge, isActive, sortBy, sortDescending);
             
             var result = await _mediator.Send(query);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<object>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<object>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Players retrieved successfully."
-            });
+            return Ok(result);
         }
 
         // Create a new Player
         [HttpPost("create")]
-        [Authorize(Roles = "Admin,GM")] // Only Admin and GM can create players
+        [Authorize(Roles = "Admin,GM")]
         public async Task<IActionResult> CreatePlayer([FromBody] CreatePlayerCommand command)
         {
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<Guid>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return CreatedAtAction(
-                nameof(GetAllPlayers), 
-                new { }, 
-                new ServiceResponse<Guid>
-                {
-                    Success = true,
-                    Data = result.Value,
-                    Message = "Player created successfully."
-                });
+            return Ok(result);
         }
 
         // Update a Player
         [HttpPut("update")]
-        [Authorize(Roles = "Admin,GM")] // Only Admin and GM can update players
+        [Authorize(Roles = "Admin,GM")]
         public async Task<IActionResult> UpdatePlayer([FromBody] UpdatePlayerCommand command)
         {
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<bool>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Player updated successfully."
-            });
+            return Ok(result);
         }
 
         // Delete a Player
         [HttpDelete("delete/{playerId}")]
         [Authorize(Roles = "Admin")] // Only Admin can delete players
-        public async Task<IActionResult> DeletePlayer(Guid playerId)
+        public async Task<IActionResult> DeletePlayer(DeletePlayerCommand command)
         {
-            var command = new DeletePlayerCommand(playerId);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(new ServiceResponse<bool>
-                {
-                    Success = false,
-                    Message = result.Error
-                });
-            }
-
-            return Ok(new ServiceResponse<bool>
-            {
-                Success = true,
-                Data = result.Value,
-                Message = "Player deleted successfully."
-            });
+            return Ok(result);
         }
     }
 }

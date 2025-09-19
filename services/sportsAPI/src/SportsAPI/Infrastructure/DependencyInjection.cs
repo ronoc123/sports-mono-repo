@@ -25,7 +25,7 @@ namespace Infrastructure
             services.AddScoped<ILeagueRepository, LeagueRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
 
-      return services;
+            return services;
         }
     }
 }

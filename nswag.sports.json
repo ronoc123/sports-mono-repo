@@ -1,0 +1,21 @@
+{
+  "runtime": "Net80",
+  "documentGenerator": {
+    "fromDocument": { "url": "https://localhost:7092/swagger/v1/swagger.json" }
+  },
+  "codeGenerators": {
+    "openApiToTypeScriptClient": {
+      "template": "Angular",
+      "httpClass": "HttpClient",
+      "stringEnums": true,
+      "generateClientInterfaces": true,
+      "generateOptionalParameters": true,
+      "useAbortSignal": true,
+      "rxJsVersion": 7,
+      "injectionTokenType": "InjectionToken",
+      "providedIn": "root",
+      "baseUrl": "https://localhost:7092",
+      "output": "libs/core/clients/sports-api.client.ts"
+    }
+  }
+}

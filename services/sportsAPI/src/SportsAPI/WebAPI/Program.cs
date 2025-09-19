@@ -1,10 +1,12 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using Web;
+using Web.Web;
 // using BuildingBlocks.Messageing.MassTransit; // Temporarily disabled
 
 
@@ -13,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Clean Architecture layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-
+builder.Services.AddSportifyWeb();
 // Add CORS services
 builder.Services.AddCors(options =>
 {
@@ -128,7 +130,7 @@ builder.Services.AddHttpClient();
 // builder.Services.AddMessageBroker(builder.Configuration);
 
 var app = builder.Build();
-
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -143,8 +145,6 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 
 app.MapControllers();
 
@@ -171,24 +171,3 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-
-
-// Role seeding commented out for now - needs to be updated for new architecture
-/*
-async Task SeedRoles(IServiceProvider services)
-{
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-    // Define the roles
-    var roles = new[] { "User", "Admin", "CSP", "GM" };
-
-    foreach (var role in roles)
-    {
-        var roleExist = await roleManager.RoleExistsAsync(role);
-        if (!roleExist)
-        {
-            await roleManager.CreateAsync(new IdentityRole(role));
-        }
-    }
-}
-*/

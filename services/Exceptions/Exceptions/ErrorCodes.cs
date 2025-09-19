@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BuildingBlocks.Exceptions
+{
+  public static class ErrorCodes
+  {
+    public const string NotFound = "NotFound";
+    public const string Validation = "Validation";
+    public const string Concurrency = "Concurrency";
+    public const string Conflict = "Conflict";
+    public const string Forbidden = "Forbidden";
+    public const string Unauthorized = "Unauthorized";
+    public const string DomainRule = "DomainRule";
+    public const string BadRequest = "BadRequest";
+    public const string Unknown = "Unknown";
+  }
+}
