@@ -23,7 +23,6 @@ namespace Infrastructure
             // Register repositories
             services.AddScoped<IOrganizationRepository, OrganizationRepository>();
             services.AddScoped<ILeagueRepository, LeagueRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
         }

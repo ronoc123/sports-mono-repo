@@ -17,8 +17,6 @@ public class CreateLeagueCommandHandler : IRequestHandler<CreateLeagueCommand, R
 
     public async Task<Result<Guid>> Handle(CreateLeagueCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
             var leagueId = LeagueId.Of(Guid.NewGuid());
             var league = League.Create(leagueId, request.Name);
 
@@ -26,10 +24,5 @@ public class CreateLeagueCommandHandler : IRequestHandler<CreateLeagueCommand, R
             await _context.SaveChangesAsync(cancellationToken);
 
             return Result<Guid>.Success(league.Id.Value);
-        }
-        catch (Exception ex)
-        {
-            return Result<Guid>.Failure($"Failed to create league: {ex.Message}");
-        }
     }
 }

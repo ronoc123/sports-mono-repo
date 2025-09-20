@@ -68,7 +68,6 @@ export class AuthService {
     const token = this.getStoredToken();
     if (token && this.isTokenValid(token)) {
       // Load current user if token exists and is valid
-      this.userStore.loadCurrentUser();
     } else {
       // Clear invalid token
       this.clearStoredToken();

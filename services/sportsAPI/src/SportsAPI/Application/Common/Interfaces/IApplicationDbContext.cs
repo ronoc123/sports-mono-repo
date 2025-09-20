@@ -14,7 +14,6 @@ public interface IApplicationDbContext
 {
     DbSet<Organization> Organizations { get; }
     DbSet<League> Leagues { get; }
-    DbSet<User> Users { get; }
     DbSet<Code> Codes { get; }
     DbSet<Player> Players { get; }
     DbSet<PlayerOption> PlayerOptions { get; }

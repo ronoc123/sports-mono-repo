@@ -56,15 +56,6 @@ export class Redeem {
     "status",
   ];
 
-  ngOnInit() {
-    this.loadCurrentUser();
-    this.loadUserCodes();
-  }
-
-  loadCurrentUser() {
-    this.userStore.loadCurrentUser();
-  }
-
   loadUserCodes() {
     const user = this.currentUser();
     if (user) {

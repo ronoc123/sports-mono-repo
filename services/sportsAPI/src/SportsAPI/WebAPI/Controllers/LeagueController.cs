@@ -1,10 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
-using MediatR;
+using Application.Common.Models;
 using Application.Leagues.Commands.CreateLeague;
-using Application.Leagues.Commands.UpdateLeague;
 using Application.Leagues.Commands.DeleteLeague;
+using Application.Leagues.Commands.UpdateLeague;
 using Application.Leagues.Queries.GetAllLeagues;
 using Domain.ValueObjects.ConcreteTypes;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace sportsAPI.Controllers
@@ -22,15 +23,12 @@ namespace sportsAPI.Controllers
 
         // Add a new League
         [HttpPost("add")]
-        public async Task<IActionResult> AddLeague([FromBody] CreateLeagueCommand command)
-        {
-            var result = await _mediator.Send(command);
-            return Ok(result);
-        }
+        public async Task<Result<Guid>> AddLeague([FromBody] CreateLeagueCommand command)
+            => await _mediator.Send(command);
 
         // Get all Leagues with pagination
         [HttpGet("all")]
-        public async Task<IActionResult> GetAllLeagues(
+        public async Task<Result<PaginatedList<LeagueDto>>> GetAllLeagues(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? searchTerm = null,
@@ -38,25 +36,21 @@ namespace sportsAPI.Controllers
             [FromQuery] bool sortDescending = false)
         {
             var query = new GetAllLeaguesQuery(pageNumber, pageSize, searchTerm, sortBy, sortDescending);
-            var result = await _mediator.Send(query);
-            return Ok(result);
+            return await _mediator.Send(query);
         }
 
         // Update a League
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateLeague([FromBody] UpdateLeagueCommand command)
+        public async Task<Result<bool>> UpdateLeague([FromBody] UpdateLeagueCommand command)
         {
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            return await _mediator.Send(command);
         }
 
         // Delete a League
         [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteLeague(LeagueId id)
+        public async Task<Result<bool>> DeleteLeague(DeleteLeagueCommand command)
         {
-            var command = new DeleteLeagueCommand(id);
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            return await _mediator.Send(command);
         }
     }
 }

@@ -18,7 +18,6 @@ namespace Infrastructure.Data
         public SportsDbAppContext(DbContextOptions<SportsDbAppContext> options)
             : base(options) { }
         public DbSet<Organization> Organizations => Set<Organization>();
-        public DbSet<User> Users => Set<User>();
         public DbSet<Code> Codes => Set<Code>();
         public DbSet<PlayerOption> PlayerOptions => Set<PlayerOption>();
         public DbSet<Theme> Themes => Set<Theme>();
@@ -34,7 +33,6 @@ namespace Infrastructure.Data
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.LeagueId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.PlayerId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.PlayerOptionId>();
-            modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.UserId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.CodeId>();
             modelBuilder.Ignore<Domain.ValueObjects.ConcreteTypes.ThemeId>();
             modelBuilder.Ignore<PointCodeId>();
