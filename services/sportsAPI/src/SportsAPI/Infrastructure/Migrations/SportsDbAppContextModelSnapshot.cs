@@ -17,7 +17,7 @@ namespace Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -218,9 +218,6 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("FormedYear")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsLocked")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
 
@@ -258,6 +255,100 @@ namespace Infrastructure.Migrations
                     b.ToTable("Organizations", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.PointsCode.PointsCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AssignedUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RedeemedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("PointsCodes", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.PointsWallet.PointsWallet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Balance")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "OrganizationId")
+                        .IsUnique();
+
+                    b.ToTable("PointsWallets", (string)null);
+                });
+
             modelBuilder.Entity("Domain.SharedKernal.Code", b =>
                 {
                     b.Property<Guid>("Id")
@@ -288,9 +379,6 @@ namespace Infrastructure.Migrations
                     b.Property<Guid?>("RedeemerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("VotesAwarded")
                         .HasColumnType("int");
 
@@ -302,67 +390,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Codes", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.User.Entities.UserVotes", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("VotesRemaining")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserVotes", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.User.Entities.Vote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .IsRequired()
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Votes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Users.User", b =>
@@ -451,7 +479,7 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Organizations.Organization", b =>
                 {
                     b.HasOne("Domain.Leagues.League", null)
-                        .WithMany("Organization")
+                        .WithMany("Organizations")
                         .HasForeignKey("LeagueId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -464,29 +492,11 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Domain.Users.User", null)
-                        .WithMany("Codes")
-                        .HasForeignKey("UserId");
-                });
-
-            modelBuilder.Entity("Domain.User.Entities.UserVotes", b =>
-                {
-                    b.HasOne("Domain.Users.User", null)
-                        .WithMany("VotesAvailable")
-                        .HasForeignKey("UserId");
-                });
-
-            modelBuilder.Entity("Domain.User.Entities.Vote", b =>
-                {
-                    b.HasOne("Domain.Users.User", null)
-                        .WithMany("Votes")
-                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("Domain.Leagues.League", b =>
                 {
-                    b.Navigation("Organization");
+                    b.Navigation("Organizations");
 
                     b.Navigation("Players");
                 });
@@ -498,15 +508,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Player");
 
                     b.Navigation("PlayerOptions");
-                });
-
-            modelBuilder.Entity("Domain.Users.User", b =>
-                {
-                    b.Navigation("Codes");
-
-                    b.Navigation("Votes");
-
-                    b.Navigation("VotesAvailable");
                 });
 #pragma warning restore 612, 618
         }

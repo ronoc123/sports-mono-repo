@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class testtttttt : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,6 +25,48 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Leagues", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PointsCodes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrganizationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Points = table.Column<int>(type: "int", nullable: false),
+                    AssignedUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    RedeemedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PointsCodes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PointsWallets",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrganizationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Balance = table.Column<int>(type: "int", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PointsWallets", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -84,7 +126,6 @@ namespace Infrastructure.Migrations
                     FormedYear = table.Column<int>(type: "int", nullable: true),
                     Sport = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    IsLocked = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -102,49 +143,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserVotes",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VotesRemaining = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserVotes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserVotes_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Votes",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Votes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Votes_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Codes",
                 columns: table => new
                 {
@@ -154,7 +152,6 @@ namespace Infrastructure.Migrations
                     RedeemedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RedeemerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     OrganizationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -169,11 +166,6 @@ namespace Infrastructure.Migrations
                         principalTable: "Organizations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Codes_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -252,11 +244,6 @@ namespace Infrastructure.Migrations
                 column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Codes_UserId",
-                table: "Codes",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Organizations_LeagueId",
                 table: "Organizations",
                 column: "LeagueId");
@@ -277,6 +264,18 @@ namespace Infrastructure.Migrations
                 column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PointsCodes_Code",
+                table: "PointsCodes",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PointsWallets_UserId_OrganizationId",
+                table: "PointsWallets",
+                columns: new[] { "UserId", "OrganizationId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Themes_Name",
                 table: "Themes",
                 column: "Name",
@@ -293,16 +292,6 @@ namespace Infrastructure.Migrations
                 table: "Users",
                 column: "UserName",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserVotes_UserId",
-                table: "UserVotes",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Votes_UserId",
-                table: "Votes",
-                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -318,19 +307,19 @@ namespace Infrastructure.Migrations
                 name: "Players");
 
             migrationBuilder.DropTable(
+                name: "PointsCodes");
+
+            migrationBuilder.DropTable(
+                name: "PointsWallets");
+
+            migrationBuilder.DropTable(
                 name: "Themes");
 
             migrationBuilder.DropTable(
-                name: "UserVotes");
-
-            migrationBuilder.DropTable(
-                name: "Votes");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Organizations");
-
-            migrationBuilder.DropTable(
-                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Leagues");
