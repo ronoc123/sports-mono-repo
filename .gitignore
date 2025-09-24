@@ -46,3 +46,29 @@ Thumbs.db
 
 # Angular
 .angular
+
+# .NET
+**/bin/
+**/obj/
+**/out/
+*.user
+*.suo
+*.pdb
+*.dll
+
+# Node/Angular/Nx
+node_modules/
+dist/
+.angular/cache/
+.nx/cache/
+coverage/
+*.log
+
+# IDE cruft
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+

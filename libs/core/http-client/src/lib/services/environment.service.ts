@@ -1,49 +1,51 @@
-import { Injectable, inject, InjectionToken } from '@angular/core';
+import { Injectable, inject, InjectionToken } from "@angular/core";
 
 // Environment interface that all apps should implement
 export interface AppEnvironment {
   production: boolean;
-  
+
   // API Configuration
   apiUrl: string;
   apiBaseUrl: string;
   identityApiUrl: string;
   identityApiBaseUrl: string;
-  
+
   // Feature flags
   enableMockData: boolean;
   enableRealAuth: boolean;
   enableLogging: boolean;
-  
+
   // Settings
-  logLevel: 'debug' | 'info' | 'warn' | 'error';
+  logLevel: "debug" | "info" | "warn" | "error";
   enableConsoleLogging: boolean;
-  
+
   // API Configuration
   apiTimeout: number;
   retryAttempts: number;
   retryDelay: number;
-  
+
   // CORS and SSL
   allowSelfSignedCerts: boolean;
   corsEnabled: boolean;
-  
+
   // App-specific settings
   appName: string;
   appVersion: string;
-  
+
   // OAuth
   googleClientId: string;
-  
+
   // Additional app-specific properties
   [key: string]: any;
 }
 
 // Injection token for environment
-export const APP_ENVIRONMENT = new InjectionToken<AppEnvironment>('APP_ENVIRONMENT');
+export const APP_ENVIRONMENT = new InjectionToken<AppEnvironment>(
+  "APP_ENVIRONMENT"
+);
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class EnvironmentService {
   private readonly environment = inject(APP_ENVIRONMENT);
@@ -115,12 +117,12 @@ export class EnvironmentService {
 
   // Utility methods
   getApiEndpoint(path: string): string {
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
     return `${this.apiBaseUrl}/${cleanPath}`;
   }
 
   getIdentityEndpoint(path: string): string {
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const cleanPath = path.startsWith("/") ? path.slice(1) : path;
     return `${this.identityApiBaseUrl}/${cleanPath}`;
   }
 
@@ -131,7 +133,9 @@ export class EnvironmentService {
 
   // Check if feature is enabled
   isFeatureEnabled(featureName: string): boolean {
-    const key = `enable${featureName.charAt(0).toUpperCase()}${featureName.slice(1)}`;
+    const key = `enable${featureName
+      .charAt(0)
+      .toUpperCase()}${featureName.slice(1)}`;
     return this.environment[key] === true;
   }
 
@@ -143,14 +147,14 @@ export class EnvironmentService {
   // Log environment info (development only)
   logEnvironmentInfo(): void {
     if (this.isDevelopment && this.environment.enableConsoleLogging) {
-      console.group('🌍 Environment Configuration');
-      console.log('App Name:', this.appName);
-      console.log('Version:', this.appVersion);
-      console.log('Mode:', this.isProduction ? 'Production' : 'Development');
-      console.log('API URL:', this.apiUrl);
-      console.log('Identity API URL:', this.identityApiUrl);
-      console.log('Mock Data:', this.enableMockData ? 'Enabled' : 'Disabled');
-      console.log('Real Auth:', this.enableRealAuth ? 'Enabled' : 'Disabled');
+      console.group("🌍 Environment Configuration");
+      console.log("App Name:", this.appName);
+      console.log("Version:", this.appVersion);
+      console.log("Mode:", this.isProduction ? "Production" : "Development");
+      console.log("API URL:", this.apiUrl);
+      console.log("Identity API URL:", this.identityApiUrl);
+      console.log("Mock Data:", this.enableMockData ? "Enabled" : "Disabled");
+      console.log("Real Auth:", this.enableRealAuth ? "Enabled" : "Disabled");
       console.groupEnd();
     }
   }

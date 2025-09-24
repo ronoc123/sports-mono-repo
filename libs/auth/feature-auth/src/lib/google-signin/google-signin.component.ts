@@ -14,9 +14,8 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 
 import { GOOGLE_CLIENT_ID } from "../tokens/google-tokens";
-import { AuthService } from "@sports-ui/auth";
 import { GoogleIdentityService } from "../services/GoogleIdentityService";
-import { Router } from "@angular/router";
+import { AuthService } from "../services/auth.service";
 
 @Component({
   selector: "lib-google-signin",
@@ -36,7 +35,6 @@ export class GoogleSignInComponent {
   private readonly snack = inject(MatSnackBar);
   private readonly clientId = inject(GOOGLE_CLIENT_ID);
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
   @ViewChild("googleButtonContainer", { static: false })
   googleButtonContainer?: ElementRef<HTMLDivElement>;
@@ -84,7 +82,6 @@ export class GoogleSignInComponent {
     });
   }
 
-  /** Your custom button can call this to show One Tap / chooser */
   onCustomButtonClick() {
     this.gis.prompt();
   }

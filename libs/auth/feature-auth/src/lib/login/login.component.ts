@@ -16,8 +16,8 @@ import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatDividerModule } from "@angular/material/divider";
-import { AuthService, LoginRequest } from "@sports-ui/auth";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
+import { AuthService } from "../services/auth.service";
 
 @Component({
   selector: "lib-login",
@@ -65,7 +65,7 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      const credentials: LoginRequest = this.loginForm.value;
+      const credentials: any = this.loginForm.value;
 
       this.authService.login(credentials).subscribe({
         next: (response) => {
