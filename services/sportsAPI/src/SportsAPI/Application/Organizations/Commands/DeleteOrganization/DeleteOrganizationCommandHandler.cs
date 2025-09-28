@@ -1,5 +1,6 @@
 using Contracts.Contracts;             
-using Domain.Repositories;               
+using Domain.Repositories;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
 
@@ -17,8 +18,8 @@ public sealed class DeleteOrganizationCommandHandler
 
   public async Task<ServiceResponse<bool>> Handle(DeleteOrganizationCommand request, CancellationToken ct)
   {
-    var org = await _orgs.GetByIdAsync(request.OrganizationId, ct)
-              ?? throw new ValidationException($"Organization '{request.OrganizationId.Value}' not found.");
+    var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
+              ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
 
 
     _orgs.Remove(org);

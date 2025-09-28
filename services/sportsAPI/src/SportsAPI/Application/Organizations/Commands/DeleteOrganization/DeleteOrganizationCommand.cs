@@ -5,4 +5,4 @@ using MediatR;
 
 namespace Application.Organizations.Commands.DeleteOrganization;
 
-public record DeleteOrganizationCommand(OrganizationId OrganizationId) : IRequest<ServiceResponse<bool>>;
+public record DeleteOrganizationCommand(Guid OrganizationId) : IRequest<ServiceResponse<bool>>;

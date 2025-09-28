@@ -7,7 +7,7 @@ namespace Application.Organizations.Commands.CreateOrganization;
 
 public record CreateOrganizationCommand(
     string Name,
-    LeagueId LeagueId,
+    Guid LeagueId,
     string? TeamId,
     string? TeamName,
     string? TeamShortName,

@@ -3,6 +3,7 @@ using BuildingBlocks.Exceptions;           // EntityNotFoundException (and your 
 using Domain.Repositories;                 // IOrganizationRepository
 using MediatR;
 using System.ComponentModel.DataAnnotations;
+using Domain.ValueObjects.ConcreteTypes;
 
 namespace Application.Organizations.Commands.UpdateOrganization;
 
@@ -18,8 +19,8 @@ public sealed class UpdateOrganizationCommandHandler
 
   public async Task<ServiceResponse<bool>> Handle(UpdateOrganizationCommand request, CancellationToken ct)
   {
-    var org = await _orgs.GetByIdAsync(request.OrganizationId, ct)
-              ?? throw new ValidationException($"Organization '{request.OrganizationId.Value}' not found.");
+    var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
+              ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
 
     org.Name = request.Name?.Trim() ?? org.Name;
 

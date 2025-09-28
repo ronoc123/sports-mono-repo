@@ -6,7 +6,7 @@ using MediatR;
 namespace Application.Organizations.Commands.UpdateOrganization;
 
 public record UpdateOrganizationCommand(
-    OrganizationId OrganizationId,
+    Guid OrganizationId,
     string Name,
     string? TeamId,
     string? TeamName,

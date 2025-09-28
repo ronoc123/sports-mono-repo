@@ -48,7 +48,7 @@ namespace sportsAPI.Controllers
         }
 
         // Delete a League
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("delete")]
         public async Task<ServiceResponse<bool>> DeleteLeague(DeleteLeagueCommand command)
         {
             return await _mediator.Send(command);

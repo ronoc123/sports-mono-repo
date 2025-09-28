@@ -67,7 +67,7 @@ namespace sportsAPI.Controllers
         }
 
         [HttpGet("organizationDetails")]
-        public async Task<ServiceResponse<OrganizationDetailsDto>> GetOrganizationDetails([FromQuery] OrganizationId organizationId)
+        public async Task<ServiceResponse<OrganizationDetailsDto>> GetOrganizationDetails([FromQuery] Guid organizationId)
         {
             var query = new GetOrganizationDetailsQuery(organizationId);
             return await _mediator.Send(query);

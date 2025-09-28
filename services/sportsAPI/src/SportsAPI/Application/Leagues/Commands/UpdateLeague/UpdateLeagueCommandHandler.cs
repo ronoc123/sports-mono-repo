@@ -1,6 +1,6 @@
-using BuildingBlocks.Exceptions;
 using Contracts.Contracts;
 using Domain.Repositories;
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
 
@@ -19,8 +19,8 @@ public sealed class UpdateLeagueCommandHandler
   public async Task<ServiceResponse<bool>> Handle(UpdateLeagueCommand request, CancellationToken ct)
   {
     // Load
-    var league = await _leagues.GetByIdAsync(request.LeagueId, ct)
-                 ?? throw new ValidationException($"League '{request.LeagueId.Value}' not found.");
+    var league = await _leagues.GetByIdAsync(LeagueId.Of(request.LeagueId), ct)
+                 ?? throw new ValidationException($"League '{request.LeagueId}' not found.");
 
     league.SetName(request.Name); 
 

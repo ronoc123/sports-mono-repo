@@ -26,8 +26,8 @@ public sealed class CreateOrganizationCommandHandler
 
   public async Task<ServiceResponse<Guid>> Handle(CreateOrganizationCommand request, CancellationToken ct)
   {
-    var league = await _leagues.GetByIdAsync(request.LeagueId, ct)
-                 ?? throw new ValidationException($"League '{request.LeagueId.Value}' not found.");
+    var league = await _leagues.GetByIdAsync(LeagueId.Of(request.LeagueId), ct)
+                 ?? throw new ValidationException($"League '{request.LeagueId}' not found.");
 
     // 2) Build value objects (use empty strings/defaults as per your current model)
     var venue = new Venue(
@@ -61,7 +61,7 @@ public sealed class CreateOrganizationCommandHandler
     var orgId = OrganizationId.Of(Guid.NewGuid());
     var organization = Organization.Create(
       orgId,
-      request.LeagueId,
+      LeagueId.Of(request.LeagueId),
       request.Name,
       request.TeamId,
       request.TeamName,

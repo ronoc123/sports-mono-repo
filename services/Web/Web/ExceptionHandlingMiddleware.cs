@@ -131,6 +131,21 @@ namespace Web.Web
           ErrorCode = ErrorCodes.Timeout,
           TraceId = traceId
         }),
+        // ✨ NEW: FluentValidation
+        //TO DO
+        //FluentValidation.ValidationException fv => (400, new ServiceResponse<object>
+        //{
+        //  Success = false,
+        //  Message = "Validation failed.",
+        //  ErrorCode = ErrorCodes.Validation,
+        //  TraceId = traceId,
+        //  ValidationErrors = fv.Errors
+        //    .GroupBy(e => e.PropertyName)
+        //    .ToDictionary(
+        //      g => g.Key,
+        //      g => g.Select(e => e.ErrorMessage).ToArray()
+        //    )
+        //}),
 
         // ----- fallback -----
         _ => (500, new ServiceResponse<object>

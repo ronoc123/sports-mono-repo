@@ -5,4 +5,4 @@ using MediatR;
 
 namespace Application.Organizations.Queries.GetOrganizationDetails;
 
-public record GetOrganizationDetailsQuery(OrganizationId OrganizationId) : IRequest<ServiceResponse<OrganizationDetailsDto>>;
+public record GetOrganizationDetailsQuery(Guid OrganizationId) : IRequest<ServiceResponse<OrganizationDetailsDto>>;

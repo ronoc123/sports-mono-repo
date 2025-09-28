@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using BuildingBlocks.Exceptions;           // EntityNotFoundException
 using Contracts.Contracts;                 // ServiceResponse<T>
 using Domain.Repositories;                 // IOrganizationRepository
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -26,8 +27,8 @@ public sealed class GetOrganizationDetailsQueryHandler
       GetOrganizationDetailsQuery request,
       CancellationToken ct)
   {
-    var org = await _orgs.GetByIdAsync(request.OrganizationId, ct)
-              ?? throw new ValidationException($"Organization '{request.OrganizationId.Value}' not found.");
+    var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
+              ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
 
     var options = org.PlayerOptions;
 

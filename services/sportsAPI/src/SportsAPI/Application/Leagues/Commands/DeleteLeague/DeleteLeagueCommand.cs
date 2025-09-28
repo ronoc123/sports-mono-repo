@@ -4,5 +4,5 @@ using MediatR;
 namespace Application.Leagues.Commands.DeleteLeague;
 
 public sealed record DeleteLeagueCommand(
-    Domain.ValueObjects.ConcreteTypes.LeagueId LeagueId
+    Guid LeagueId
 ) : IRequest<ServiceResponse<bool>>;
