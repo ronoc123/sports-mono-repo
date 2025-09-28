@@ -1,62 +1,63 @@
+using System.Diagnostics;
 using Application.Common.Interfaces;
 using Application.Common.Models;
-using Domain.ValueObjects.ConcreteTypes;
+using Contracts.Contracts;
+using Domain.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Leagues.Queries.GetAllLeagues;
 
-public class GetAllLeaguesQueryHandler : IRequestHandler<GetAllLeaguesQuery, Result<PaginatedList<LeagueDto>>>
+public sealed class GetAllLeaguesQueryHandler
+  : IRequestHandler<GetAllLeaguesQuery, ServiceResponse<PaginatedList<LeagueDto>>>
 {
-    private readonly IApplicationDbContext _context;
+  private readonly IApplicationDbContext _context;
+  private readonly ILeagueRepository _leagueRepository;
 
-    public GetAllLeaguesQueryHandler(IApplicationDbContext context)
-    {
-        _context = context;
-    }
+  public GetAllLeaguesQueryHandler(IApplicationDbContext context, ILeagueRepository leagueRepository)
+  {
+    _context = context;
+    _leagueRepository = leagueRepository;
+  }
 
-    public async Task<Result<PaginatedList<LeagueDto>>> Handle(GetAllLeaguesQuery request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var query = _context.Leagues.AsQueryable();
+  public async Task<ServiceResponse<PaginatedList<LeagueDto>>> Handle(
+      GetAllLeaguesQuery request,
+      CancellationToken cancellationToken)
+  {
+       var leagues = _leagueRepository.Query();
 
-            // Apply search filter
-            if (!string.IsNullOrEmpty(request.SearchTerm))
-            {
-                var searchTerm = request.SearchTerm.ToLower();
-                query = query.Where(l => l.Name.ToLower().Contains(searchTerm));
-            }
+      // Search
+      if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+      {
+        var term = request.SearchTerm.ToLower();
+        leagues = leagues.Where(l => l.Name.ToLower().Contains(term));
+      }
 
-            // Apply sorting
-            query = request.SortBy?.ToLower() switch
-            {
-                "name" => request.SortDescending ? query.OrderByDescending(l => l.Name) : query.OrderBy(l => l.Name),
-                "createdat" => request.SortDescending ? query.OrderByDescending(l => l.CreatedAt) : query.OrderBy(l => l.CreatedAt),
-                _ => query.OrderBy(l => l.Name)
-            };
+      // Sort
+      leagues = request.SortBy?.ToLower() switch
+      {
+        "name" => request.SortDescending ? leagues.OrderByDescending(l => l.Name) : leagues.OrderBy(l => l.Name),
+        "createdat" => request.SortDescending ? leagues.OrderByDescending(l => l.CreatedAt) : leagues.OrderBy(l => l.CreatedAt),
+        _ => leagues.OrderBy(l => l.Name)
+      };
 
-            // Project to DTO with counts
-            var dtoQuery = query.Select(l => new LeagueDto
-            {
-                Id = l.Id.Value,
-                Name = l.Name,
-                CreatedAt = l.CreatedAt ?? DateTime.MinValue,
-                OrganizationCount = _context.Organizations.Count(o => o.LeagueId == l.Id),
-                PlayerCount = _context.Players.Count(p => p.LeagueId == l.Id)
-            });
+      var dtoQuery =
+          leagues.Select(l => new LeagueDto
+          {
+            Id = l.Id.Value,
+            Name = l.Name,
+            CreatedAt = l.CreatedAt ?? DateTime.MinValue,
+            OrganizationCount = _context.Organizations.Count(o => o.LeagueId == l.Id),
+            PlayerCount = _context.Players.Count(p => p.LeagueId == l.Id)
+          });
 
-            // Create paginated result
-            var paginatedList = await PaginatedList<LeagueDto>.CreateAsync(
-                dtoQuery, 
-                request.PageNumber, 
-                request.PageSize);
-
-            return Result<PaginatedList<LeagueDto>>.Success(paginatedList);
-        }
-        catch (Exception ex)
-        {
-            return Result<PaginatedList<LeagueDto>>.Failure($"Failed to retrieve leagues: {ex.Message}");
-        }
-    }
+      var paginatedList = await PaginatedList<LeagueDto>.CreateAsync(
+          dtoQuery,
+          request.PageNumber,
+          request.PageSize);
+      return ServiceResponse.Ok(paginatedList, string.Empty);
+  }
 }
+
+
+

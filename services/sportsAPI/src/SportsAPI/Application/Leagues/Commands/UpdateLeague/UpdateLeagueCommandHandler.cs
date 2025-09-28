@@ -1,48 +1,34 @@
-using Application.Common.Interfaces;
-using Application.Common.Models;
+using BuildingBlocks.Exceptions;
+using Contracts.Contracts;
 using Domain.Repositories;
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Leagues.Commands.UpdateLeague;
 
-public class UpdateLeagueCommandHandler : IRequestHandler<UpdateLeagueCommand, Result<bool>>
+public sealed class UpdateLeagueCommandHandler
+  : IRequestHandler<UpdateLeagueCommand, ServiceResponse<bool>>
 {
-    private readonly ILeagueRepository _leagueRepository;
-    private readonly IApplicationDbContext _context;
+  private readonly ILeagueRepository _leagues;
 
-    public UpdateLeagueCommandHandler(
-        ILeagueRepository leagueRepository,
-        IApplicationDbContext context)
-    {
-        _leagueRepository = leagueRepository;
-        _context = context;
-    }
+  public UpdateLeagueCommandHandler(ILeagueRepository leagues)
+  {
+    _leagues = leagues;
+  }
 
-    public async Task<Result<bool>> Handle(UpdateLeagueCommand request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Get the existing league
-            var league = await _leagueRepository.GetByIdAsync(request.LeagueId);
-            
-            if (league == null)
-            {
-                return Result<bool>.Failure("League not found");
-            }
+  public async Task<ServiceResponse<bool>> Handle(UpdateLeagueCommand request, CancellationToken ct)
+  {
+    // Load
+    var league = await _leagues.GetByIdAsync(request.LeagueId, ct)
+                 ?? throw new ValidationException($"League '{request.LeagueId.Value}' not found.");
 
-            // Update properties
-            // Note: League entity might need a method to update name
-            // For now, assuming we can set the Name property directly
-            // TODO: Add proper update method to League entity
-            
-            await _leagueRepository.UpdateLeagueAsync(league);
-            await _context.SaveChangesAsync(cancellationToken);
+    league.SetName(request.Name); 
 
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            return Result<bool>.Failure($"Failed to update league: {ex.Message}");
-        }
-    }
+    // Persist
+    _leagues.Update(league);
+    await _leagues.SaveChangesAsync(ct);
+
+    // Return success envelope
+    return ServiceResponse.Ok(true, "League successfully updated.");
+  }
 }

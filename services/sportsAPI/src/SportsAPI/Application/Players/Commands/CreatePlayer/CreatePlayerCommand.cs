@@ -1,4 +1,7 @@
 using Application.Common.Models;
+using Application.Players.Queries.GetAllPlayers;
+using Contracts.Contracts;
+using Domain.Organizations.Entities;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
@@ -11,4 +14,4 @@ public record CreatePlayerCommand(
     int Age,
     LeagueId LeagueId,
     OrganizationId? OrganizationId = null
-) : IRequest<Result<Guid>>;
+) : IRequest<ServiceResponse<PlayerDto>>;

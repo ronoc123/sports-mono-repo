@@ -7,33 +7,27 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories;
 
 public sealed class LeagueRepository
-    : EfRepository<League, LeagueId>, ILeagueRepository
+  : EfRepository<League, LeagueId>, ILeagueRepository
 {
-  private readonly SportsDbAppContext _db;
+  public LeagueRepository(SportsDbAppContext db) : base(db) { }
 
-  public LeagueRepository(SportsDbAppContext db) : base(db)
+  // Named alias -> forward to base
+  public Task<League?> GetLeagueByIdAsync(LeagueId leagueId, CancellationToken ct = default)
+    => base.GetByIdAsync(leagueId, ct);
+
+  public Task AddLeagueAsync(League league, CancellationToken ct = default)
+    => AddAsync(league, ct);
+
+  public Task UpdateLeagueAsync(League league, CancellationToken ct = default)
   {
-    _db = db;
-  }
-
-  // Bridge Guid -> LeagueId and reuse the base FindAsync
-  public Task<League?> GetByIdAsync(LeagueId leagueId)
-      => FindAsync(leagueId);
-
-  public Task AddLeagueAsync(League league)
-      => _db.Set<League>().AddAsync(league).AsTask();
-
-  public Task UpdateLeagueAsync(League league)
-  {
-    _db.Set<League>().Update(league);
+    Update(league);
     return Task.CompletedTask;
   }
 
-  public async Task DeleteLeagueAsync(LeagueId leagueId)
+  public async Task DeleteLeagueAsync(LeagueId leagueId, CancellationToken ct = default)
   {
-    var entity = await FindAsync(leagueId);
+    var entity = await GetByIdAsync(leagueId, ct);
     if (entity is null) return;
-    _db.Set<League>().Remove(entity);
+    Remove(entity);
   }
-
 }

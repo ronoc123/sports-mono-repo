@@ -1,55 +1,37 @@
-using Application.Common.Interfaces;
-using Application.Common.Models;
-using Domain.Repositories;
-using Domain.ValueObjects.ConcreteTypes;
+using Contracts.Contracts;                 // ServiceResponse<T>
+using BuildingBlocks.Exceptions;           // EntityNotFoundException (and your middleware maps it to 404)
+using Domain.Repositories;                 // IOrganizationRepository
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Organizations.Commands.UpdateOrganization;
 
-public class UpdateOrganizationCommandHandler : IRequestHandler<UpdateOrganizationCommand, Result<bool>>
+public sealed class UpdateOrganizationCommandHandler
+  : IRequestHandler<UpdateOrganizationCommand, ServiceResponse<bool>>
 {
-    private readonly IOrganizationRepository _organizationRepository;
-    private readonly IApplicationDbContext _context;
+  private readonly IOrganizationRepository _orgs;
 
-    public UpdateOrganizationCommandHandler(
-        IOrganizationRepository organizationRepository,
-        IApplicationDbContext context)
-    {
-        _organizationRepository = organizationRepository;
-        _context = context;
-    }
+  public UpdateOrganizationCommandHandler(IOrganizationRepository orgs)
+  {
+    _orgs = orgs;
+  }
 
-    public async Task<Result<bool>> Handle(UpdateOrganizationCommand request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Get the existing organization
-            var organization = await _organizationRepository.GetOrganizationByIdAsync(request.OrganizationId);
-            
-            if (organization == null)
-            {
-                return Result<bool>.Failure("Organization not found");
-            }
+  public async Task<ServiceResponse<bool>> Handle(UpdateOrganizationCommand request, CancellationToken ct)
+  {
+    var org = await _orgs.GetByIdAsync(request.OrganizationId, ct)
+              ?? throw new ValidationException($"Organization '{request.OrganizationId.Value}' not found.");
 
-            // Update properties
-            organization.Name = request.Name;
-            organization.FormedYear = request.FormedYear;
-            organization.Description = request.Description;
+    org.Name = request.Name?.Trim() ?? org.Name;
 
-            // Update team info using the domain method
-            organization.UpdateTeamInfo(request.TeamId, request.TeamName, request.TeamShortName, request.Sport);
+    org.FormedYear = request.FormedYear;
+    org.Description = request.Description;
 
-            // Update the organization
-            await _organizationRepository.UpdateOrganizationAsync(organization);
-            
-            // Save changes
-            await _context.SaveChangesAsync(cancellationToken);
+    org.UpdateTeamInfo(request.TeamId, request.TeamName, request.TeamShortName, request.Sport);
 
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            return Result<bool>.Failure($"Failed to update organization: {ex.Message}");
-        }
-    }
+    _orgs.Update(org);
+    await _orgs.SaveChangesAsync(ct);
+
+    // 4) Success envelope
+    return ServiceResponse.Ok(true, "Organization successfully updated.");
+  }
 }

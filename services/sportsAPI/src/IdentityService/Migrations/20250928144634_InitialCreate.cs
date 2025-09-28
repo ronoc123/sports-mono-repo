@@ -190,10 +190,10 @@ namespace IdentityService.Migrations
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { "1", "536ed289-fa3d-488e-8cc9-e43565c16f9e", "Admin", "ADMIN" },
-                    { "2", "c688e963-abb9-4260-90d8-9eaf846ccf1b", "User", "USER" },
-                    { "3", "8e9d0f6e-9244-4bd8-9470-741c4239d64e", "CSP", "CSP" },
-                    { "4", "9abba873-0482-4dea-a6c2-971913e8e8a0", "GM", "GM" }
+                    { "1", "abf77f46-177b-43d0-8d5f-420cb7efaceb", "Admin", "ADMIN" },
+                    { "2", "cdcae697-0b0a-40e7-a38e-b5451867f2a6", "User", "USER" },
+                    { "3", "958b3870-9f59-47a6-b6c9-46b7758d50a2", "CSP", "CSP" },
+                    { "4", "4b5e656e-9fd7-4203-9900-45ed2099a41a", "GM", "GM" }
                 });
 
             migrationBuilder.CreateIndex(

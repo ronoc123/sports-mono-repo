@@ -1,12 +1,13 @@
-using Domain.Organizations;
 using Domain.Leagues;
-using Domain.Users;
-using Domain.User.Entities;
+using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.SharedKernal;
+using Domain.User.Entities;
+using Domain.Users;
+using Domain.VoteAccount;
 using Microsoft.EntityFrameworkCore;
-using Domain.PointsCode;
-using Domain.PointsWallet;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+
 
 namespace Application.Common.Interfaces;
 
@@ -18,8 +19,6 @@ public interface IApplicationDbContext
     DbSet<Player> Players { get; }
     DbSet<PlayerOption> PlayerOptions { get; }
     DbSet<Theme> Themes { get; }
-    DbSet<PointsCode> PointsCodes { get; }
-    DbSet<PointsWallet> PointsWallets { get; }
-
-  Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    DbSet<VoteAccount> VoteAccounts { get; }
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

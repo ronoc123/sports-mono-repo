@@ -1,10 +1,11 @@
 using Application.Common.Models;
+using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.Leagues.Commands.UpdateLeague;
 
-public record UpdateLeagueCommand(
+public sealed record UpdateLeagueCommand(
     LeagueId LeagueId,
     string Name
-) : IRequest<Result<bool>>;
+) : IRequest<ServiceResponse<bool>>;

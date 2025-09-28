@@ -1,52 +1,29 @@
-using Application.Common.Interfaces;
-using Application.Common.Models;
-using Domain.Repositories;
+using Contracts.Contracts;             
+using Domain.Repositories;               
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Organizations.Commands.DeleteOrganization;
 
-public class DeleteOrganizationCommandHandler : IRequestHandler<DeleteOrganizationCommand, Result<bool>>
+public sealed class DeleteOrganizationCommandHandler
+  : IRequestHandler<DeleteOrganizationCommand, ServiceResponse<bool>>
 {
-    private readonly IOrganizationRepository _organizationRepository;
-    private readonly IApplicationDbContext _context;
+  private readonly IOrganizationRepository _orgs;
 
-    public DeleteOrganizationCommandHandler(
-        IOrganizationRepository organizationRepository,
-        IApplicationDbContext context)
-    {
-        _organizationRepository = organizationRepository;
-        _context = context;
-    }
+  public DeleteOrganizationCommandHandler(IOrganizationRepository orgs)
+  {
+    _orgs = orgs;
+  }
 
-    public async Task<Result<bool>> Handle(DeleteOrganizationCommand request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Check if organization exists
-            var organization = await _organizationRepository.GetOrganizationByIdAsync(request.OrganizationId);
-            
-            if (organization == null)
-            {
-                return Result<bool>.Failure("Organization not found");
-            }
+  public async Task<ServiceResponse<bool>> Handle(DeleteOrganizationCommand request, CancellationToken ct)
+  {
+    var org = await _orgs.GetByIdAsync(request.OrganizationId, ct)
+              ?? throw new ValidationException($"Organization '{request.OrganizationId.Value}' not found.");
 
 
-            // TODO: Add additional business rules
-            // - Check if organization has active codes
-            // - Check if organization has active votes
-            // - Check if organization has players
+    _orgs.Remove(org);
+    await _orgs.SaveChangesAsync(ct);
 
-            // Delete the organization
-            await _organizationRepository.DeleteOrganizationAsync(request.OrganizationId);
-            
-            // Save changes
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            return Result<bool>.Failure($"Failed to delete organization: {ex.Message}");
-        }
-    }
+    return ServiceResponse.Ok(true, "Organization successfully deleted.");
+  }
 }

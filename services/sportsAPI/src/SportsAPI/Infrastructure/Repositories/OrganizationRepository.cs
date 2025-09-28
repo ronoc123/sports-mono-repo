@@ -12,32 +12,28 @@ namespace Infrastructure.Repositories
 
     public OrganizationRepository(SportsDbAppContext db) : base(db) => _db = db;
 
-    // Bridge your Guid-based method to the strongly-typed ID
-    public Task<Organization?> GetOrganizationByIdAsync(OrganizationId organizationId)
-        => FindAsync(organizationId);
+    // If you want a named alias, just forward to base
+    public Task<Organization?> GetOrganizationByIdAsync(OrganizationId id, CancellationToken ct = default)
+      => GetByIdAsync(id, ct);
 
-    public Task<List<Organization>> GetAllOrganizationsAsync()
-        => _db.Set<Organization>().AsNoTracking().ToListAsync();
+    // Optional convenience methods using the base Query/List/Exists API
+    public Task<List<Organization>> GetAllOrganizationsAsync(CancellationToken ct = default)
+      => Query().ToListAsync(ct);
 
-    public Task AddOrganizationAsync(Organization organization)
-        => _db.Set<Organization>().AddAsync(organization).AsTask();
+    public Task AddOrganizationAsync(Organization organization, CancellationToken ct = default)
+      => AddAsync(organization, ct);
 
-    public Task UpdateOrganizationAsync(Organization organization)
+    public Task UpdateOrganizationAsync(Organization organization, CancellationToken ct = default)
     {
-        _db.Set<Organization>().Update(organization);
-        return Task.CompletedTask;
+      Update(organization);
+      return Task.CompletedTask;
     }
 
-    public async Task DeleteOrganizationAsync(OrganizationId organizationId)
+    public async Task DeleteOrganizationAsync(OrganizationId id, CancellationToken ct = default)
     {
-        var org = await FindAsync(organizationId);
-        if (org is null) return;
-        _db.Set<Organization>().Remove(org);
-    }
-
-    public Task DeleteOrganizationAsync(Guid organizationId)
-    {
-      throw new NotImplementedException();
+      var org = await GetByIdAsync(id, ct);
+      if (org is null) return;
+      Remove(org);
     }
   }
 }

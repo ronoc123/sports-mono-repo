@@ -1,92 +1,88 @@
-using Application.Common.Interfaces;
-using Application.Common.Models;
-using Domain.Organizations;
-using Domain.Organizations.Entities;
-using Domain.Repositories;
-using Domain.ValueObjects.ConcreteTypes;
+using BuildingBlocks.Exceptions;           // EntityNotFoundException
+using Contracts.Contracts;                 // ServiceResponse<T>
+using Domain.Organizations;                // Organization
+using Domain.Organizations.Entities;       // Venue, MediaAssets, SocialLinks, TeamColors
+using Domain.Repositories;                 // ILeagueRepository, IOrganizationRepository
 using Domain.ValueObjects;
+using Domain.ValueObjects.ConcreteTypes;   // OrganizationId
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Organizations.Commands.CreateOrganization;
 
-public class CreateOrganizationCommandHandler : IRequestHandler<CreateOrganizationCommand, Result<Guid>>
+public sealed class CreateOrganizationCommandHandler
+  : IRequestHandler<CreateOrganizationCommand, ServiceResponse<Guid>>
 {
-    private readonly IApplicationDbContext _context;
-    private readonly ILeagueRepository _leagueRepository;
+  private readonly ILeagueRepository _leagues;
+  private readonly IOrganizationRepository _orgs;
 
-    public CreateOrganizationCommandHandler(IApplicationDbContext context, ILeagueRepository leagueRepository)
-    {
-        _context = context;
-        _leagueRepository = leagueRepository;
-    }
+  public CreateOrganizationCommandHandler(
+      ILeagueRepository leagues,
+      IOrganizationRepository orgs)
+  {
+    _leagues = leagues;
+    _orgs = orgs;
+  }
 
-    public async Task<Result<Guid>> Handle(CreateOrganizationCommand request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Verify league exists
-            var league = await _leagueRepository.GetByIdAsync(request.LeagueId);
-            if (league == null)
-            {
-                return Result<Guid>.Failure("League not found");
-            }
+  public async Task<ServiceResponse<Guid>> Handle(CreateOrganizationCommand request, CancellationToken ct)
+  {
+    var league = await _leagues.GetByIdAsync(request.LeagueId, ct)
+                 ?? throw new ValidationException($"League '{request.LeagueId.Value}' not found.");
 
-            // Create value objects
-            var venue = new Venue(
-                request.Stadium ?? string.Empty,
-                request.Location ?? string.Empty,
-                request.StadiumCapacity ?? 0
-            );
+    // 2) Build value objects (use empty strings/defaults as per your current model)
+    var venue = new Venue(
+      request.Stadium ?? string.Empty,
+      request.Location ?? string.Empty,
+      request.StadiumCapacity ?? 0
+    );
 
-            var mediaAssets = new MediaAssets(
-                request.BadgeUrl ?? string.Empty,
-                request.LogoUrl ?? string.Empty,
-                request.Fanart1Url ?? string.Empty,
-                request.Fanart2Url ?? string.Empty,
-                request.Fanart3Url ?? string.Empty
-            );
+    var mediaAssets = new MediaAssets(
+      request.BadgeUrl ?? string.Empty,
+      request.LogoUrl ?? string.Empty,
+      request.Fanart1Url ?? string.Empty,
+      request.Fanart2Url ?? string.Empty,
+      request.Fanart3Url ?? string.Empty
+    );
 
-            var socialLinks = new SocialLinks(
-                request.Website ?? string.Empty,
-                request.Facebook ?? string.Empty,
-                request.Twitter ?? string.Empty,
-                request.Instagram ?? string.Empty
-            );
+    var socialLinks = new SocialLinks(
+      request.Website ?? string.Empty,
+      request.Facebook ?? string.Empty,
+      request.Twitter ?? string.Empty,
+      request.Instagram ?? string.Empty
+    );
 
-            var teamColors = new TeamColors(
-                request.Color1 ?? string.Empty,
-                request.Color2 ?? string.Empty,
-                request.Color3 ?? string.Empty
-            );
+    var teamColors = new TeamColors(
+      request.Color1 ?? string.Empty,
+      request.Color2 ?? string.Empty,
+      request.Color3 ?? string.Empty
+    );
 
-            // Create organization using domain factory method
-            var organization = Organization.Create(
-                OrganizationId.Of(Guid.NewGuid()),
-                request.LeagueId,
-                request.Name,
-                request.TeamId,
-                request.TeamName,
-                request.TeamShortName,
-                request.FormedYear,
-                request.Sport,
-                venue,
-                mediaAssets,
-                socialLinks,
-                teamColors,
-                request.Description
-            );
+    // 3) Create aggregate
+    var orgId = OrganizationId.Of(Guid.NewGuid());
+    var organization = Organization.Create(
+      orgId,
+      request.LeagueId,
+      request.Name,
+      request.TeamId,
+      request.TeamName,
+      request.TeamShortName,
+      request.FormedYear,
+      request.Sport,
+      venue,
+      mediaAssets,
+      socialLinks,
+      teamColors,
+      request.Description
+    );
 
-            // Add organization to league - temporarily commented out to debug ID issue
-            // league.AddOrganization(organization);
+    // Optionally: attach to league via a domain method if/when you model it
+    // league.AddOrganization(organization);
 
-            _context.Organizations.Add(organization);
-            await _context.SaveChangesAsync(cancellationToken);
+    // 4) Persist
+    await _orgs.AddAsync(organization, ct);
+    await _orgs.SaveChangesAsync(ct);
 
-            return Result<Guid>.Success(organization.Id.Value);
-        }
-        catch (Exception ex)
-        {
-            return Result<Guid>.Failure($"Failed to create organization: {ex.Message}");
-        }
-    }
+    // 5) Success envelope (return the new ID)
+    return ServiceResponse.Ok(orgId.Value, "Organization successfully created.");
+  }
 }

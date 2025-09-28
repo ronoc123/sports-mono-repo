@@ -1,9 +1,11 @@
-using Contracts.Contracts;
 using BuildingBlocks.Exceptions;
+using Contracts.Contracts;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Text.Json;
 
 namespace Web.Web
@@ -35,18 +37,21 @@ namespace Web.Web
 
     private static (int Status, ServiceResponse<object> Body) MapException(Exception ex, string traceId)
     {
+      // unwrap common EF wrapper so we see the provider exception
+      if (ex is DbUpdateException dbe && dbe.InnerException is not null)
+        ex = dbe.InnerException;
+
       return ex switch
       {
-        // FluentValidation (from pipeline behavior)
+        // ----- existing cases (unchanged) -----
         ValidationException da => (400, new ServiceResponse<object>
         {
           Success = false,
           Message = da.ValidationResult?.ErrorMessage ?? da.Message,
           ErrorCode = ErrorCodes.Validation,
-          TraceId = traceId,
+          TraceId = traceId
         }),
 
-        // Not found
         EntityNotFoundException nf => (404, new ServiceResponse<object>
         {
           Success = false,
@@ -55,7 +60,6 @@ namespace Web.Web
           TraceId = traceId
         }),
 
-        // Optimistic concurrency from EF Core
         DbUpdateConcurrencyException => (409, new ServiceResponse<object>
         {
           Success = false,
@@ -64,7 +68,6 @@ namespace Web.Web
           TraceId = traceId
         }),
 
-        // Domain rule violations (thrown by aggregates)
         DomainException de => (422, new ServiceResponse<object>
         {
           Success = false,
@@ -90,6 +93,46 @@ namespace Web.Web
           Details = ex.Message
         }),
 
+        // ----- NEW: database/service infrastructure -----
+
+        // SQL Server unavailable / transient provider error
+        SqlException => (503, new ServiceResponse<object>
+        {
+          Success = false,
+          Message = "Database is unavailable. Please try again.",
+          ErrorCode = ErrorCodes.ServiceUnavailable,
+          TraceId = traceId
+        }),
+
+        // Downstream HTTP call failed (service down/5xx/connection failure)
+        HttpRequestException => (502, new ServiceResponse<object>
+        {
+          Success = false,
+          Message = "Downstream service error.",
+          ErrorCode = ErrorCodes.DownstreamError,
+          TraceId = traceId,
+          Details = ex.Message
+        }),
+
+        // Network connectivity issue
+        SocketException => (503, new ServiceResponse<object>
+        {
+          Success = false,
+          Message = "Network connectivity issue.",
+          ErrorCode = ErrorCodes.NetworkError,
+          TraceId = traceId
+        }),
+
+        // Timeouts (server-side or canceled operations)
+        TimeoutException or TaskCanceledException => (504, new ServiceResponse<object>
+        {
+          Success = false,
+          Message = "Operation timed out.",
+          ErrorCode = ErrorCodes.Timeout,
+          TraceId = traceId
+        }),
+
+        // ----- fallback -----
         _ => (500, new ServiceResponse<object>
         {
           Success = false,
@@ -100,5 +143,6 @@ namespace Web.Web
         })
       };
     }
+
   }
 }

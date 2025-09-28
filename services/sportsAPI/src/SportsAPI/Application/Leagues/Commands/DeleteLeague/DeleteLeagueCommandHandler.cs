@@ -1,56 +1,39 @@
-using Application.Common.Interfaces;
-using Application.Common.Models;
+using Contracts.Contracts;
+using BuildingBlocks.Exceptions; // EntityNotFoundException, DomainException, ErrorCodes
 using Domain.Repositories;
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Leagues.Commands.DeleteLeague;
 
-public class DeleteLeagueCommandHandler : IRequestHandler<DeleteLeagueCommand, Result<bool>>
+public sealed class DeleteLeagueCommandHandler
+  : IRequestHandler<DeleteLeagueCommand, ServiceResponse<bool>>
 {
-    private readonly ILeagueRepository _leagueRepository;
-    private readonly IOrganizationRepository _organizationRepository;
-    private readonly IApplicationDbContext _context;
+  private readonly ILeagueRepository _leagues;
+  private readonly IOrganizationRepository _orgs;
 
-    public DeleteLeagueCommandHandler(
-        ILeagueRepository leagueRepository,
-        IOrganizationRepository organizationRepository,
-        IApplicationDbContext context)
-    {
-        _leagueRepository = leagueRepository;
-        _organizationRepository = organizationRepository;
-        _context = context;
-    }
+  public DeleteLeagueCommandHandler(ILeagueRepository leagues, IOrganizationRepository orgs)
+  {
+    _leagues = leagues;
+    _orgs = orgs;
+  }
 
-    public async Task<Result<bool>> Handle(DeleteLeagueCommand request, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Check if league exists
-            var league = await _leagueRepository.GetByIdAsync(request.LeagueId);
-            
-            if (league == null)
-            {
-                return Result<bool>.Failure("League not found");
-            }
+  public async Task<ServiceResponse<bool>> Handle(DeleteLeagueCommand request, CancellationToken ct)
+  {
+    // 1) Ensure the league exists
+    var league = await _leagues.GetByIdAsync(request.LeagueId, ct)
+                 ?? throw new ValidationException($"League '{request.LeagueId.Value}' not found.");
 
-            // Check if league has organizations (business rule)
-            var organizations = await _organizationRepository.GetAllOrganizationsAsync();
-            var hasOrganizations = organizations.Any(o => o.LeagueId.Value == request.LeagueId.Value);
-            
-            if (hasOrganizations)
-            {
-                return Result<bool>.Failure("Cannot delete league that has organizations. Please remove all organizations first.");
-            }
+    var hasOrganizations = await _orgs.ExistsAsync(o => o.LeagueId == request.LeagueId, ct);
+    if (hasOrganizations)
+      throw new ValidationException(
+        "Cannot delete league that has organizations. Remove all organizations first.");
 
-            // Delete the league
-            await _leagueRepository.DeleteLeagueAsync(request.LeagueId);
-            await _context.SaveChangesAsync(cancellationToken);
+    // 3) Delete and persist
+    _leagues.Remove(league);
+    await _leagues.SaveChangesAsync(ct);
 
-            return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            return Result<bool>.Failure($"Failed to delete league: {ex.Message}");
-        }
-    }
+    // 4) Success envelope
+    return ServiceResponse.Ok(true, "League successfully deleted.");
+  }
 }

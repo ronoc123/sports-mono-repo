@@ -1,4 +1,5 @@
 
+using BuildingBlocks.Exceptions;
 using Domain.Organizations;
 using Domain.Organizations.Entities;
 
@@ -42,15 +43,6 @@ namespace Domain.Leagues
             Name = name;
         }
 
-        // Domain method to add player using the Player factory method
-        public Player AddPlayer(string name, string position, string imageUrl, int age, OrganizationId? organizationId = null)
-        {
-            var player = Player.Create(name, position, imageUrl, age, this.Id, organizationId);
-            _players.Add(player);
-
-            // TODO: Add domain event for player added to league
-            return player;
-        }
 
         // Domain method to remove player
         public void RemovePlayer(PlayerId playerId)
@@ -87,6 +79,49 @@ namespace Domain.Leagues
 
             _organizations.Remove(organization);
             // TODO: Add domain event for organization removed from league
+        }
+
+        /// <summary>
+        /// Rename this league, enforcing invariants.
+        /// </summary>
+        public void SetName(string name)
+        {
+          ArgumentException.ThrowIfNullOrEmpty(name);
+
+          if (Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            return; // No change, ignore
+
+          if (name.Length > 200)
+            throw new DomainExceptions("League name cannot exceed 200 characters.");
+
+          Name = name.Trim();
+        }
+
+        public void AddPlayer(Player player)
+        {
+          _players.Add(player);
+        }
+
+        public static Player CreatePlayer(string name, string position, string imageUrl, int age, LeagueId leagueId, OrganizationId? organizationId = null)
+        {
+          // Business rule validations
+          ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
+          ArgumentException.ThrowIfNullOrWhiteSpace(position, nameof(position));
+          ArgumentNullException.ThrowIfNull(leagueId, nameof(leagueId));
+
+          if (name.Length > 200)
+            throw new ArgumentException("Player name cannot exceed 200 characters", nameof(name));
+
+          if (position.Length > 100)
+            throw new ArgumentException("Position cannot exceed 100 characters", nameof(position));
+
+          if (age < 16 || age > 50)
+            throw new ArgumentException("Player age must be between 16 and 50", nameof(age));
+
+          if (!string.IsNullOrEmpty(imageUrl) && !Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
+            throw new ArgumentException("Image URL must be a valid URL", nameof(imageUrl));
+
+          return new Player(name, position, imageUrl, age, leagueId, organizationId);
         }
 
 

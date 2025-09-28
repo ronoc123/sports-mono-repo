@@ -1,12 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
-using MediatR;
-using Application.Organizations.Queries.GetOrganizationDetails;
-using Application.Organizations.Queries.GetAllOrganizations;
+using Application.Common.Models;
 using Application.Organizations.Commands.CreateOrganization;
-using Application.Organizations.Commands.UpdateOrganization;
 using Application.Organizations.Commands.DeleteOrganization;
+using Application.Organizations.Commands.UpdateOrganization;
+using Application.Organizations.Queries.GetAllOrganizations;
+using Application.Organizations.Queries.GetOrganizationDetails;
 using Application.Themes.Queries.GetTheme;
+using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers
 {
@@ -22,7 +24,7 @@ namespace sportsAPI.Controllers
         }
 
         [HttpGet("GetAllOrganization")]
-        public async Task<ActionResult> GetAllOrganizations(
+        public async Task<ServiceResponse<PaginatedList<OrganizationDto>>> GetAllOrganizations(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? searchTerm = null,
@@ -35,22 +37,22 @@ namespace sportsAPI.Controllers
                 pageNumber, pageSize, searchTerm, leagueId, sport, sortBy, sortDescending);
 
             var result = await _mediator.Send(query);
-            return Ok(result);
+            return result;
             
         }
 
         [HttpPut("updateOrganization")]
-        public async Task<ActionResult> UpdateOrganization([FromBody] UpdateOrganizationCommand command)
+        public async Task<ServiceResponse<bool>> UpdateOrganization([FromBody] UpdateOrganizationCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return result;
         }
 
         [HttpDelete("deleteOrganization/{organizationId}")]
-        public async Task<ActionResult> DeleteOrganization(DeleteOrganizationCommand command)
+        public async Task<ServiceResponse<bool>> DeleteOrganization(DeleteOrganizationCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return result;
         }
 
 
@@ -65,27 +67,19 @@ namespace sportsAPI.Controllers
         }
 
         [HttpGet("organizationDetails")]
-        public async Task<IActionResult> GetOrganizationDetails([FromQuery] OrganizationId organizationId)
+        public async Task<ServiceResponse<OrganizationDetailsDto>> GetOrganizationDetails([FromQuery] OrganizationId organizationId)
         {
             var query = new GetOrganizationDetailsQuery(organizationId);
-            var result = await _mediator.Send(query);
-            return Ok(result);
+            return await _mediator.Send(query);
         }
 
-
-        // TODO: Implement GetPlayerOptions using Application layer
-        [HttpGet("playerOptions/{organizationId}")]
-        public async Task<IActionResult> GetPlayerOptions(Guid organizationId)
-        {
-           return Ok();
-        }
 
 
         [HttpPost("addOrganization")]
-        public async Task<IActionResult> AddOrganization([FromBody] CreateOrganizationCommand command)
+        public async Task<ServiceResponse<Guid>> AddOrganization([FromBody] CreateOrganizationCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return result;
         }
     }
 }

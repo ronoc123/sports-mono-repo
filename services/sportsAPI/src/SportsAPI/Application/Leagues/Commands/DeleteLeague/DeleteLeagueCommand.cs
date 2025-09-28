@@ -1,7 +1,8 @@
-using Application.Common.Models;
-using Domain.ValueObjects.ConcreteTypes;
+using Contracts.Contracts;
 using MediatR;
 
 namespace Application.Leagues.Commands.DeleteLeague;
 
-public record DeleteLeagueCommand(LeagueId LeagueId) : IRequest<Result<bool>>;
+public sealed record DeleteLeagueCommand(
+    Domain.ValueObjects.ConcreteTypes.LeagueId LeagueId
+) : IRequest<ServiceResponse<bool>>;

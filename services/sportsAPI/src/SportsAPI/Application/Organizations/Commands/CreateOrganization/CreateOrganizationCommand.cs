@@ -1,4 +1,5 @@
 using Application.Common.Models;
+using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
@@ -28,4 +29,4 @@ public record CreateOrganizationCommand(
     string? Fanart1Url,
     string? Fanart2Url,
     string? Fanart3Url
-) : IRequest<Result<Guid>>;
+) : IRequest<ServiceResponse<Guid>>;

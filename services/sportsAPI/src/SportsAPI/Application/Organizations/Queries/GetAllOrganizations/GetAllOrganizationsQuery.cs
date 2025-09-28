@@ -1,4 +1,5 @@
 using Application.Common.Models;
+using Contracts.Contracts;
 using MediatR;
 
 namespace Application.Organizations.Queries.GetAllOrganizations;
@@ -11,7 +12,7 @@ public record GetAllOrganizationsQuery(
     string? Sport = null,
     string? SortBy = "Name",
     bool SortDescending = false
-) : IRequest<Result<PaginatedList<OrganizationDto>>>;
+) : IRequest<ServiceResponse<PaginatedList<OrganizationDto>>>;
 
 public class OrganizationDto
 {

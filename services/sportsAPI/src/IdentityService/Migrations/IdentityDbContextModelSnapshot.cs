@@ -166,28 +166,28 @@ namespace IdentityService.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "536ed289-fa3d-488e-8cc9-e43565c16f9e",
+                            ConcurrencyStamp = "abf77f46-177b-43d0-8d5f-420cb7efaceb",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "c688e963-abb9-4260-90d8-9eaf846ccf1b",
+                            ConcurrencyStamp = "cdcae697-0b0a-40e7-a38e-b5451867f2a6",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "8e9d0f6e-9244-4bd8-9470-741c4239d64e",
+                            ConcurrencyStamp = "958b3870-9f59-47a6-b6c9-46b7758d50a2",
                             Name = "CSP",
                             NormalizedName = "CSP"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "9abba873-0482-4dea-a6c2-971913e8e8a0",
+                            ConcurrencyStamp = "4b5e656e-9fd7-4203-9900-45ed2099a41a",
                             Name = "GM",
                             NormalizedName = "GM"
                         });

@@ -3,6 +3,7 @@ using Application.Leagues.Commands.CreateLeague;
 using Application.Leagues.Commands.DeleteLeague;
 using Application.Leagues.Commands.UpdateLeague;
 using Application.Leagues.Queries.GetAllLeagues;
+using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -23,12 +24,12 @@ namespace sportsAPI.Controllers
 
         // Add a new League
         [HttpPost("add")]
-        public async Task<Result<Guid>> AddLeague([FromBody] CreateLeagueCommand command)
+        public async Task<ServiceResponse<Guid>> AddLeague([FromBody] CreateLeagueCommand command)
             => await _mediator.Send(command);
 
         // Get all Leagues with pagination
         [HttpGet("all")]
-        public async Task<Result<PaginatedList<LeagueDto>>> GetAllLeagues(
+        public async Task<ServiceResponse<PaginatedList<LeagueDto>>> GetAllLeagues(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? searchTerm = null,
@@ -41,14 +42,14 @@ namespace sportsAPI.Controllers
 
         // Update a League
         [HttpPut("update")]
-        public async Task<Result<bool>> UpdateLeague([FromBody] UpdateLeagueCommand command)
+        public async Task<ServiceResponse<bool>> UpdateLeague([FromBody] UpdateLeagueCommand command)
         {
             return await _mediator.Send(command);
         }
 
         // Delete a League
         [HttpDelete("delete/{id}")]
-        public async Task<Result<bool>> DeleteLeague(DeleteLeagueCommand command)
+        public async Task<ServiceResponse<bool>> DeleteLeague(DeleteLeagueCommand command)
         {
             return await _mediator.Send(command);
         }

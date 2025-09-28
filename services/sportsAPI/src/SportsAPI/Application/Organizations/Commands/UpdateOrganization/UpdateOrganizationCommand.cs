@@ -1,4 +1,5 @@
 using Application.Common.Models;
+using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
@@ -32,4 +33,4 @@ public record UpdateOrganizationCommand(
     string? Color1,
     string? Color2,
     string? Color3
-) : IRequest<Result<bool>>;
+) : IRequest<ServiceResponse<bool>>;
