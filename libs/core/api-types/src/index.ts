@@ -1,5 +1,4 @@
 export * from "./lib/auth";
-export * from "./lib/service";
 export * from "./lib/player";
 export * from "./lib/organization";
 export * from "./lib/league";

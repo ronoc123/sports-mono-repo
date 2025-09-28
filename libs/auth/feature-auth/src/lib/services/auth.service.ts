@@ -5,7 +5,6 @@ import { tap } from "rxjs/operators";
 
 import { throwError } from "rxjs";
 import { map, catchError, finalize } from "rxjs/operators";
-import { UserStore } from "@sports-ui/data-access";
 import { ServiceResponse } from "@sports-ui/api-types";
 import { ApiService } from "@sports-ui/http-client";
 
@@ -69,7 +68,6 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this._currentUser());
 
   private readonly apiService = inject(ApiService);
-  private readonly userStore = inject(UserStore);
 
   // Local state
   private readonly isAuthenticating = signal<boolean>(false);
@@ -300,7 +298,7 @@ export class AuthService {
     }
 
     // Update user store
-    this.userStore.setCurrentUser(null);
+    // this.userStore.setCurrentUser(null);
 
     // Clear loading state
     this.isAuthenticating.set(false);
@@ -316,7 +314,7 @@ export class AuthService {
   private handleLogout(): void {
     this.clearStoredToken();
     this.clearStoredRefreshToken();
-    this.userStore.setCurrentUser(null);
+    // this.userStore.setCurrentUser(null);
     this.router.navigate(["/auth/login"]);
   }
 

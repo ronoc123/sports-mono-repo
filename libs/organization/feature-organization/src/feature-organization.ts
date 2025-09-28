@@ -24,8 +24,4 @@ import { MatPaginatorModule } from "@angular/material/paginator";
   templateUrl: "./feature-organization.html",
   styleUrl: "./feature-organization.css",
 })
-export class FeatureOrganization implements OnInit {
-  ngOnInit(): void {
-    throw new Error("Method not implemented.");
-  }
-}
+export class FeatureOrganization {}

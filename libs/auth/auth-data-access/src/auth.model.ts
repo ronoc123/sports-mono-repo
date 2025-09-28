@@ -1,17 +1,33 @@
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: string; // ISO
+};
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+  profilePictureUrl?: string | null;
+  roles: string[];
+};
+
 export type AuthState = {
   loggedIn: boolean;
-  user: any;
+  user: SessionUser | null;
+  tokens: AuthTokens | null;
+  authenticating: boolean;
+  error: string | null;
+  rememberMe: boolean;
 };
 
-export const initialUserValue: any = {
-  email: "",
-  username: "",
-  password: "",
-  bio: "",
-  image: "",
-};
-
-export const authInitialState: AuthState = {
+export const initialAuthState: AuthState = {
   loggedIn: false,
-  user: initialUserValue,
+  user: null,
+  tokens: null,
+  authenticating: false,
+  error: null,
+  rememberMe: false,
 };
