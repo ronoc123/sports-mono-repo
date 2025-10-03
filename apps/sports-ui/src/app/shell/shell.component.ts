@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { MainLayoutComponent, NavItem } from "@sports-ui/ui";
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { AuthService } from "@sports-ui/feature-auth";
+import { AuthService } from "@sports-ui/auth-data-access";
 
 @Component({
   selector: "app-shell",

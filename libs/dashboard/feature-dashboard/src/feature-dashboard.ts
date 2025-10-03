@@ -6,7 +6,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { Router } from "@angular/router";
-import { AuthService } from "@sports-ui/feature-auth";
+import { AuthService } from "@sports-ui/auth-data-access";
 
 interface DashboardCard {
   title: string;

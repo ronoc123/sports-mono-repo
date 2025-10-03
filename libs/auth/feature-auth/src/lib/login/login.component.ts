@@ -17,7 +17,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatDividerModule } from "@angular/material/divider";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
-import { AuthService } from "../services/auth.service";
+import { AuthService } from "../../../../auth-data-access/src/services/auth.service";
 
 @Component({
   selector: "lib-login",

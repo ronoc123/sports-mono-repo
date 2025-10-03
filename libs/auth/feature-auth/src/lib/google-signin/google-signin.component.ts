@@ -14,8 +14,8 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 
 import { GOOGLE_CLIENT_ID } from "../tokens/google-tokens";
-import { GoogleIdentityService } from "../services/GoogleIdentityService";
-import { AuthService } from "../services/auth.service";
+import { GoogleIdentityService } from "@sports-ui/auth-data-access";
+import { AuthService } from "@sports-ui/auth-data-access";
 
 @Component({
   selector: "lib-google-signin",
