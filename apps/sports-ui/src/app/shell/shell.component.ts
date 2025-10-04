@@ -14,7 +14,7 @@ import { AuthService } from "@sports-ui/auth-data-access";
       [navItems]="navItems"
       [config]="layoutConfig"
       [permissionChecker]="checkPermission"
-      [currentUser]="authService.currentUser()"
+      [currentUser]="null"
       [organizations]="organizations"
       [selectedOrganization]="selectedOrganization"
     ></ui-main-layout>

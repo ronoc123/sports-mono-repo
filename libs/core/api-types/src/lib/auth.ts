@@ -24,10 +24,10 @@ export type UserInfo = {
 export type AuthenticationResponse = {
   success: boolean;
   message: string;
-  accessToken?: string;
-  refreshToken?: string;
-  expiresAt?: string; // ISO string from API
-  user?: UserInfo | null;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: string; // ISO string from API
+  user: UserInfo | null;
 };
 
 export type RegisterRequest = {

@@ -51,8 +51,6 @@ export class FeatureDashboard implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
-  currentUser = this.authService.currentUser;
-
   // Dashboard data
   statsCards: DashboardCard[] = [];
   quickActions: QuickAction[] = [];

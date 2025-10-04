@@ -1,33 +1,37 @@
-export type AuthTokens = {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string; // ISO
-};
+// libs/auth/store/src/lib/auth.model.ts
 
-export type SessionUser = {
+export interface SessionUser {
   id: string;
   email: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  fullName?: string | null;
-  profilePictureUrl?: string | null;
-  roles: string[];
-};
+  firstName?: string;
+  lastName?: string;
+  userName?: string;
+  roles?: string[];
+  permissions?: string[];
+}
 
-export type AuthState = {
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string | null;
+  expiresAt: string;
+}
+
+export interface AuthState {
+  // core
   loggedIn: boolean;
-  user: SessionUser | null;
-  tokens: AuthTokens | null;
   authenticating: boolean;
   error: string | null;
-  rememberMe: boolean;
-};
+
+  // session
+  user: SessionUser | null;
+  tokens: AuthTokens | null;
+}
 
 export const initialAuthState: AuthState = {
   loggedIn: false,
-  user: null,
-  tokens: null,
   authenticating: false,
   error: null,
-  rememberMe: false,
+
+  user: null,
+  tokens: null,
 };

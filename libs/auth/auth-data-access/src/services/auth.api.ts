@@ -26,11 +26,9 @@ export class AuthApi {
     return this.http.post("/api/auth/login", payload);
   }
 
-  loginWithGoogle(
-    googleToken: string
-  ): Observable<ServiceResponse<AuthenticationResponse>> {
+  loginWithGoogle(googleToken: string): Observable<AuthenticationResponse> {
     const body: GoogleLoginRequest = { googleToken };
-    return this.http.post("/api/auth/google", body);
+    return this.http.post(":5001/api/auth/google", body);
   }
 
   refresh(

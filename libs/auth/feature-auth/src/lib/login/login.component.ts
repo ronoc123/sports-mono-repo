@@ -17,7 +17,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatDividerModule } from "@angular/material/divider";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
-import { AuthService } from "../../../../auth-data-access/src/services/auth.service";
+import { AuthFacade, AuthService } from "@sports-ui/auth-data-access";
 
 @Component({
   selector: "lib-login",
@@ -40,85 +40,23 @@ import { AuthService } from "../../../../auth-data-access/src/services/auth.serv
   styleUrl: "./login.component.css",
 })
 export class LoginComponent {
-  private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
-  private readonly snackBar = inject(MatSnackBar);
-  private readonly fb = inject(FormBuilder);
+  facade = inject(AuthFacade);
+  private snack = inject(MatSnackBar);
+  private router = inject(Router);
 
-  // Form
-  loginForm: FormGroup;
-
-  // State
-  hidePassword = signal<boolean>(true);
-
-  // Auth service signals
-  authenticating = this.authService.authenticating;
-  error = this.authService.error;
-
-  constructor() {
-    this.loginForm = this.fb.group({
-      email: ["", [Validators.required, Validators.email]],
-      password: ["", [Validators.required, Validators.minLength(6)]],
-      rememberMe: [false],
-    });
-  }
-
-  onSubmit() {
-    if (this.loginForm.valid) {
-      const credentials: any = this.loginForm.value;
-
-      this.authService.login(credentials).subscribe({
-        next: (response) => {
-          this.snackBar.open("Login successful!", "Close", {
-            duration: 3000,
-            panelClass: ["success-snackbar"],
-          });
-        },
-        error: (error) => {
-          this.snackBar.open(error.message || "Login failed", "Close", {
-            duration: 5000,
-            panelClass: ["error-snackbar"],
-          });
-        },
+  async onGoogleCredential(jwt: string) {
+    try {
+      await this.facade.signInWithGoogle(jwt);
+      this.snack.open("Logged in!", "Close", { duration: 2000 });
+      await this.router.navigateByUrl("/");
+    } catch {
+      this.snack.open(this.facade.error() ?? "Login failed", "Close", {
+        duration: 4000,
       });
-    } else {
-      this.markFormGroupTouched();
     }
   }
 
-  onRegisterClick() {
-    this.router.navigate(["/auth/register"]);
-  }
-
-  onForgotPasswordClick() {
-    this.router.navigate(["/auth/forgot-password"]);
-  }
-
-  togglePasswordVisibility() {
-    this.hidePassword.set(!this.hidePassword());
-  }
-
-  clearError() {
-    this.authService.clearError();
-  }
-
-  private markFormGroupTouched() {
-    Object.keys(this.loginForm.controls).forEach((key) => {
-      const control = this.loginForm.get(key);
-      control?.markAsTouched();
-    });
-  }
-
-  // Getters for form controls
-  get email() {
-    return this.loginForm.get("email");
-  }
-
-  get password() {
-    return this.loginForm.get("password");
-  }
-
-  get rememberMe() {
-    return this.loginForm.get("rememberMe");
+  onGoogleError(msg: any) {
+    this.snack.open(msg, "Close", { duration: 4000 });
   }
 }

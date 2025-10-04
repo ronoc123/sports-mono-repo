@@ -1,3 +1,4 @@
+// libs/auth/store/src/lib/auth.store.ts
 import { computed } from "@angular/core";
 import {
   patchState,
@@ -6,15 +7,11 @@ import {
   withMethods,
   withState,
 } from "@ngrx/signals";
-import {
-  AuthState,
-  initialAuthState,
-  SessionUser,
-  AuthTokens,
-} from "./auth.model";
+import { AuthState, initialAuthState, AuthTokens } from "./auth.model";
 
 const STORAGE_KEY = "sports-auth";
 
+/* ---------- persistence helpers ---------- */
 function readStorage(remember: boolean): AuthState | null {
   const raw = (remember ? localStorage : sessionStorage).getItem(STORAGE_KEY);
   try {
@@ -23,18 +20,20 @@ function readStorage(remember: boolean): AuthState | null {
     return null;
   }
 }
-function writeStorage(state: AuthState) {
-  const box = state.rememberMe ? localStorage : sessionStorage;
-  box.setItem(STORAGE_KEY, JSON.stringify(state));
-}
 function clearStorage() {
-  localStorage.removeItem(STORAGE_KEY);
-  sessionStorage.removeItem(STORAGE_KEY);
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    // eslint-disable-next-line no-empty
+  } catch {}
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+    // eslint-disable-next-line no-empty
+  } catch {}
 }
 
+/* ---------- the store ---------- */
 export const AuthStore = signalStore(
   withState<AuthState>(initialAuthState),
-
   withComputed((state) => ({
     isExpired: computed(() => {
       const exp = state.tokens()?.expiresAt;
@@ -45,7 +44,9 @@ export const AuthStore = signalStore(
     roles: computed(() => state.user()?.roles ?? []),
   })),
 
+  // Commands
   withMethods((store) => ({
+    /** Load previously saved session from local/session storage */
     hydrate() {
       const fromLocal = readStorage(true);
       const fromSession = readStorage(false);
@@ -53,43 +54,41 @@ export const AuthStore = signalStore(
       if (loaded) patchState(store, loaded);
     },
 
-    setRemember(remember: boolean) {
-      patchState(store, { rememberMe: remember });
-    },
-
+    /** Flip the "authenticating" spinner and optionally clear error */
     setAuthenticating(on: boolean) {
       patchState(store, {
         authenticating: on,
-        error: on ? null : store.error(),
+        error: on ? null : store.error(), // keep current error when turning off
       });
     },
 
+    /** Set/clear error message */
     setError(message: string | null) {
       patchState(store, { error: message });
     },
 
-    loginSuccess(user: SessionUser, tokens: AuthTokens) {
+    /** On successful login/refresh — write full session + persist */
+    loginSuccess(user: any, tokens: AuthTokens) {
       const next: AuthState = {
-        // read current values from signals:
         loggedIn: true,
         user,
         tokens,
         authenticating: false,
         error: null,
-        rememberMe: store.rememberMe(), // keep current preference
       };
       patchState(store, next);
-      writeStorage(next);
     },
 
+    /** Clear session but keep rememberMe preference */
     logout() {
-      patchState(store, {
+      const next: AuthState = {
         ...initialAuthState,
-        rememberMe: store.rememberMe(),
-      });
+      };
+      patchState(store, next);
       clearStorage();
     },
 
+    /** Update tokens (e.g., refresh) and persist */
     updateTokens(tokens: AuthTokens) {
       const next: AuthState = {
         loggedIn: store.loggedIn(),
@@ -97,10 +96,20 @@ export const AuthStore = signalStore(
         tokens,
         authenticating: store.authenticating(),
         error: store.error(),
-        rememberMe: store.rememberMe(),
       };
       patchState(store, next);
-      writeStorage(next);
+    },
+
+    /** Optional: update just the user profile (e.g., after edit-profile) */
+    updateUser(user: any) {
+      const next: AuthState = {
+        loggedIn: store.loggedIn(),
+        user,
+        tokens: store.tokens(),
+        authenticating: store.authenticating(),
+        error: store.error(),
+      };
+      patchState(store, next);
     },
   }))
 );

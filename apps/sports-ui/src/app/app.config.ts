@@ -14,13 +14,14 @@ import {
 } from "@sports-ui/http-client";
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { GOOGLE_CLIENT_ID } from "@sports-ui/feature-auth";
+import { AuthStore } from "@sports-ui/auth-data-access";
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(appRoutes),
     provideHttpClient(withInterceptors([apiBaseUrlInterceptor])),
     provideAnimationsAsync(),
-
+    AuthStore,
     // ✅ Only the CONFIG token is required
 
     { provide: APP_ENVIRONMENT, useValue: environment },
