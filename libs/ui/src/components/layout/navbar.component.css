@@ -108,7 +108,6 @@
   font-weight: 500;
 }
 
-/* User Menu Styles */
 .user-menu {
   min-width: 280px;
 }
@@ -158,7 +157,6 @@
   color: #f44336;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .navbar {
     padding: 0 8px;

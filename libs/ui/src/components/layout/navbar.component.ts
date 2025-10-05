@@ -13,6 +13,7 @@ import { Router } from "@angular/router";
 import { LayoutConfig } from "./main-layout.component";
 
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: "ui-navbar",
   standalone: true,
   imports: [
@@ -52,39 +53,6 @@ export class NavbarComponent {
   logout() {
     // This should be handled by the parent component or auth service
     console.log("Logout requested");
-  }
-
-  // User methods
-  isAuthenticated(): boolean {
-    return !!this.currentUser();
-  }
-
-  getUserDisplayName(): string {
-    const user = this.currentUser();
-    if (!user) return "Guest";
-    return user.firstName || user.userName || user.email || "User";
-  }
-
-  getUserInitials(): string {
-    const user = this.currentUser();
-    if (!user) return "G";
-
-    if (user.firstName && user.lastName) {
-      return `${user.firstName.charAt(0)}${user.lastName.charAt(
-        0
-      )}`.toUpperCase();
-    } else if (user.userName) {
-      return user.userName.substring(0, 2).toUpperCase();
-    } else if (user.email) {
-      return user.email.substring(0, 2).toUpperCase();
-    }
-
-    return "U";
-  }
-
-  getUserRole(): string {
-    const user = this.currentUser();
-    return user?.role || "User";
   }
 
   // Toggle sidebar

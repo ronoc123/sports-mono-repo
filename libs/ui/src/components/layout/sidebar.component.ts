@@ -52,6 +52,11 @@ export class SidebarComponent {
   treeControl = new NestedTreeControl<NavItem>((node) => node.children);
   dataSource = new MatTreeNestedDataSource<NavItem>();
 
+  hasChild = (_: number, node: NavItem) =>
+    !!node.children && node.children.length > 0;
+  isLeaf = (_: number, node: NavItem) =>
+    !node.children || node.children.length === 0;
+
   // Local state
   private readonly currentRoute = signal(this.router.url);
 

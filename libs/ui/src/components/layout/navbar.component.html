@@ -1,32 +1,12 @@
 <mat-toolbar class="navbar">
   <div class="navbar-left">
     <!-- Hamburger Icon -->
-    <button
-      mat-icon-button
-      (click)="toggleSidebar()"
-      matTooltip="Toggle sidebar"
-      class="menu-button"
-    >
-      <mat-icon>menu</mat-icon>
+    <button mat-icon-button (click)="toggleSidebar()" class="menu-button">
+      <mat-icon>menus</mat-icon>
     </button>
-
-    <!-- App Title/Logo -->
-    <div class="app-title">
-      <mat-icon class="app-icon">sports</mat-icon>
-      <span class="title-text">Sports UI</span>
-    </div>
-  </div>
-
-  <div class="navbar-center">
-    <!-- Search Bar (Optional) -->
-    <!-- <mat-form-field appearance="outline" class="search-field">
-      <input matInput placeholder="Search..." />
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field> -->
   </div>
 
   <div class="navbar-right">
-    <!-- Notifications -->
     <button
       mat-icon-button
       (click)="navigateToNotifications()"
@@ -43,28 +23,12 @@
     </button>
 
     <!-- User Menu -->
-    <div class="user-section" *ngIf="isAuthenticated(); else loginButton">
+    <div class="user-section">
       <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-        <div class="user-avatar">
-          {{ getUserInitials() }}
-        </div>
-        <span class="user-name">{{ getUserDisplayName() }}</span>
         <mat-icon>arrow_drop_down</mat-icon>
       </button>
 
       <mat-menu #userMenu="matMenu" class="user-menu">
-        <div class="user-info">
-          <div class="user-avatar-large">
-            {{ getUserInitials() }}
-          </div>
-          <div class="user-details">
-            <div class="user-name-large">{{ getUserDisplayName() }}</div>
-            <div class="user-email" *ngIf="currentUser()?.email">
-              {{ currentUser()?.email }}
-            </div>
-          </div>
-        </div>
-
         <mat-divider></mat-divider>
 
         <button mat-menu-item (click)="navigateToProfile()">

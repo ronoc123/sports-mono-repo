@@ -56,47 +56,47 @@ export class ShellComponent {
     { name: "Player Options", icon: "how_to_vote", route: "/player-option" },
     { name: "Active Roster", icon: "people_alt", route: "/active-roaster" },
     { name: "Redeem Codes", icon: "redeem", route: "/redeem" },
-    {
-      name: "Management",
-      icon: "admin_panel_settings",
-      children: [
-        {
-          name: "Player Options Management",
-          icon: "sports",
-          route: "/player-options-management",
-        },
-        {
-          name: "Organizations",
-          icon: "business",
-          route: "/organization",
-        },
-        {
-          name: "Players",
-          icon: "people",
-          route: "/players",
-        },
-        {
-          name: "Leagues",
-          icon: "sports",
-          route: "/leagues",
-        },
-        {
-          name: "Users",
-          icon: "group",
-          route: "/users",
-        },
-        {
-          name: "Codes",
-          icon: "confirmation_number",
-          route: "/codes",
-        },
-        {
-          name: "Themes",
-          icon: "palette",
-          route: "/themes",
-        },
-      ],
-    },
+    // {
+    //   name: "Management",
+    //   icon: "admin_panel_settings",
+    //   children: [
+    //     {
+    //       name: "Player Options Management",
+    //       icon: "sports",
+    //       route: "/player-options-management",
+    //     },
+    //     {
+    //       name: "Organizations",
+    //       icon: "business",
+    //       route: "/organization",
+    //     },
+    //     {
+    //       name: "Players",
+    //       icon: "people",
+    //       route: "/players",
+    //     },
+    //     {
+    //       name: "Leagues",
+    //       icon: "sports",
+    //       route: "/leagues",
+    //     },
+    //     {
+    //       name: "Users",
+    //       icon: "group",
+    //       route: "/users",
+    //     },
+    //     {
+    //       name: "Codes",
+    //       icon: "confirmation_number",
+    //       route: "/codes",
+    //     },
+    //     {
+    //       name: "Themes",
+    //       icon: "palette",
+    //       route: "/themes",
+    //     },
+    //   ],
+    // },
     { name: "Profile", icon: "person", route: "/profile" },
     { name: "Settings", icon: "settings", route: "/settings" },
   ];
