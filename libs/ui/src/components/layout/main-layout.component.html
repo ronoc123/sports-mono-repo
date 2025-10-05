@@ -8,16 +8,7 @@
       [opened]="getSidenavOpened()"
       [style.width]="getSidenavWidth()"
     >
-      <ui-sidebar
-        [navItems]="navItems()"
-        [appTitle]="config().appTitle"
-        [appLogo]="config().appLogo || ''"
-        [currentUser]="currentUser()"
-        [organizations]="organizations()"
-        [selectedOrganization]="selectedOrganization()"
-        [permissionChecker]="permissionChecker()"
-        [showOrganizationSelector]="organizations().length > 0"
-      ></ui-sidebar>
+      <ui-sidebar [navItems]="navItems()"></ui-sidebar>
     </mat-sidenav>
 
     <!-- Main Content -->
@@ -26,7 +17,7 @@
       <ui-navbar
         [config]="config()"
         [drawer]="drawer"
-        [currentUser]="currentUser()"
+        [currentUser]="userStore.user()"
         class="navbar"
       ></ui-navbar>
 

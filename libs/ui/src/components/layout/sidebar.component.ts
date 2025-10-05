@@ -5,6 +5,7 @@ import {
   input,
   signal,
   OnInit,
+  computed,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTreeModule, MatTreeNestedDataSource } from "@angular/material/tree";
@@ -19,9 +20,11 @@ import { NestedTreeControl } from "@angular/cdk/tree";
 import { NavigationEnd, Router } from "@angular/router";
 import { filter } from "rxjs";
 
-import { NavItem } from './main-layout.component';
+import { NavItem } from "./main-layout.component";
+import { AuthStore } from "@sports-ui/auth-data-access";
 
 @Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: "ui-sidebar",
   standalone: true,
   imports: [
@@ -38,18 +41,12 @@ import { NavItem } from './main-layout.component';
   templateUrl: "./sidebar.component.html",
   styleUrl: "./sidebar.component.css",
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent {
   readonly router = inject(Router);
-
+  protected userStore = inject(AuthStore);
   // Inputs
   readonly navItems = input.required<NavItem[]>();
-  readonly appTitle = input<string>('Sports UI');
-  readonly appLogo = input<string>('');
-  readonly showOrganizationSelector = input<boolean>(false);
-  readonly organizations = input<any[]>([]);
-  readonly currentUser = input<any>(null);
-  readonly selectedOrganization = input<any>(null);
-  readonly permissionChecker = input<(item: NavItem) => boolean>(() => true);
+  currentUser = computed(() => this.userStore.user());
 
   // Tree control
   treeControl = new NestedTreeControl<NavItem>((node) => node.children);
@@ -57,7 +54,6 @@ export class SidebarComponent implements OnInit {
 
   // Local state
   private readonly currentRoute = signal(this.router.url);
-  private readonly organizationDropdownOpen = signal(false);
 
   constructor() {
     // Update tree data when nav items change
@@ -70,11 +66,6 @@ export class SidebarComponent implements OnInit {
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => this.currentRoute.set(e.urlAfterRedirects));
   }
-
-  ngOnInit() {
-    // Component is now stateless and doesn't need to load data
-  }
-
   // Navigation methods
   navigateTo(route?: string) {
     if (route) {
@@ -84,86 +75,27 @@ export class SidebarComponent implements OnInit {
 
   isSelected(route?: string): boolean {
     if (!route) return false;
-    return this.currentRoute() === route || this.currentRoute().startsWith(route + '/');
-  }
-
-  hasChild = (_: number, node: NavItem) => !!node.children && node.children.length > 0;
-
-  // Organization methods
-  toggleOrganizationDropdown() {
-    this.organizationDropdownOpen.update(open => !open);
-  }
-
-  isOrganizationDropdownOpen(): boolean {
-    return this.organizationDropdownOpen();
-  }
-
-  getSelectedOrganizationName(): string {
-    const selected = this.selectedOrganization();
-    return selected?.name || 'Select Organization';
-  }
-
-  getSelectedOrganizationLogo(): string {
-    const selected = this.selectedOrganization();
-    return selected?.logoUrl || this.appLogo() || '/assets/default-org-logo.png';
-  }
-
-  selectOrganization(org: any) {
-    // Emit event or call callback - this should be handled by parent component
-    console.log('Organization selected:', org);
-    this.organizationDropdownOpen.set(false);
-  }
-
-  // Permission checking
-  isNavItemVisible(item: NavItem): boolean {
-    return this.permissionChecker()(item);
-  }
-
-  // User methods
-  isAuthenticated(): boolean {
-    return !!this.currentUser();
-  }
-
-  getUserDisplayName(): string {
-    const user = this.currentUser();
-    if (!user) return 'Guest';
-    return user.userName || user.email || 'User';
-  }
-
-  getUserInitials(): string {
-    const user = this.currentUser();
-    if (!user) return 'G';
-    
-    if (user.firstName && user.lastName) {
-      return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
-    } else if (user.userName) {
-      return user.userName.substring(0, 2).toUpperCase();
-    } else if (user.email) {
-      return user.email.substring(0, 2).toUpperCase();
-    }
-    
-    return 'U';
+    return (
+      this.currentRoute() === route ||
+      this.currentRoute().startsWith(route + "/")
+    );
   }
 
   // Quick actions
   onQuickAction(action: string) {
     switch (action) {
-      case 'profile':
-        this.navigateTo('/profile');
+      case "profile":
+        this.navigateTo("/profile");
         break;
-      case 'settings':
-        this.navigateTo('/settings');
+      case "settings":
+        this.navigateTo("/settings");
         break;
-      case 'logout':
+      case "logout":
         // This should be handled by parent component
-        console.log('Logout requested');
+        console.log("Logout requested");
         break;
       default:
-        console.log('Unknown action:', action);
+        console.log("Unknown action:", action);
     }
-  }
-
-  trackByOrgId(_: number, org: any): string {
-    return org.id;
   }
 }

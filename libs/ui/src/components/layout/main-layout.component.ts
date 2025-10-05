@@ -11,6 +11,7 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { map } from "rxjs/operators";
+import { AuthStore } from "@sports-ui/auth-data-access";
 
 import { SidebarComponent } from "./sidebar.component";
 import { NavbarComponent } from "./navbar.component";
@@ -59,7 +60,7 @@ export interface LayoutConfig {
 })
 export class MainLayoutComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
-
+  protected userStore = inject(AuthStore);
   // Inputs
   readonly navItems = input.required<NavItem[]>();
   readonly config = input<LayoutConfig>({
@@ -72,10 +73,8 @@ export class MainLayoutComponent {
   });
 
   // Permission checker function input
-  readonly permissionChecker = input<(item: NavItem) => boolean>(() => true);
 
   // User data inputs
-  readonly currentUser = input<any>(null);
   readonly organizations = input<any[]>([]);
   readonly selectedOrganization = input<any>(null);
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { Component, computed, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatButtonModule } from "@angular/material/button";
@@ -6,7 +6,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { Router } from "@angular/router";
-import { AuthService } from "@sports-ui/auth-data-access";
+import { AuthStore } from "@sports-ui/auth-data-access";
 
 interface DashboardCard {
   title: string;
@@ -49,13 +49,13 @@ interface RecentActivity {
 })
 export class FeatureDashboard implements OnInit {
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
 
   // Dashboard data
   statsCards: DashboardCard[] = [];
   quickActions: QuickAction[] = [];
   recentActivities: RecentActivity[] = [];
-
+  currentUser = computed(() => this.authStore.user());
   ngOnInit() {
     this.loadDashboardData();
   }

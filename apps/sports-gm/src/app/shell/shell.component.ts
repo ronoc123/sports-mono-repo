@@ -1,33 +1,30 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MainLayoutComponent, NavItem } from '@sports-ui/ui';
-import { AuthService } from '@sports-ui/feature-auth';
+import { Component, inject } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterModule } from "@angular/router";
+import { MainLayoutComponent, NavItem } from "@sports-ui/ui";
+import { AuthService } from "@sports-ui/feature-auth";
 
 @Component({
-  selector: 'app-shell',
+  selector: "app-shell",
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    MainLayoutComponent,
-  ],
+  imports: [CommonModule, RouterModule, MainLayoutComponent],
   template: `
-    <ui-main-layout 
+    <ui-main-layout
       [navItems]="navItems"
       [config]="layoutConfig"
       [permissionChecker]="checkPermission"
-      [currentUser]="authService.currentUser()"
       [organizations]="organizations"
       [selectedOrganization]="selectedOrganization"
     ></ui-main-layout>
   `,
-  styles: [`
-    :host {
-      display: block;
-      height: 100vh;
-    }
-  `],
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100vh;
+      }
+    `,
+  ],
 })
 export class ShellComponent {
   protected readonly authService = inject(AuthService);
@@ -38,12 +35,12 @@ export class ShellComponent {
 
   // Layout configuration for Sports GM
   layoutConfig = {
-    appTitle: 'Sports GM',
-    appLogo: '/assets/gm-logo.png',
+    appTitle: "Sports GM",
+    appLogo: "/assets/gm-logo.png",
     showUserMenu: true,
     showNotifications: true,
     showSearch: true,
-    sidenavMode: 'side' as const,
+    sidenavMode: "side" as const,
     sidenavOpened: true,
     showFooter: true,
   };
@@ -57,78 +54,78 @@ export class ShellComponent {
   navItems: NavItem[] = [
     { name: "Dashboard", icon: "dashboard", route: "/" },
     { name: "My Organization", icon: "business", route: "/organization" },
-    { 
-      name: "Player Management", 
-      icon: "people", 
+    {
+      name: "Player Management",
+      icon: "people",
       children: [
-        { 
-          name: "Active Roster", 
-          icon: "people_alt", 
-          route: "/players/roster"
+        {
+          name: "Active Roster",
+          icon: "people_alt",
+          route: "/players/roster",
         },
-        { 
-          name: "Player Options", 
-          icon: "how_to_vote", 
-          route: "/player-options"
+        {
+          name: "Player Options",
+          icon: "how_to_vote",
+          route: "/player-options",
         },
-        { 
-          name: "Create Player Option", 
-          icon: "add_circle", 
-          route: "/player-options/create"
+        {
+          name: "Create Player Option",
+          icon: "add_circle",
+          route: "/player-options/create",
         },
-        { 
-          name: "Draft Players", 
-          icon: "person_add", 
-          route: "/players/draft"
+        {
+          name: "Draft Players",
+          icon: "person_add",
+          route: "/players/draft",
         },
       ],
     },
-    { 
-      name: "Organization Settings", 
-      icon: "settings", 
+    {
+      name: "Organization Settings",
+      icon: "settings",
       children: [
-        { 
-          name: "Organization Info", 
-          icon: "info", 
-          route: "/organization/settings"
+        {
+          name: "Organization Info",
+          icon: "info",
+          route: "/organization/settings",
         },
-        { 
-          name: "Team Configuration", 
-          icon: "sports", 
-          route: "/organization/team-config"
+        {
+          name: "Team Configuration",
+          icon: "sports",
+          route: "/organization/team-config",
         },
-        { 
-          name: "League Settings", 
-          icon: "emoji_events", 
-          route: "/organization/league"
+        {
+          name: "League Settings",
+          icon: "emoji_events",
+          route: "/organization/league",
         },
       ],
     },
-    { 
-      name: "Analytics", 
-      icon: "analytics", 
+    {
+      name: "Analytics",
+      icon: "analytics",
       children: [
-        { 
-          name: "Player Performance", 
-          icon: "trending_up", 
-          route: "/analytics/players"
+        {
+          name: "Player Performance",
+          icon: "trending_up",
+          route: "/analytics/players",
         },
-        { 
-          name: "Voting Trends", 
-          icon: "poll", 
-          route: "/analytics/voting"
+        {
+          name: "Voting Trends",
+          icon: "poll",
+          route: "/analytics/voting",
         },
-        { 
-          name: "Organization Stats", 
-          icon: "bar_chart", 
-          route: "/analytics/organization"
+        {
+          name: "Organization Stats",
+          icon: "bar_chart",
+          route: "/analytics/organization",
         },
       ],
     },
-    { 
-      name: "Reports", 
-      icon: "assessment", 
-      route: "/reports"
+    {
+      name: "Reports",
+      icon: "assessment",
+      route: "/reports",
     },
     { name: "Profile", icon: "person", route: "/profile" },
     { name: "Settings", icon: "settings", route: "/settings" },
