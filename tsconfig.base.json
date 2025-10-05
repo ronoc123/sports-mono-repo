@@ -35,12 +35,16 @@
       "@sports-ui/feature-player-option": [
         "libs/player-options/feature-player-option/src/index.ts"
       ],
+      "@sports-ui/feature-players": [
+        "libs/product-domains/players/src/index.ts"
+      ],
       "@sports-ui/feature-profile": ["libs/profile/src/index.ts"],
       "@sports-ui/feature-redeem": ["libs/redeem/feature-redeem/src/index.ts"],
       "@sports-ui/feature-roaster": [
         "libs/roaster/feature-roaster/src/index.ts"
       ],
       "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
+      "@sports-ui/feature-user": ["libs/product-domains/users/src/index.ts"],
       "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
       "@sports-ui/player-options": ["libs/player-options/src/index.ts"],
       "@sports-ui/player-options-data-access": [

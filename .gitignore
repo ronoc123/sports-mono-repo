@@ -58,3 +58,6 @@ typings/
 *.nupkg
 packages/
 .nuget/packages/
+
+
+.angular
