@@ -2,7 +2,7 @@ services:
   webapi:
     build:
       context: .
-      dockerfile: src/SportsAPI/WebAPI/Dockerfile
+      dockerfile: ./SportsAPI/WebAPI/Dockerfile
     ports:
       - "5000:8080"
     environment:
@@ -13,7 +13,7 @@ services:
 
   identityapi:
     build:
-      context: ./src/IdentityService
+      context: ./IdentityService
       dockerfile: Dockerfile
     ports:
       - "5001:8080"
@@ -30,7 +30,7 @@ services:
 
   notificationapi:
     build:
-      context: ./src/NotificationAPI
+      context: ./NotificationAPI
       dockerfile: Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

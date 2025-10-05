@@ -15,7 +15,8 @@ namespace Infrastructure
         {
             // Register DbContext with a connection string from appsettings.json
             services.AddDbContext<SportsDbAppContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+                        sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null)));
 
             // Register IApplicationDbContext
             services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SportsDbAppContext>());

@@ -4,7 +4,6 @@ using IdentityService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -12,11 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IdentityService.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20250928144634_InitialCreate")]
-    partial class InitialCreate
+    partial class IdentityDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,28 +166,28 @@ namespace IdentityService.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "abf77f46-177b-43d0-8d5f-420cb7efaceb",
+                            ConcurrencyStamp = "0c7f6aaf-78ad-4ae4-bb7d-c1f428faf2f2",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "cdcae697-0b0a-40e7-a38e-b5451867f2a6",
+                            ConcurrencyStamp = "998546ca-c8da-4985-8e5a-ec1aabeb68c1",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "958b3870-9f59-47a6-b6c9-46b7758d50a2",
+                            ConcurrencyStamp = "edcba918-c351-4970-81ec-3d475d1d338f",
                             Name = "CSP",
                             NormalizedName = "CSP"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "4b5e656e-9fd7-4203-9900-45ed2099a41a",
+                            ConcurrencyStamp = "e94b945e-56f7-4795-af11-21203eff56e4",
                             Name = "GM",
                             NormalizedName = "GM"
                         });

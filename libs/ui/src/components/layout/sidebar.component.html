@@ -35,9 +35,7 @@
           [class.active-route]="isSelected(node.route)"
           class="nav-item"
         >
-          <mat-icon *ngIf="node.icon" class="nav-icon">{{
-            node.icon
-          }}</mat-icon>
+          <mat-icon class="nav-icon">{{ node.icon }}</mat-icon>
           <span class="nav-text">{{ node.name }}</span>
         </button>
       </mat-tree-node>

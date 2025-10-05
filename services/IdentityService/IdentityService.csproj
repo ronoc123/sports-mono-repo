@@ -22,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
-    <ProjectReference Include="..\..\..\Exceptions\Exceptions.csproj" />
-    <ProjectReference Include="..\..\..\Web\Web.csproj" />
+    <ProjectReference Include="..\SportifyCore\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\SportifyCore\Exceptions\Exceptions.csproj" />
+    <ProjectReference Include="..\SportifyCore\Web\Web.csproj" />
   </ItemGroup>
 
 </Project>

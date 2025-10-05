@@ -26,11 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Contracts\Contracts.csproj" />
-    <ProjectReference Include="..\..\..\..\Exceptions\Exceptions.csproj" />
-    <ProjectReference Include="..\..\..\..\Web\Web.csproj" />
     <ProjectReference Include="..\..\Messaging\BuildingBlocks.Messageing\BuildingBlocks.Messageing.csproj" />
     <ProjectReference Include="..\..\Messaging\BuildingBlocks\BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\SportifyCore\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\..\SportifyCore\Exceptions\Exceptions.csproj" />
+    <ProjectReference Include="..\..\SportifyCore\Web\Web.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
