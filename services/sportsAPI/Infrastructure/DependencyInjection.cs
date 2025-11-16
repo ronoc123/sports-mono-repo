@@ -28,7 +28,6 @@ namespace Infrastructure
       // Register repositories
       // TO BE REMOVED 
       services.AddScoped<IOrganizationRepository, OrganizationRepository>();
-      services.AddScoped<ILeagueRepository, LeagueRepository>();
 
 
 

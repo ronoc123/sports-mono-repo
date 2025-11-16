@@ -1,21 +1,27 @@
+using Application.Common.Models;           // PaginatedList<T>
+using Application.Dto.Organization;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Contracts.Contracts;                 // ServiceResponse<T>
+using Domain.Organizations;       // for EF Core query ops on IQueryable
 using Domain.Repositories;                 // IOrganizationRepository
 using Domain.ValueObjects.ConcreteTypes;   // LeagueId
-using Application.Common.Models;           // PaginatedList<T>
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Application.Dto.Organization;       // for EF Core query ops on IQueryable
 
 namespace Application.Organizations.Queries.GetAllOrganizations;
 
 public sealed class GetAllOrganizationsQueryHandler
   : IRequestHandler<GetAllOrganizationsQuery, ServiceResponse<PaginatedList<OrganizationDto>>>
 {
-  private readonly IOrganizationRepository _orgs;
 
-  public GetAllOrganizationsQueryHandler(IOrganizationRepository orgs)
+  private readonly IRepository _repo;
+
+  private readonly IMapper _mapper;
+  public GetAllOrganizationsQueryHandler(IRepository repo, IMapper mapper)
   {
-    _orgs = orgs;
+    _repo = repo;
+    _mapper = mapper;
   }
 
   public async Task<ServiceResponse<PaginatedList<OrganizationDto>>> Handle(
@@ -23,7 +29,7 @@ public sealed class GetAllOrganizationsQueryHandler
       CancellationToken cancellationToken)
   {
 
-    var query = _orgs.Query();
+    var query = _repo.Query<Organization>();
 
     if (!string.IsNullOrWhiteSpace(request.SearchTerm))
     {
@@ -58,19 +64,7 @@ public sealed class GetAllOrganizationsQueryHandler
       _ => query.OrderBy(o => o.Name)
     };
 
-    var dtoQuery = query.Select(o => new OrganizationDto
-    {
-      Id = o.Id.Value,
-      LeagueId = o.LeagueId.Value,
-      Name = o.Name,
-      TeamId = o.TeamId,
-      TeamName = o.TeamName,
-      TeamShortName = o.TeamShortName,
-      FormedYear = o.FormedYear,
-      Sport = o.Sport,
-      Description = o.Description,
-      CreatedAt = o.CreatedAt ?? DateTime.MinValue,
-    });
+    var dtoQuery = query.ProjectTo<OrganizationDto>(_mapper.ConfigurationProvider);
 
     var page = await PaginatedList<OrganizationDto>.CreateAsync(
       dtoQuery, request.PageNumber, request.PageSize);

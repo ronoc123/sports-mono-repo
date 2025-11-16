@@ -1,4 +1,5 @@
 using Contracts.Contracts;
+using Domain.Leagues;
 using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
@@ -9,24 +10,24 @@ namespace Application.Leagues.Commands.UpdateLeague;
 public sealed class UpdateLeagueCommandHandler
   : IRequestHandler<UpdateLeagueCommand, ServiceResponse<bool>>
 {
-  private readonly ILeagueRepository _leagues;
+  private readonly IRepository _repo;
 
-  public UpdateLeagueCommandHandler(ILeagueRepository leagues)
+  public UpdateLeagueCommandHandler(IRepository repo)
   {
-    _leagues = leagues;
+    _repo = repo;
   }
 
   public async Task<ServiceResponse<bool>> Handle(UpdateLeagueCommand request, CancellationToken ct)
   {
     // Load
-    var league = await _leagues.GetByIdAsync(LeagueId.Of(request.LeagueId), ct)
+    var league = await _repo.GetByIdAsync<League, LeagueId>(request.LeagueId, ct)
                  ?? throw new ValidationException($"League '{request.LeagueId}' not found.");
 
-    league.Rename(request.Name); 
+    league.Rename(request.Name);
 
     // Persist
-    _leagues.Update(league);
-    await _leagues.SaveChangesAsync(ct);
+    _repo.Update(league);
+    await _repo.SaveChangesAsync(ct);
 
     // Return success envelope
     return ServiceResponse.Ok(true, "League successfully updated.");

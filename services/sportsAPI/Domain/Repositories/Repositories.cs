@@ -62,11 +62,11 @@ namespace Domain.Repositories
     Task UpdateOrganizationAsync(Organization organization, CancellationToken ct = default);
     Task DeleteOrganizationAsync(OrganizationId organizationId, CancellationToken ct = default);
   }
-  public interface ILeagueRepository : IRepository<League, LeagueId>
-  {
-    Task<League?> GetLeagueByIdAsync(LeagueId leagueId, CancellationToken ct = default);
-    Task AddLeagueAsync(League league, CancellationToken ct = default);
-    Task UpdateLeagueAsync(League league, CancellationToken ct = default);
-    Task DeleteLeagueAsync(LeagueId leagueId, CancellationToken ct = default);
-  }
+  //public interface ILeagueRepository : IRepository<League, LeagueId>
+  //{
+  //  Task<League?> GetLeagueByIdAsync(LeagueId leagueId, CancellationToken ct = default);
+  //  Task AddLeagueAsync(League league, CancellationToken ct = default);
+  //  Task UpdateLeagueAsync(League league, CancellationToken ct = default);
+  //  Task DeleteLeagueAsync(LeagueId leagueId, CancellationToken ct = default);
+  //}
 }

@@ -4,35 +4,30 @@ using Domain.Repositories;                 // IOrganizationRepository
 using MediatR;
 using System.ComponentModel.DataAnnotations;
 using Domain.ValueObjects.ConcreteTypes;
+using Domain.Organizations;
 
 namespace Application.Organizations.Commands.UpdateOrganization;
 
 public sealed class UpdateOrganizationCommandHandler
   : IRequestHandler<UpdateOrganizationCommand, ServiceResponse<bool>>
 {
-  private readonly IOrganizationRepository _orgs;
+  private readonly IRepository _repo;
 
-  public UpdateOrganizationCommandHandler(IOrganizationRepository orgs)
+  public UpdateOrganizationCommandHandler(IRepository repo)
   {
-    _orgs = orgs;
+    _repo = repo;
   }
 
   public async Task<ServiceResponse<bool>> Handle(UpdateOrganizationCommand request, CancellationToken ct)
   {
-    var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
+    var org = await _repo.GetByIdAsync<Organization,OrganizationId>(request.OrganizationId, ct)
               ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
-
-    //org.Name = request.Name?.Trim() ?? org.Name;
-
-    //org.FormedYear = request.FormedYear;
-    //org.Description = request.Description;
 
     org.UpdateTeamInfo(request.TeamId, request.TeamName, request.TeamShortName, request.Sport);
 
-    _orgs.Update(org);
-    await _orgs.SaveChangesAsync(ct);
+    _repo.Update(org);
+    await _repo.SaveChangesAsync(ct);
 
-    // 4) Success envelope
     return ServiceResponse.Ok(true, "Organization successfully updated.");
   }
 }

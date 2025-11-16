@@ -13,17 +13,12 @@ namespace Application.PlayerOptions.Commands.CreatePlayerOption;
 
 public class CreatePlayerOptionCommandHandler : IRequestHandler<CreatePlayerOptionCommand, ServiceResponse<Guid>>
 {
-    private readonly IOrganizationRepository _organizationRepository;
-    //private readonly IPlayerRepository _playerRepository;
+  private readonly IRepository _repo;
 
-    public CreatePlayerOptionCommandHandler(
-        IOrganizationRepository organizationRepository
-        //IPlayerRepository playerRepo
-        )
-    {
-        _organizationRepository = organizationRepository;
-        //_playerRepository = playerRepo;
-    }
+  public CreatePlayerOptionCommandHandler(IRepository repo)
+  {
+    _repo = repo;
+  }
 
     public async Task<ServiceResponse<Guid>> Handle(CreatePlayerOptionCommand request, CancellationToken cancellationToken)
     {

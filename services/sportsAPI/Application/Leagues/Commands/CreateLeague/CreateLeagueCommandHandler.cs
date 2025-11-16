@@ -9,7 +9,6 @@ namespace Application.Leagues.Commands.CreateLeague;
 
 public class CreateLeagueCommandHandler : IRequestHandler<CreateLeagueCommand, ServiceResponse<LeagueId>>
 {
-  private readonly ILeagueRepository _leagueRepository;
   private readonly IRepository _repo;
 
   public CreateLeagueCommandHandler(IRepository repo)

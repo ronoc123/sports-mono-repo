@@ -1,8 +1,9 @@
-using System.Reflection;
 using Application.Common.Behaviours;
+using Application.Profiles;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Application;
 
@@ -22,7 +23,9 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
 
         // Add AutoMapper
-        services.AddAutoMapper(assembly);
+
+        services.AddAutoMapper(typeof(OrganizationMappingPorfile).Assembly);
+
 
         return services;
     }

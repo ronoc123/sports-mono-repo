@@ -17,7 +17,7 @@ namespace Domain.Player
         public bool IsVeteran => Age >= 35;
         public bool IsYoungPlayer => Age <= 23;
 
-        internal Player() { } // for EF
+        internal Player() { }
 
         public static Player Create(
             PlayerId id,

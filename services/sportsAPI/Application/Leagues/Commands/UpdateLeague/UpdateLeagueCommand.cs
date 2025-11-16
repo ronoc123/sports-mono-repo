@@ -6,6 +6,6 @@ using MediatR;
 namespace Application.Leagues.Commands.UpdateLeague;
 
 public sealed record UpdateLeagueCommand(
-    Guid LeagueId,
+    LeagueId LeagueId,
     string Name
 ) : IRequest<ServiceResponse<bool>>;

@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Dto.Player;
 using Application.Players.Queries.GetAllPlayers;
 using Contracts.Contracts;
 using Domain.Leagues;
@@ -12,13 +13,13 @@ namespace Application.Players.Commands.CreatePlayer;
 public sealed class CreatePlayerCommandHandler
   : IRequestHandler<CreatePlayerCommand, ServiceResponse<PlayerDto>>
 {
-  private readonly ILeagueRepository _leagueRepository;
+  private readonly IRepository _repo;
 
   public CreatePlayerCommandHandler(
-      ILeagueRepository leagueRepository,
-      IApplicationDbContext context)
+      IRepository repo
+      )
   {
-    _leagueRepository = leagueRepository;
+    _repo = repo;
   }
 
   public async Task<ServiceResponse<PlayerDto>> Handle(CreatePlayerCommand request, CancellationToken cancellationToken)
