@@ -26,53 +26,80 @@ namespace Domain.Organizations
       public string? Description { get; private set; }
 
 
-      // Factory
-      public static Organization Create(
-          OrganizationId id,
-          LeagueId leagueId,
-          string name,
-          string? teamId,
-          string? teamName,
-          string? teamShortName,
-          int? formedYear,
-          string? sport,
-          Venue venue,
-          MediaAssets mediaAssets,
-          SocialLinks socialLinks,
-          TeamColors teamColors,
-          string? description)
+    // Factory
+    public static Organization Create(
+        LeagueId leagueId,
+        string name,
+        string? teamId,
+        string? teamName,
+        string? teamShortName,
+        int? formedYear,
+        string? sport,
+        string? stadium,
+        string? location,
+        int? capacity,
+        string? badgeUrl,
+        string? logoUrl,
+        string? fanart1Url,
+        string? fanart2Url,
+        string? fanart3Url,
+        string? website,
+        string? facebook,
+        string? twitter,
+        string? instagram,
+        string? color1,
+        string? color2,
+        string? color3,
+        string? description)
+    {
+      ArgumentNullException.ThrowIfNull(leagueId);
+      ArgumentException.ThrowIfNullOrEmpty(name);
+
+      var venue = new Venue(
+          stadium ?? string.Empty,
+          location ?? string.Empty,
+          capacity ?? 0);
+
+      var mediaAssets = new MediaAssets(
+          badgeUrl ?? string.Empty,
+          logoUrl ?? string.Empty,
+          fanart1Url ?? string.Empty,
+          fanart2Url ?? string.Empty,
+          fanart3Url ?? string.Empty);
+
+      var socialLinks = new SocialLinks(
+          website ?? string.Empty,
+          facebook ?? string.Empty,
+          twitter ?? string.Empty,
+          instagram ?? string.Empty);
+
+      var teamColors = new TeamColors(
+          color1 ?? string.Empty,
+          color2 ?? string.Empty,
+          color3 ?? string.Empty);
+
+      var org = new Organization
       {
-        ArgumentNullException.ThrowIfNull(id);
-        ArgumentNullException.ThrowIfNull(leagueId);
-        ArgumentException.ThrowIfNullOrEmpty(name);
-        ArgumentNullException.ThrowIfNull(venue);
-        ArgumentNullException.ThrowIfNull(mediaAssets);
-        ArgumentNullException.ThrowIfNull(socialLinks);
-        ArgumentNullException.ThrowIfNull(teamColors);
+        Id = OrganizationId.Of(new Guid()),
+        LeagueId = leagueId,
+        CreatedAt = DateTime.UtcNow
+      };
 
-        var org = new Organization
-        {
-          Id = id,
-          LeagueId = leagueId,
-          CreatedAt = DateTime.UtcNow
-        };
+      org.Rename(name);
+      org.UpdateTeamInfo(teamId, teamName, teamShortName, sport);
+      org.SetFormedYear(formedYear);
+      org.SetVenue(venue);
+      org.SetMediaAssets(mediaAssets);
+      org.SetSocialLinks(socialLinks);
+      org.SetTeamColors(teamColors);
+      org.SetDescription(description);
 
-        org.Rename(name);
-        org.UpdateTeamInfo(teamId, teamName, teamShortName, sport);
-        org.SetFormedYear(formedYear);
-        org.SetVenue(venue);
-        org.SetMediaAssets(mediaAssets);
-        org.SetSocialLinks(socialLinks);
-        org.SetTeamColors(teamColors);
-        org.SetDescription(description);
+      return org;
+    }
 
-        // AddEvent(new OrganizationCreated(org.Id, org.LeagueId, org.Name));
-        return org;
-      }
+    // Mutations (Organization-only invariants)
 
-      // Mutations (Organization-only invariants)
-
-      public void Rename(string name)
+    public void Rename(string name)
       {
         ArgumentException.ThrowIfNullOrEmpty(name);
         var trimmed = name.Trim();
@@ -156,5 +183,4 @@ namespace Domain.Organizations
     public sealed record OrganizationMediaAssetsUpdated(OrganizationId OrganizationId);
     public sealed record OrganizationSocialLinksUpdated(OrganizationId OrganizationId);
     public sealed record OrganizationTeamColorsUpdated(OrganizationId OrganizationId);
-    public sealed record OrganizationCodeRedeemed(OrganizationId OrganizationId, CodeId CodeId, UserId RedeemerId, int VotesAwarded);
 }

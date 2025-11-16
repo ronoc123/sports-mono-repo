@@ -1,4 +1,5 @@
-using Contracts.Contracts;             
+using Contracts.Contracts;
+using Domain.Organizations;
 using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
@@ -9,21 +10,19 @@ namespace Application.Organizations.Commands.DeleteOrganization;
 public sealed class DeleteOrganizationCommandHandler
   : IRequestHandler<DeleteOrganizationCommand, ServiceResponse<bool>>
 {
-  private readonly IOrganizationRepository _orgs;
+  private readonly IRepository _repo;
 
-  public DeleteOrganizationCommandHandler(IOrganizationRepository orgs)
+  public DeleteOrganizationCommandHandler(IRepository repo)
   {
-    _orgs = orgs;
+    _repo = repo;
   }
 
   public async Task<ServiceResponse<bool>> Handle(DeleteOrganizationCommand request, CancellationToken ct)
   {
-    var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
+    var org = await _repo.GetByIdAsync<Organization, OrganizationId>(request.OrganizationId, ct)
               ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
-
-
-    _orgs.Remove(org);
-    await _orgs.SaveChangesAsync(ct);
+    _repo.Remove(org);
+    await _repo.SaveChangesAsync(ct);
 
     return ServiceResponse.Ok(true, "Organization successfully deleted.");
   }

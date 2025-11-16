@@ -9,7 +9,6 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
 {
   public void Configure(EntityTypeBuilder<VoteAccount> builder)
   {
-    builder.ToTable("vote_accounts");
 
     // Aggregate Id is a composite; ignore the VO Id property if present
     builder.Ignore(x => x.Id);
@@ -17,15 +16,13 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
     // Composite PK: one account per (org, user)
     builder.HasKey(x => new { x.OrgId, x.UserId });
 
-    builder.Property(x => x.OrgId)
-      .HasColumnName("org_id")
-      .HasConversion(v => v.Value, v => OrganizationId.Of(v))
-      .IsRequired();
+    builder.Property(c => c.OrgId).HasConversion(
+      organizationId => organizationId.Value,
+      value => OrganizationId.Of(value));
 
-    builder.Property(x => x.UserId)
-      .HasColumnName("user_id")
-      .HasConversion(v => v.Value, v => Domain.ValueObjects.ConcreteTypes.UserId.Of(v))
-      .IsRequired();
+    builder.Property(c => c.UserId).HasConversion(
+      userId => userId.Value,
+      value => UserId.Of(value));
 
     builder.Property(x => x.Balance)
       .HasColumnName("balance")
@@ -37,13 +34,11 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
       .IsConcurrencyToken();
 
     builder.Property(x => x.CreatedAt)
-      .HasColumnName("created_at")
       .HasColumnType("datetime2")
       .HasDefaultValueSql("SYSUTCDATETIME()")
       .IsRequired();
 
     builder.Property(x => x.UpdatedAt)
-      .HasColumnName("updated_at")
       .HasColumnType("datetime2")
       .HasDefaultValueSql("SYSUTCDATETIME()")
       .IsRequired();

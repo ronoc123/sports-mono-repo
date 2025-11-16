@@ -7,7 +7,7 @@ namespace Application.Organizations.Commands.CreateOrganization;
 
 public record CreateOrganizationCommand(
     string Name,
-    Guid LeagueId,
+    LeagueId LeagueId,
     string? TeamId,
     string? TeamName,
     string? TeamShortName,
@@ -29,4 +29,4 @@ public record CreateOrganizationCommand(
     string? Fanart1Url,
     string? Fanart2Url,
     string? Fanart3Url
-) : IRequest<ServiceResponse<Guid>>;
+) : IRequest<ServiceResponse<OrganizationId>>;

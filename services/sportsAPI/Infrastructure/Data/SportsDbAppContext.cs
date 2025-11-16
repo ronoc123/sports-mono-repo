@@ -26,13 +26,6 @@ namespace Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Ignore<OrganizationId>();
-            modelBuilder.Ignore<PlayerId>();
-            modelBuilder.Ignore<PlayerOptionId>();
-            modelBuilder.Ignore<UserId>();
-            modelBuilder.Ignore<ThemeId>();
-            modelBuilder.Ignore<CodeId>();
-            modelBuilder.Ignore<VoteAccountId>();
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
                 base.OnModelCreating(modelBuilder);
           }

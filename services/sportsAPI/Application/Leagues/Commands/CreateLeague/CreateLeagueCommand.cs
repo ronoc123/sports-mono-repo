@@ -5,4 +5,4 @@ using MediatR;
 
 namespace Application.Leagues.Commands.CreateLeague;
 
-public record CreateLeagueCommand(string Name) : IRequest<ServiceResponse<Guid>>;
+public record CreateLeagueCommand(string Name) : IRequest<ServiceResponse<LeagueId>>;

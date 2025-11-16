@@ -77,7 +77,7 @@ namespace sportsAPI.Controllers
 
 
         [HttpPost("addOrganization")]
-        public async Task<ServiceResponse<Guid>> AddOrganization([FromBody] CreateOrganizationCommand command)
+        public async Task<ServiceResponse<OrganizationId>> AddOrganization([FromBody] CreateOrganizationCommand command)
         {
             var result = await _mediator.Send(command);
             return result;

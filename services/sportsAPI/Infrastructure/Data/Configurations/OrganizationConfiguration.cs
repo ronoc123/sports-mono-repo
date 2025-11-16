@@ -10,7 +10,6 @@ namespace Infrastructure.Data.Configurations
   {
     public void Configure(EntityTypeBuilder<Organization> builder)
     {
-      builder.ToTable("organizations");
 
       // Key
       builder.HasKey(o => o.Id);
@@ -18,6 +17,10 @@ namespace Infrastructure.Data.Configurations
       builder.Property(c => c.Id).HasConversion(
         organizationId => organizationId.Value,
         value => OrganizationId.Of(value));
+
+      builder.Property(c => c.LeagueId).HasConversion(
+        leagueId => leagueId.Value,
+        value => LeagueId.Of(value));
 
       builder.OwnsOne(o => o.Venue, v =>
       {

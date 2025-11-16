@@ -9,10 +9,10 @@ public class LeagueConfiguration : IEntityTypeConfiguration<League>
 {
     public void Configure(EntityTypeBuilder<League> builder)
     {
-        builder.HasKey(x => x.Id);
-        builder.Property(x => x.Id)
-            .HasConversion(
-                id => id.Value,                   // to provider (Guid/string)
-                value => new LeagueId(value));
+        builder.HasKey(o => o.Id);
+
+        builder.Property(c => c.Id).HasConversion(
+          organizationId => organizationId.Value,
+          value => LeagueId.Of(value));
   }
 }

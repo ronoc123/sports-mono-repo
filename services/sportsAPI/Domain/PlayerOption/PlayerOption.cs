@@ -5,23 +5,17 @@ namespace Domain.PlayerOption
 
   public class PlayerOption : Aggregate<PlayerOptionId>
   {
-    // Identity links
     public OrganizationId OrganizationId { get; private set; } = default!;
     public PlayerId PlayerId { get; private set; } = default!;
 
-    // Core data
     public string Title { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public DateTime ExpiresAt { get; private set; }
 
-    // Weighted total (running tally)
     public long Votes { get; private set; }
 
-    // Ledger (idempotency + audit). Backing field; expose read-only.
     private readonly List<VoteTransaction> _votes = new();
     public IReadOnlyList<VoteTransaction> VoteHistory => _votes;
-
-    // Convenience
     public bool IsActive => DateTime.UtcNow < ExpiresAt;
     public bool IsExpired => !IsActive;
     public TimeSpan TimeRemaining => IsActive ? ExpiresAt - DateTime.UtcNow : TimeSpan.Zero;
@@ -29,7 +23,7 @@ namespace Domain.PlayerOption
     public bool IsPopular => Votes >= 100;
     public bool IsTrending => Votes >= 50 && IsActive;
 
-    internal PlayerOption() { } // EF
+    internal PlayerOption() { }
 
     private PlayerOption(
         PlayerOptionId id,
@@ -97,9 +91,7 @@ namespace Domain.PlayerOption
       ExpiresAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Apply an idempotent vote spend. Requires a SpendToken issued by VoteAccount.
-    /// </summary>
+
     public void CastVote(UserId userId, SpendToken spend)
     {
       if (!IsActive) throw new InvalidOperationException("Voting is not open.");

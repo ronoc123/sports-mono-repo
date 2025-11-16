@@ -10,14 +10,11 @@ public class ThemeConfiguration : IEntityTypeConfiguration<Theme>
 {
     public void Configure(EntityTypeBuilder<Theme> builder)
     {
-        builder.ToTable("Themes");
 
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Id)
-            .HasConversion(
-                id => id.Value,
-                value => ThemeId.Of(value))
-            .IsRequired();
-    }
+        builder.Property(c => c.Id).HasConversion(
+          id => id.Value,
+          value => ThemeId.Of(value));
+  }
 }

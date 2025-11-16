@@ -4,35 +4,28 @@ using Domain.Repositories;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
 using Domain.ValueObjects.ConcreteTypes;
+using Domain.Leagues;
 
 namespace Application.Leagues.Commands.DeleteLeague;
 
 public sealed class DeleteLeagueCommandHandler
   : IRequestHandler<DeleteLeagueCommand, ServiceResponse<bool>>
 {
-  private readonly ILeagueRepository _leagues;
-  private readonly IOrganizationRepository _orgs;
+  private readonly IRepository _repo;
 
-  public DeleteLeagueCommandHandler(ILeagueRepository leagues, IOrganizationRepository orgs)
+  public DeleteLeagueCommandHandler(IRepository repo)
   {
-    _leagues = leagues;
-    _orgs = orgs;
+     _repo = repo;
   }
 
   public async Task<ServiceResponse<bool>> Handle(DeleteLeagueCommand request, CancellationToken ct)
   {
     // 1) Ensure the league exists
-    var league = await _leagues.GetByIdAsync(LeagueId.Of(request.LeagueId), ct)
+    var league = await _repo.GetByIdAsync<League, LeagueId>(request.LeagueId, ct)
                  ?? throw new ValidationException($"League '{request.LeagueId}' not found.");
 
-    //var hasOrganizations = await _orgs.ExistsAsync(o => o.LeagueId.Value == request.LeagueId, ct);
-    //if (hasOrganizations)
-    //  throw new ValidationException(
-    //    "Cannot delete league that has organizations. Remove all organizations first.");
-
-    // 3) Delete and persist
-    _leagues.Remove(league);
-    await _leagues.SaveChangesAsync(ct);
+    _repo.Remove<League>(league);
+    await _repo.SaveChangesAsync(ct);
 
     // 4) Success envelope
     return ServiceResponse.Ok(true, "League successfully deleted.");

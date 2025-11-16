@@ -9,24 +9,21 @@ public class PlayerOptionConfiguration : IEntityTypeConfiguration<PlayerOption>
 {
     public void Configure(EntityTypeBuilder<PlayerOption> builder)
     {
-        builder.ToTable("player_options");
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Id)
-          .HasColumnName("id")
-          .HasConversion(v => v.Value, v => PlayerOptionId.Of(v))
-          .IsRequired();
+        builder.Property(c => c.Id).HasConversion(
+            id => id.Value,
+            value => PlayerOptionId.Of(value));
 
-        builder.Property(x => x.OrganizationId)
-          .HasColumnName("organization_id")
-          .HasConversion(v => v.Value, v => OrganizationId.Of(v))
-          .IsRequired();
 
-        builder.Property(x => x.PlayerId)
-          .HasColumnName("player_id")
-          .HasConversion(v => v.Value, v => PlayerId.Of(v))
-          .IsRequired();
+        builder.Property(c => c.OrganizationId).HasConversion(
+              organizationId => organizationId.Value,
+              value => OrganizationId.Of(value));
+
+        builder.Property(c => c.PlayerId).HasConversion(
+            playerId => playerId.Value,
+            value => PlayerId.Of(value));
 
         builder.Ignore(x => x.VoteHistory);
   }

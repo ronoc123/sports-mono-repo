@@ -22,10 +22,19 @@ namespace Infrastructure
 
       // Register IApplicationDbContext
       services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SportsDbAppContext>());
+
+
+
       // Register repositories
+      // TO BE REMOVED 
       services.AddScoped<IOrganizationRepository, OrganizationRepository>();
       services.AddScoped<ILeagueRepository, LeagueRepository>();
 
+
+
+
+
+      services.AddScoped<IRepository, Repository>();
 
 
 

@@ -13,7 +13,6 @@ namespace Domain.Player
         public int Age { get; private set; }
         public DateTime UpdatedAt { get; private set; }
 
-        // Derived flags (domain convenience)
         public bool IsActive => Age is >= 16 and <= 50;
         public bool IsVeteran => Age >= 35;
         public bool IsYoungPlayer => Age <= 23;

@@ -11,7 +11,7 @@ namespace Domain.Leagues
 
         public string Name { get; private set; } = string.Empty;
 
-        public static League Create(LeagueId id, string name)
+        public static League Create(string name)
         {
           ArgumentException.ThrowIfNullOrEmpty(name);
           if (name.Length > 200)
@@ -19,7 +19,7 @@ namespace Domain.Leagues
 
           return new League
           {
-            Id = id,
+            Id = LeagueId.Of(Guid.NewGuid()),
             Name = name.Trim(),
             CreatedAt = DateTime.UtcNow
           };

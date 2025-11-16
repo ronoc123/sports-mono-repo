@@ -3,6 +3,7 @@ using Application.Common.Interfaces;
 using Application.Common.Models;
 using Application.Dto.League;
 using Contracts.Contracts;
+using Domain.Leagues;
 using Domain.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,20 +13,18 @@ namespace Application.Leagues.Queries.GetAllLeagues;
 public sealed class GetAllLeaguesQueryHandler
   : IRequestHandler<GetAllLeaguesQuery, ServiceResponse<PaginatedList<LeagueDto>>>
 {
-  private readonly IApplicationDbContext _context;
-  private readonly ILeagueRepository _leagueRepository;
+  private readonly IRepository _repo;
 
-  public GetAllLeaguesQueryHandler(IApplicationDbContext context, ILeagueRepository leagueRepository)
+  public GetAllLeaguesQueryHandler(IRepository repo)
   {
-    _context = context;
-    _leagueRepository = leagueRepository;
+    _repo = repo;
   }
 
   public async Task<ServiceResponse<PaginatedList<LeagueDto>>> Handle(
       GetAllLeaguesQuery request,
       CancellationToken cancellationToken)
   {
-       var leagues = _leagueRepository.Query();
+       var leagues = _repo.Query<League>();
 
       // Search
       if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -48,8 +47,6 @@ public sealed class GetAllLeaguesQueryHandler
             Id = l.Id.Value,
             Name = l.Name,
             CreatedAt = l.CreatedAt ?? DateTime.MinValue,
-            OrganizationCount = _context.Organizations.Count(o => o.LeagueId == l.Id),
-            PlayerCount = _context.Players.Count(p => p.LeagueId == l.Id)
           });
 
       var paginatedList = await PaginatedList<LeagueDto>.CreateAsync(

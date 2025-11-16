@@ -8,16 +8,12 @@ namespace Domain.Repositories
   public interface IRepository<TAgg, TId>
       where TAgg : class, IAggregate<TId>
   {
-    // Single entity by key
     Task<TAgg?> GetByIdAsync(TId id, CancellationToken ct = default);
 
-    // Composite or unconventional keys (optional overload)
     Task<TAgg?> GetByIdAsync(CancellationToken ct = default, params object[] keyValues);
 
-    // Raw queryable (compose outside). asNoTracking=true for read paths by default.
     IQueryable<TAgg> Query(bool asNoTracking = true);
 
-    // Flexible list query with includes, filter, sort, paging
     Task<IReadOnlyList<TAgg>> ListAsync(
       Expression<Func<TAgg, bool>>? filter = null,
       Func<IQueryable<TAgg>, IOrderedQueryable<TAgg>>? orderBy = null,

@@ -9,19 +9,17 @@ namespace Infrastructure.Data.Configurations
   {
     public void Configure(EntityTypeBuilder<Player> builder)
     {
-      builder.ToTable("players");
 
       // Key
       builder.HasKey(p => p.Id);
 
-      builder.Property(p => p.Id)
-          .HasConversion(v => v.Value, v => PlayerId.Of(v))
-          .IsRequired();
+      builder.Property(c => c.Id).HasConversion(
+        id => id.Value,
+        value => PlayerId.Of(value));
 
-      // FKs (store IDs, no navs on ARs)
-      builder.Property(p => p.LeagueId)
-          .HasConversion(v => v.Value, v => LeagueId.Of(v))
-          .IsRequired();
+      builder.Property(c => c.LeagueId).HasConversion(
+        leagueId => leagueId.Value,
+        value => LeagueId.Of(value));
 
       builder.Property(p => p.OrganizationId)
           .HasConversion(

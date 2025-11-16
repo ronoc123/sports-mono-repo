@@ -25,7 +25,7 @@ namespace sportsAPI.Controllers
 
         // Add a new League
         [HttpPost("add")]
-        public async Task<ServiceResponse<Guid>> AddLeague([FromBody] CreateLeagueCommand command)
+        public async Task<ServiceResponse<LeagueId>> AddLeague([FromBody] CreateLeagueCommand command)
             => await _mediator.Send(command);
 
         // Get all Leagues with pagination

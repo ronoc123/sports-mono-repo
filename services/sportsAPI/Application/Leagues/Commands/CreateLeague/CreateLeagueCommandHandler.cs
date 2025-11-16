@@ -7,22 +7,23 @@ using MediatR;
 
 namespace Application.Leagues.Commands.CreateLeague;
 
-public class CreateLeagueCommandHandler : IRequestHandler<CreateLeagueCommand, ServiceResponse<Guid>>
+public class CreateLeagueCommandHandler : IRequestHandler<CreateLeagueCommand, ServiceResponse<LeagueId>>
 {
   private readonly ILeagueRepository _leagueRepository;
+  private readonly IRepository _repo;
 
-  public CreateLeagueCommandHandler(IApplicationDbContext context, ILeagueRepository leagueRepository)
-    {
-        _leagueRepository = leagueRepository;
+  public CreateLeagueCommandHandler(IRepository repo)
+  {
+    _repo = repo;
   }
 
-    public async Task<ServiceResponse<Guid>> Handle(CreateLeagueCommand request, CancellationToken cancellationToken)
+    public async Task<ServiceResponse<LeagueId>> Handle(CreateLeagueCommand request, CancellationToken cancellationToken)
     {
-            var leagueId = LeagueId.Of(Guid.NewGuid());
-            var league = League.Create(leagueId, request.Name);
+            var league = League.Create(request.Name);
             
-            await _leagueRepository.AddAsync(league, cancellationToken);
+            await _repo.AddAsync<League>(league, cancellationToken);
+            await _repo.SaveChangesAsync();
 
-            return ServiceResponse.Ok(leagueId.Value, "League successfully created.");
+            return ServiceResponse.Ok(league.Id, "League successfully created.");
   }
 }

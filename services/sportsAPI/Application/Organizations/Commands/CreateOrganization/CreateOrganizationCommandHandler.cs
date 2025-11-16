@@ -1,88 +1,57 @@
-using BuildingBlocks.Exceptions;           // EntityNotFoundException
-using Contracts.Contracts;                 // ServiceResponse<T>
-using Domain.Organizations;                // Organization
-using Domain.Organizations.Entities;       // Venue, MediaAssets, SocialLinks, TeamColors
-using Domain.Repositories;                 // ILeagueRepository, IOrganizationRepository
-using Domain.ValueObjects;
-using Domain.ValueObjects.ConcreteTypes;   // OrganizationId
+using Contracts.Contracts;        
+using Domain.Leagues;
+using Domain.Organizations;           
+using Domain.Repositories;                 
+using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.Organizations.Commands.CreateOrganization;
 
 public sealed class CreateOrganizationCommandHandler
-  : IRequestHandler<CreateOrganizationCommand, ServiceResponse<Guid>>
+  : IRequestHandler<CreateOrganizationCommand, ServiceResponse<OrganizationId>>
 {
-  private readonly ILeagueRepository _leagues;
-  private readonly IOrganizationRepository _orgs;
+  private readonly IRepository _repo;
 
-  public CreateOrganizationCommandHandler(
-      ILeagueRepository leagues,
-      IOrganizationRepository orgs)
+  public CreateOrganizationCommandHandler(IRepository repo)
   {
-    _leagues = leagues;
-    _orgs = orgs;
+    _repo = repo;
   }
 
-  public async Task<ServiceResponse<Guid>> Handle(CreateOrganizationCommand request, CancellationToken ct)
+  public async Task<ServiceResponse<OrganizationId>> Handle(CreateOrganizationCommand request, CancellationToken ct)
   {
-    var league = await _leagues.GetByIdAsync(LeagueId.Of(request.LeagueId), ct)
+    var league = await _repo.GetByIdAsync<League>(ct, request.LeagueId)
                  ?? throw new ValidationException($"League '{request.LeagueId}' not found.");
 
-    // 2) Build value objects (use empty strings/defaults as per your current model)
-    var venue = new Venue(
-      request.Stadium ?? string.Empty,
-      request.Location ?? string.Empty,
-      request.StadiumCapacity ?? 0
-    );
-
-    var mediaAssets = new MediaAssets(
-      request.BadgeUrl ?? string.Empty,
-      request.LogoUrl ?? string.Empty,
-      request.Fanart1Url ?? string.Empty,
-      request.Fanart2Url ?? string.Empty,
-      request.Fanart3Url ?? string.Empty
-    );
-
-    var socialLinks = new SocialLinks(
-      request.Website ?? string.Empty,
-      request.Facebook ?? string.Empty,
-      request.Twitter ?? string.Empty,
-      request.Instagram ?? string.Empty
-    );
-
-    var teamColors = new TeamColors(
-      request.Color1 ?? string.Empty,
-      request.Color2 ?? string.Empty,
-      request.Color3 ?? string.Empty
-    );
-
-    // 3) Create aggregate
-    var orgId = OrganizationId.Of(Guid.NewGuid());
     var organization = Organization.Create(
-      orgId,
-      LeagueId.Of(request.LeagueId),
-      request.Name,
-      request.TeamId,
-      request.TeamName,
-      request.TeamShortName,
-      request.FormedYear,
-      request.Sport,
-      venue,
-      mediaAssets,
-      socialLinks,
-      teamColors,
-      request.Description
+        league.Id,
+        request.Name,
+        request.TeamId,
+        request.TeamName,
+        request.TeamShortName,
+        request.FormedYear,
+        request.Sport,
+        request.Stadium,
+        request.Location,
+        request.StadiumCapacity,
+        request.BadgeUrl,
+        request.LogoUrl,
+        request.Fanart1Url,
+        request.Fanart2Url,
+        request.Fanart3Url,
+        request.Website,
+        request.Facebook,
+        request.Twitter,
+        request.Instagram,
+        request.Color1,
+        request.Color2,
+        request.Color3,
+        request.Description
     );
 
-    // Optionally: attach to league via a domain method if/when you model it
-    // league.AddOrganization(organization);
+    await _repo.AddAsync(organization, ct);
+    await _repo.SaveChangesAsync(ct);
 
-    // 4) Persist
-    await _orgs.AddAsync(organization, ct);
-    await _orgs.SaveChangesAsync(ct);
-
-    // 5) Success envelope (return the new ID)
-    return ServiceResponse.Ok(orgId.Value, "Organization successfully created.");
+    return ServiceResponse.Ok(organization.Id, "Organization successfully created.");
   }
 }

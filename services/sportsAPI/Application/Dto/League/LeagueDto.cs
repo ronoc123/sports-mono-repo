@@ -11,7 +11,5 @@ namespace Application.Dto.League
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
-    public int OrganizationCount { get; set; }
-    public int PlayerCount { get; set; }
   }
 }
