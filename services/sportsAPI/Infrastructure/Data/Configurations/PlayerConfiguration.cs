@@ -1,50 +1,32 @@
-﻿using Domain.Organizations.Entities;
+using Domain.Player;
 using Domain.ValueObjects.ConcreteTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Data.Configurations;
-
-public class PlayerConfiguration : IEntityTypeConfiguration<Player>
+namespace Infrastructure.Data.Configurations
 {
+  public sealed class PlayerConfiguration : IEntityTypeConfiguration<Player>
+  {
     public void Configure(EntityTypeBuilder<Player> builder)
     {
-        builder.ToTable("Players");
+      builder.ToTable("players");
 
-        builder.HasKey(p => p.Id);
+      // Key
+      builder.HasKey(p => p.Id);
 
-        builder.Property(p => p.Id)
-            .HasConversion(
-                id => id.Value,
-                value => PlayerId.Of(value))
-            .IsRequired();
+      builder.Property(p => p.Id)
+          .HasConversion(v => v.Value, v => PlayerId.Of(v))
+          .IsRequired();
 
-        builder.Property(p => p.Name)
-            .HasMaxLength(200)
-            .IsRequired();
+      // FKs (store IDs, no navs on ARs)
+      builder.Property(p => p.LeagueId)
+          .HasConversion(v => v.Value, v => LeagueId.Of(v))
+          .IsRequired();
 
-        builder.Property(p => p.Position)
-            .HasMaxLength(100);
-
-        builder.Property(p => p.ImageUrl)
-            .HasMaxLength(500);
-
-        builder.Property(p => p.Age)
-            .IsRequired();
-
-        builder.Property(p => p.UpdatedAt)
-            .IsRequired();
-
-        // Configure foreign keys
-        builder.Property(p => p.LeagueId)
-            .HasConversion(
-                id => id.Value,
-                value => LeagueId.Of(value))
-            .IsRequired();
-
-        builder.Property(p => p.OrganizationId)
-            .HasConversion(
-                id => id != null ? id.Value : (Guid?)null,
-                value => value.HasValue ? OrganizationId.Of(value.Value) : null);
+      builder.Property(p => p.OrganizationId)
+          .HasConversion(
+              v => v == null ? (Guid?)null : v.Value,
+              v => v.HasValue ? OrganizationId.Of(v.Value) : null);
     }
+  }
 }

@@ -1,4 +1,5 @@
 using Application.Common.Models;
+using Application.Dto.Organization;
 using Application.Organizations.Commands.CreateOrganization;
 using Application.Organizations.Commands.DeleteOrganization;
 using Application.Organizations.Commands.UpdateOrganization;

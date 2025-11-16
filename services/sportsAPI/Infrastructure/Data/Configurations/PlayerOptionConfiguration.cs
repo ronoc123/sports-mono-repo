@@ -1,4 +1,4 @@
-﻿using Domain.Organizations.Entities;
+using Domain.PlayerOption;
 using Domain.ValueObjects.ConcreteTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,40 +9,25 @@ public class PlayerOptionConfiguration : IEntityTypeConfiguration<PlayerOption>
 {
     public void Configure(EntityTypeBuilder<PlayerOption> builder)
     {
-        builder.ToTable("PlayerOptions");
+        builder.ToTable("player_options");
 
-        builder.HasKey(po => po.Id);
+        builder.HasKey(x => x.Id);
 
-        builder.Property(po => po.Id)
-            .HasConversion(
-                id => id.Value,
-                value => PlayerOptionId.Of(value))
-            .IsRequired();
+        builder.Property(x => x.Id)
+          .HasColumnName("id")
+          .HasConversion(v => v.Value, v => PlayerOptionId.Of(v))
+          .IsRequired();
 
-        builder.Property(po => po.Title)
-            .HasMaxLength(200)
-            .IsRequired();
+        builder.Property(x => x.OrganizationId)
+          .HasColumnName("organization_id")
+          .HasConversion(v => v.Value, v => OrganizationId.Of(v))
+          .IsRequired();
 
-        builder.Property(po => po.Description)
-            .HasMaxLength(1000);
+        builder.Property(x => x.PlayerId)
+          .HasColumnName("player_id")
+          .HasConversion(v => v.Value, v => PlayerId.Of(v))
+          .IsRequired();
 
-        builder.Property(po => po.Votes)
-            .IsRequired();
-
-        builder.Property(po => po.ExpiresAt)
-            .IsRequired();
-
-        // Configure foreign keys
-        builder.Property(po => po.PlayerId)
-            .HasConversion(
-                id => id.Value,
-                value => PlayerId.Of(value))
-            .IsRequired();
-
-        builder.Property(po => po.OrganizationId)
-            .HasConversion(
-                id => id.Value,
-                value => OrganizationId.Of(value))
-            .IsRequired();
-    }
+        builder.Ignore(x => x.VoteHistory);
+  }
 }

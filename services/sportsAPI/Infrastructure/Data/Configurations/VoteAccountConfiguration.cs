@@ -11,10 +11,10 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
   {
     builder.ToTable("vote_accounts");
 
-    // If your AR base exposes Id: VoteAccountId, ignore it for EF
+    // Aggregate Id is a composite; ignore the VO Id property if present
     builder.Ignore(x => x.Id);
 
-    // Composite PK on scalars (org_id, user_id)
+    // Composite PK: one account per (org, user)
     builder.HasKey(x => new { x.OrgId, x.UserId });
 
     builder.Property(x => x.OrgId)
@@ -36,14 +36,19 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
       .IsRequired()
       .IsConcurrencyToken();
 
-    builder.HasIndex(x => new { x.OrgId, x.UserId })
-           .HasDatabaseName("ix_vote_accounts_org_user");
+    builder.Property(x => x.CreatedAt)
+      .HasColumnName("created_at")
+      .HasColumnType("datetime2")
+      .HasDefaultValueSql("SYSUTCDATETIME()")
+      .IsRequired();
 
-    // Keep FK to Organization (same context)
-    builder.HasOne<Domain.Organizations.Organization>()
-           .WithMany()
-           .HasForeignKey("org_id")
-           .OnDelete(DeleteBehavior.Restrict);
+    builder.Property(x => x.UpdatedAt)
+      .HasColumnName("updated_at")
+      .HasColumnType("datetime2")
+      .HasDefaultValueSql("SYSUTCDATETIME()")
+      .IsRequired();
 
+    // Check constraint: keep balances non-negative
+    builder.ToTable(t => t.HasCheckConstraint("ck_vote_accounts_balance_nonneg", "[balance] >= 0"));
   }
 }

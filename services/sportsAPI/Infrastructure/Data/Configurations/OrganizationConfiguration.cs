@@ -1,62 +1,59 @@
-﻿using Domain.Organizations;
+using Domain.Organizations;
+using Domain.ValueObjects;
 using Domain.ValueObjects.ConcreteTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Data.Configurations;
-
-public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
+namespace Infrastructure.Data.Configurations
 {
+  public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
+  {
     public void Configure(EntityTypeBuilder<Organization> builder)
     {
-        builder.ToTable("Organizations");
+      builder.ToTable("organizations");
 
-        builder.HasKey(o => o.Id);
+      // Key
+      builder.HasKey(o => o.Id);
 
-        builder.Property(o => o.Id)
-            .HasConversion(
-                id => id.Value,
-                value => OrganizationId.Of(value))
-            .IsRequired();
+      builder.Property(c => c.Id).HasConversion(
+        organizationId => organizationId.Value,
+        value => OrganizationId.Of(value));
 
-        builder.Property(o => o.Name)
-            .HasMaxLength(200)
-            .IsRequired();
+      builder.OwnsOne(o => o.Venue, v =>
+      {
+        v.Property(p => p.Stadium).HasMaxLength(300);
+        v.Property(p => p.Location).HasMaxLength(300);
+        v.Property(p => p.Capacity).HasMaxLength(300);
+      });
 
-        builder.Property(o => o.TeamId)
-            .HasMaxLength(50);
+      builder.OwnsOne(o => o.MediaAssets, ma =>
+      {
+        ma.Property(p => p.BadgeUrl).HasMaxLength(255);
+        ma.Property(p => p.LogoUrl).HasMaxLength(255);
+        ma.Property(p => p.Fanart1Url).HasMaxLength(255);
+        ma.Property(p => p.Fanart2Url).HasMaxLength(255);
+        ma.Property(p => p.Fanart3Url).HasMaxLength(255);
+        ma.Property(p => p.Fanart4Url).HasMaxLength(255);
+        ma.Property(p => p.BannerUrl).HasMaxLength(255);
+        ma.Property(p => p.EquipmentUrl).HasMaxLength(255);
+      });
 
-        builder.Property(o => o.TeamName)
-            .HasMaxLength(200);
+      builder.OwnsOne(o => o.SocialLinks, sl =>
+      {
+        sl.Property(p => p.Website).HasMaxLength(300);
+        sl.Property(p => p.Facebook).HasMaxLength(300);
+        sl.Property(p => p.Twitter).HasMaxLength(300);
+        sl.Property(p => p.Instagram).HasMaxLength(300);
+        sl.Property(p => p.YoutubeUrl).HasMaxLength(300);
+      });
 
-        builder.Property(o => o.TeamShortName)
-            .HasMaxLength(10);
+      builder.OwnsOne(o => o.TeamColors, tc =>
+      {
+        tc.Property(p => p.Primary).HasMaxLength(16);
+        tc.Property(p => p.Secondary).HasMaxLength(16);
+        tc.Property(p => p.Tertiary).HasMaxLength(16);
+      });
 
-        builder.Property(o => o.Sport)
-            .HasMaxLength(100);
-
-        builder.Property(o => o.Description)
-            .HasMaxLength(1000);
-
-        // Configure LeagueId as foreign key
-        builder.Property(o => o.LeagueId)
-            .HasConversion(
-                id => id.Value,
-                value => LeagueId.Of(value))
-            .IsRequired();
-
-        // TODO: Configure Value Objects later - temporarily disabled for migration creation
-        // The value objects need to be properly configured to avoid EF Core confusion
-
-        // Configure relationships - temporarily commented out to avoid EF Core confusion
-        // TODO: Configure relationships properly when navigation properties are set up
-        // builder.HasOne<Domain.Leagues.League>()
-        //     .WithMany(l => l.Organization)
-        //     .HasForeignKey(o => o.LeagueId)
-        //     .OnDelete(DeleteBehavior.Restrict);
-
-        // Configure timestamps
-        builder.Property(o => o.CreatedAt)
-            .IsRequired();
     }
+  }
 }

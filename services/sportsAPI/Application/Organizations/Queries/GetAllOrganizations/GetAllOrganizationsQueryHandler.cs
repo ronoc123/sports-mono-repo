@@ -3,7 +3,8 @@ using Domain.Repositories;                 // IOrganizationRepository
 using Domain.ValueObjects.ConcreteTypes;   // LeagueId
 using Application.Common.Models;           // PaginatedList<T>
 using MediatR;
-using Microsoft.EntityFrameworkCore;       // for EF Core query ops on IQueryable
+using Microsoft.EntityFrameworkCore;
+using Application.Dto.Organization;       // for EF Core query ops on IQueryable
 
 namespace Application.Organizations.Queries.GetAllOrganizations;
 

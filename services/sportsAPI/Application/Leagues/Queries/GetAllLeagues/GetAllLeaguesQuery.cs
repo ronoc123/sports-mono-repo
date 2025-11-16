@@ -1,4 +1,5 @@
 using Application.Common.Models;
+using Application.Dto.League;
 using Contracts.Contracts;
 using MediatR;
 
@@ -11,12 +12,3 @@ public record GetAllLeaguesQuery(
     string? SortBy = "Name",
     bool SortDescending = false
 ) : IRequest<ServiceResponse<PaginatedList<LeagueDto>>>;
-
-public class LeagueDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public int OrganizationCount { get; set; }
-    public int PlayerCount { get; set; }
-}

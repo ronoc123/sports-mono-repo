@@ -22,10 +22,10 @@ public sealed class UpdateOrganizationCommandHandler
     var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
               ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
 
-    org.Name = request.Name?.Trim() ?? org.Name;
+    //org.Name = request.Name?.Trim() ?? org.Name;
 
-    org.FormedYear = request.FormedYear;
-    org.Description = request.Description;
+    //org.FormedYear = request.FormedYear;
+    //org.Description = request.Description;
 
     org.UpdateTeamInfo(request.TeamId, request.TeamName, request.TeamShortName, request.Sport);
 

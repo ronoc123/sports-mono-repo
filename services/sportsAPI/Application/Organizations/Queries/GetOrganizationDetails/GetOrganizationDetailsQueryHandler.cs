@@ -27,59 +27,61 @@ public sealed class GetOrganizationDetailsQueryHandler
       GetOrganizationDetailsQuery request,
       CancellationToken ct)
   {
-    var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
-              ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
+    //var org = await _orgs.GetByIdAsync(OrganizationId.Of(request.OrganizationId), ct)
+    //          ?? throw new ValidationException($"Organization '{request.OrganizationId}' not found.");
 
-    var options = org.PlayerOptions;
+    //var options = org.PlayerOptions;
 
 
-    var dto = new OrganizationDetailsDto
-    {
-      Id = org.Id.Value,
-      Name = org.Name,
-      TeamId = org.TeamId,
-      TeamName = org.TeamName,
-      TeamShortName = org.TeamShortName,
-      FormedYear = org.FormedYear,
-      Sport = org.Sport,
-      Stadium = org.Venue.Stadium,
-      Location = org.Venue.Location,
-      StadiumCapacity = org.Venue.Capacity,
-      Website = org.SocialLinks.Website,
-      Facebook = org.SocialLinks.Facebook,
-      Twitter = org.SocialLinks.Twitter,
-      Instagram = org.SocialLinks.Instagram,
-      Description = org.Description,
-      Color1 = org.TeamColors.Primary,
-      Color2 = org.TeamColors.Secondary,
-      Color3 = org.TeamColors.Tertiary,
-      BadgeUrl = org.MediaAssets.BadgeUrl,
-      LogoUrl = org.MediaAssets.LogoUrl,
-      Fanart1Url = org.MediaAssets.Fanart1Url,
-      Fanart2Url = org.MediaAssets.Fanart2Url,
-      Fanart3Url = org.MediaAssets.Fanart3Url,
-      PlayerOptions = options.Select(po => new PlayerOptionDto
-      {
-        Id = po.Id.Value,
-        Title = po.Title,
-        Description = po.Description,
-        Votes = po.Votes,
-        CreatedAt = po.CreatedAt ?? DateTime.MinValue,
-        ExpiresAt = po.ExpiresAt,
-        Player = new PlayerDto
-        {
-          Id = po.PlayerId.Value,
-          // TODO: replace placeholders by loading Player via repo or projection join
-          Name = "Player Name",
-          Position = "Position",
-          ImageUrl = "ImageUrl",
-          UpdatedAt = DateTime.UtcNow,
-          Age = 0
-        }
-      }).ToList()
-    };
+    //var dto = new OrganizationDetailsDto
+    //{
+    //  Id = org.Id.Value,
+    //  Name = org.Name,
+    //  TeamId = org.TeamId,
+    //  TeamName = org.TeamName,
+    //  TeamShortName = org.TeamShortName,
+    //  FormedYear = org.FormedYear,
+    //  Sport = org.Sport,
+    //  Stadium = org.Venue.Stadium,
+    //  Location = org.Venue.Location,
+    //  StadiumCapacity = org.Venue.Capacity,
+    //  Website = org.SocialLinks.Website,
+    //  Facebook = org.SocialLinks.Facebook,
+    //  Twitter = org.SocialLinks.Twitter,
+    //  Instagram = org.SocialLinks.Instagram,
+    //  Description = org.Description,
+    //  Color1 = org.TeamColors.Primary,
+    //  Color2 = org.TeamColors.Secondary,
+    //  Color3 = org.TeamColors.Tertiary,
+    //  BadgeUrl = org.MediaAssets.BadgeUrl,
+    //  LogoUrl = org.MediaAssets.LogoUrl,
+    //  Fanart1Url = org.MediaAssets.Fanart1Url,
+    //  Fanart2Url = org.MediaAssets.Fanart2Url,
+    //  Fanart3Url = org.MediaAssets.Fanart3Url,
+    //  PlayerOptions = options.Select(po => new PlayerOptionDto
+    //  {
+    //    Id = po.Id.Value,
+    //    Title = po.Title,
+    //    Description = po.Description,
+    //    Votes = po.Votes,
+    //    CreatedAt = po.CreatedAt ?? DateTime.MinValue,
+    //    ExpiresAt = po.ExpiresAt,
+    //    Player = new PlayerDto
+    //    {
+    //      Id = po.PlayerId.Value,
+    //      // TODO: replace placeholders by loading Player via repo or projection join
+    //      Name = "Player Name",
+    //      Position = "Position",
+    //      ImageUrl = "ImageUrl",
+    //      UpdatedAt = DateTime.UtcNow,
+    //      Age = 0
+    //    }
+    //  }).ToList()
+    //};
 
-    // 4) Success envelope
-    return ServiceResponse.Ok(dto);
+    //// 4) Success envelope
+    //return ServiceResponse.Ok(dto);
+
+    return null;
   }
 }

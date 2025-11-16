@@ -5,27 +5,31 @@ using Domain.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Application.Common.Interfaces;
+using Domain.Organizations.Entities;
+using Domain.ValueObjects.ConcreteTypes;
 
 
 namespace Infrastructure
 {
-    public static class DependencyInjection
+  public static class DependencyInjection
+  {
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-        {
-            // Register DbContext with a connection string from appsettings.json
-            services.AddDbContext<SportsDbAppContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
-                        sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null)));
+      // Register DbContext with a connection string from appsettings.json
+      services.AddDbContext<SportsDbAppContext>(options =>
+          options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+                  sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(5), null)));
 
-            // Register IApplicationDbContext
-            services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SportsDbAppContext>());
+      // Register IApplicationDbContext
+      services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SportsDbAppContext>());
+      // Register repositories
+      services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+      services.AddScoped<ILeagueRepository, LeagueRepository>();
 
-            // Register repositories
-            services.AddScoped<IOrganizationRepository, OrganizationRepository>();
-            services.AddScoped<ILeagueRepository, LeagueRepository>();
 
-            return services;
-        }
+
+
+      return services;
     }
+  }
 }

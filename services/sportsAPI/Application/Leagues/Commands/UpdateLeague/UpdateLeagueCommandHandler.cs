@@ -22,7 +22,7 @@ public sealed class UpdateLeagueCommandHandler
     var league = await _leagues.GetByIdAsync(LeagueId.Of(request.LeagueId), ct)
                  ?? throw new ValidationException($"League '{request.LeagueId}' not found.");
 
-    league.SetName(request.Name); 
+    league.Rename(request.Name); 
 
     // Persist
     _leagues.Update(league);

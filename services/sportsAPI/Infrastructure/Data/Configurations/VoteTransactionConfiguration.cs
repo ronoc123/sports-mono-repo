@@ -1,3 +1,4 @@
+using System;
 using Domain.ValueObjects.ConcreteTypes;
 using Infrastructure.Data.VM;
 using Microsoft.EntityFrameworkCore;
@@ -11,48 +12,59 @@ public sealed class VoteTransactionConfiguration : IEntityTypeConfiguration<Vote
   {
     builder.ToTable("vote_transactions");
 
+    // PK
     builder.HasKey(x => x.Id);
 
     builder.Property(x => x.Id)
-        .HasColumnName("id")
-        .ValueGeneratedOnAdd();
+      .HasColumnName("id")
+      .ValueGeneratedOnAdd();
 
+    // Columns
     builder.Property(x => x.OrgId)
-        .HasColumnName("org_id")
-        .HasConversion(id => id.Value, value => OrganizationId.Of(value))
-        .IsRequired();
+      .HasColumnName("org_id")
+      .HasConversion(v => v.Value, v => OrganizationId.Of(v))
+      .IsRequired();
 
     builder.Property(x => x.UserId)
-        .HasColumnName("user_id")
-        .HasConversion(id => id.Value, value => UserId.Of(value))
-        .IsRequired();
+      .HasColumnName("user_id")
+      .HasConversion(v => v.Value, v => UserId.Of(v))
+      .IsRequired();
 
-    builder.Property(x => x.Amount)
-        .HasColumnName("amount")
-        .IsRequired();
-
-    builder.Property(x => x.Reason)
-        .HasColumnName("reason")
-        .HasMaxLength(100) // adjust as you like
-        .IsRequired();
-
-    builder.Property(x => x.RefId)
-        .HasColumnName("ref_id");
 
     builder.Property(x => x.CreatedAt)
       .HasColumnName("created_at")
       .HasColumnType("datetimeoffset")
-      .HasDefaultValueSql("SYSUTCDATETIME()") // ✅ SQL Server
+      .HasDefaultValueSql("SYSUTCDATETIME()")
       .IsRequired();
 
-    // Index on (org_id, user_id, created_at)
-    builder.HasIndex(x => new { x.OrgId, x.UserId, x.CreatedAt })
-           .HasDatabaseName("ix_vt_org_user_time");
+    // Optional vote-specific columns
+    builder.Property(x => x.PlayerOptionId)
+      .HasColumnName("player_option_id")
+      .HasConversion(
+        v => v == null ? (Guid?)null : v.Value,
+        g => g.HasValue ? PlayerOptionId.Of(g.Value) : (PlayerOptionId?)null);
 
-    // FKs (optional)
-    builder.HasOne<Domain.Organizations.Organization>()
-           .WithMany()
-           .HasForeignKey(nameof(VoteTransaction.OrgId))
-           .OnDelete(DeleteBehavior.Restrict);
+    builder.Property(x => x.SpendId)
+      .HasColumnName("spend_id")
+      .HasMaxLength(64);
+
+    builder.Property(x => x.Choice)
+      .HasColumnName("choice");
+
+    // Check constraints to enforce invariants:
+    // 1) Non-zero amount
+    builder.ToTable(t => t.HasCheckConstraint(
+      "ck_vt_amount_nonzero",
+      "[amount] <> 0"));
+
+    // 2) Enforce direction by reason (+credit, -spend)
+    builder.ToTable(t => t.HasCheckConstraint(
+      "ck_vt_reason_amount_sign",
+      "([reason] = 'vote_spend' AND [amount] < 0) OR ([reason] <> 'vote_spend' AND [amount] > 0)"));
+
+    // 3) If it's a vote spend, require player_option_id and spend_id
+    builder.ToTable(t => t.HasCheckConstraint(
+      "ck_vt_vote_spend_requires_fields",
+      "([reason] <> 'vote_spend') OR ([player_option_id] IS NOT NULL AND [spend_id] IS NOT NULL)"));
   }
 }

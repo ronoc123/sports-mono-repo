@@ -2,9 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Users;
-using Domain.User.Entities;
 using Domain.Leagues;
-using Domain.SharedKernal;
 using Domain.ValueObjects.ConcreteTypes;
 using Domain.ValueObjects;
 

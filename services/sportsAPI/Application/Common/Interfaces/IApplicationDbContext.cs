@@ -1,8 +1,8 @@
 using Domain.Leagues;
 using Domain.Organizations;
 using Domain.Organizations.Entities;
-using Domain.SharedKernal;
-using Domain.User.Entities;
+using Domain.Player;
+using Domain.PlayerOption;
 using Domain.Users;
 using Domain.VoteAccount;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +15,6 @@ public interface IApplicationDbContext
 {
     DbSet<Organization> Organizations { get; }
     DbSet<League> Leagues { get; }
-    DbSet<Code> Codes { get; }
     DbSet<Player> Players { get; }
     DbSet<PlayerOption> PlayerOptions { get; }
     DbSet<Theme> Themes { get; }

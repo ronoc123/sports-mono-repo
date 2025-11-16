@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,10 +9,11 @@ namespace Domain.ValueObjects.ConcreteTypes
     public record LeagueId
     {
         public Guid Value { get; set; }
-        private LeagueId(Guid value)
+        public LeagueId(Guid value)
         {
             Value = value;
         }
+
 
         public static LeagueId Of(Guid value)
         {

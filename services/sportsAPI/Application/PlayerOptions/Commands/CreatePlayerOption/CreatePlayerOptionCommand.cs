@@ -1,4 +1,6 @@
 using Application.Common.Models;
+using Application.PlayerOptions.Queries.GetAllPlayerOptions;
+using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
@@ -10,4 +12,4 @@ public record CreatePlayerOptionCommand(
     Guid PlayerId,
     OrganizationId OrganizationId,
     DateTime? ExpiresAt = null
-) : IRequest<Result<Guid>>;
+) : IRequest<ServiceResponse<Guid>>;

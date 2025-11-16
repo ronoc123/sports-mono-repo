@@ -39,6 +39,25 @@ namespace Domain.Repositories
     Task<int> SaveChangesAsync(CancellationToken ct = default);
   }
 
+  public interface IReadRepository<TEntity, TId>
+  where TEntity : class
+  {
+    IQueryable<TEntity> Query(bool asNoTracking = true);
+
+    Task<IReadOnlyList<TEntity>> ListAsync(
+      Expression<Func<TEntity, bool>>? filter = null,
+      Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+      int? skip = null,
+      int? take = null,
+      bool asNoTracking = true,
+      CancellationToken ct = default,
+      params Expression<Func<TEntity, object>>[] includes);
+
+    Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default);
+    Task<int> CountAsync(Expression<Func<TEntity, bool>>? predicate = null, CancellationToken ct = default);
+  }
+
+
   public interface IOrganizationRepository : IRepository<Organization, OrganizationId>
   {
     Task<Organization?> GetOrganizationByIdAsync(OrganizationId organizationId, CancellationToken ct = default);
