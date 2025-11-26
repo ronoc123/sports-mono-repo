@@ -54,23 +54,17 @@ namespace Domain.Player
           Position = position.Trim();
           ImageUrl = imageUrl ?? string.Empty;
           Age = age;
-          touch();
         }
 
         public void AssignToOrganization(OrganizationId organizationId)
         {
           ArgumentNullException.ThrowIfNull(organizationId);
           OrganizationId = organizationId;
-          touch();
-
-          // Cross-AR rule like "org.LeagueId == this.LeagueId" should be enforced
-          // in the application layer before calling this method.
         }
 
         public void RemoveFromOrganization()
         {
           OrganizationId = null;
-          touch();
         }
 
         // (Optional) narrow updates if you prefer smaller methods:
@@ -79,7 +73,6 @@ namespace Domain.Player
           if (!string.IsNullOrEmpty(imageUrl) && !Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
             throw new ArgumentException("Image URL must be a valid URL.", nameof(imageUrl));
           ImageUrl = imageUrl ?? string.Empty;
-          touch();
         }
 
         private static void ValidateProfile(string name, string position, string imageUrl, int age)
@@ -92,11 +85,6 @@ namespace Domain.Player
           if (age < 16 || age > 50) throw new ArgumentException("Player age must be between 16 and 50.", nameof(age));
           if (!string.IsNullOrEmpty(imageUrl) && !Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
             throw new ArgumentException("Image URL must be a valid URL.", nameof(imageUrl));
-        }
-
-        private void touch()
-        {
-          UpdatedAt = DateTime.UtcNow;
         }
   }
 }

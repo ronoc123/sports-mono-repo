@@ -6,9 +6,6 @@ public class UpdateLeagueCommandValidator : AbstractValidator<UpdateLeagueComman
 {
     public UpdateLeagueCommandValidator()
     {
-        RuleFor(x => x.LeagueId)
-            .NotEmpty()
-            .WithMessage("League ID is required");
 
         RuleFor(x => x.Name)
             .NotEmpty()

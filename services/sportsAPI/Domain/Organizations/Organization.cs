@@ -80,7 +80,7 @@ namespace Domain.Organizations
 
       var org = new Organization
       {
-        Id = OrganizationId.Of(new Guid()),
+        Id = OrganizationId.Of(Guid.NewGuid()),
         LeagueId = leagueId,
         CreatedAt = DateTime.UtcNow
       };
