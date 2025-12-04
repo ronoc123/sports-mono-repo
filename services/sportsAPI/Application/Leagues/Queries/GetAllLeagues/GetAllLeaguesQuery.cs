@@ -1,6 +1,7 @@
 using Application.Common.Models;
 using Application.Dto.League;
 using Contracts.Contracts;
+using Contracts.Responses;
 using MediatR;
 
 namespace Application.Leagues.Queries.GetAllLeagues;

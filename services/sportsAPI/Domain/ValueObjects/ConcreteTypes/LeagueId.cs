@@ -13,8 +13,6 @@ namespace Domain.ValueObjects.ConcreteTypes
         {
             Value = value;
         }
-
-
         public static LeagueId Of(Guid value)
         {
             ArgumentNullException.ThrowIfNull(value);

@@ -3,6 +3,7 @@ using Application.Dto.Organization;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Contracts.Contracts;                 // ServiceResponse<T>
+using Contracts.Responses;
 using Domain.Organizations;       // for EF Core query ops on IQueryable
 using Domain.Repositories;                 // IOrganizationRepository
 using Domain.ValueObjects.ConcreteTypes;   // LeagueId
@@ -66,7 +67,7 @@ public sealed class GetAllOrganizationsQueryHandler
 
     var dtoQuery = query.ProjectTo<OrganizationDto>(_mapper.ConfigurationProvider);
 
-    var page = await PaginatedList<OrganizationDto>.CreateAsync(
+    var page = await PaginatedListFactory.CreateAsync(
       dtoQuery, request.PageNumber, request.PageSize);
 
     return ServiceResponse.Ok(page);

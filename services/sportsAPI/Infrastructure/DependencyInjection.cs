@@ -1,12 +1,15 @@
+using Application;
+using Application.Common.Interfaces;
+using Domain.Abstractions;
+using Domain.Organizations.Entities;
+using Domain.Repositories;
+using Domain.ValueObjects.ConcreteTypes;
+using Infrastructure.Data;
+using Infrastructure.Events;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Domain.Repositories;
-using Infrastructure.Data;
-using Infrastructure.Repositories;
-using Application.Common.Interfaces;
-using Domain.Organizations.Entities;
-using Domain.ValueObjects.ConcreteTypes;
 
 
 namespace Infrastructure
@@ -29,9 +32,10 @@ namespace Infrastructure
       // TO BE REMOVED 
       services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 
+      services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
-
-
+      services.AddMediatR(cfg =>
+        cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyMarker).Assembly));
 
       services.AddScoped<IRepository, Repository>();
 

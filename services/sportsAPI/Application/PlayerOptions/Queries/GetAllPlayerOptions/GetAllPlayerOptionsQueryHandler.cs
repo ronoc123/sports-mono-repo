@@ -1,6 +1,13 @@
 
 using Application.Common.Models;
+using Application.Dto.Organization;
+using Application.Dto.PlayerOption;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Contracts.Contracts;
+using Contracts.Responses;
+using Domain.PlayerOption;
+using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using System;
@@ -13,105 +20,77 @@ namespace Application.PlayerOptions.Queries.GetAllPlayerOptions
   public class GetAllPlayerOptionsQueryHandler
       : IRequestHandler<GetAllPlayerOptionsQuery, ServiceResponse<PaginatedList<PlayerOptionDto>>>
   {
-    //private readonly IPlayerOptionRepository _readRepo;
+    private readonly IRepository _repo;
+    private readonly IMapper _mapper;
 
-    public GetAllPlayerOptionsQueryHandler(
-      //IPlayerOptionRepository readRepo
-      )
+    public GetAllPlayerOptionsQueryHandler(IRepository repo, IMapper mapper)
     {
-      //_readRepo = readRepo;
+      _repo = repo;
+      _mapper = mapper;
     }
 
-    public async Task<ServiceResponse<PaginatedList<PlayerOptionDto>>> Handle(
-        GetAllPlayerOptionsQuery request,
-        CancellationToken cancellationToken)
+
+    public async Task<ServiceResponse<PaginatedList<PlayerOptionDto>>> Handle(GetAllPlayerOptionsQuery request, CancellationToken cancellationToken)
     {
-      //var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
 
-      //var query = _readRepo.Query(asNoTracking: true);
+        var query = _repo.Query<PlayerOption>();
 
-      //// Filters
-      //if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-      //{
-      //  var search = request.SearchTerm.Trim().ToLower();
-      //  query = query.Where(po =>
-      //      po.Title.ToLower().Contains(search) ||
-      //      po.Description.ToLower().Contains(search));
-      //}
+        // Filters
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+          var search = request.SearchTerm.Trim().ToLower();
+          query = query.Where(po =>
+              po.Title.ToLower().Contains(search) ||
+              po.Description.ToLower().Contains(search));
+        }
 
-      //if (request.OrganizationId.HasValue)
-      //{
-      //  var organizationId = OrganizationId.Of(request.OrganizationId.Value);
-      //  query = query.Where(po => po.OrganizationId == organizationId);
-      //}
+      if (request.OrganizationId.HasValue)
+      {
+        query = query.Where(po => po.OrganizationId == OrganizationId.Of(request.OrganizationId.Value));
+      }
 
-      //if (request.PlayerId.HasValue)
-      //{
-      //  var playerId = PlayerId.Of(request.PlayerId.Value);
-      //  query = query.Where(po => po.PlayerId == playerId);
-      //}
+      if (request.PlayerId.HasValue)
+      {
+        query = query.Where(po => po.PlayerId == PlayerId.Of(request.PlayerId.Value));
+      }
 
-      //if (request.IsActive.HasValue)
-      //{
-      //  query = request.IsActive.Value
-      //      ? query.Where(po => po.ExpiresAt > now)
-      //      : query.Where(po => po.ExpiresAt <= now);
-      //}
+      if (request.IsActive.HasValue)
+        {
+          query = request.IsActive.Value
+              ? query.Where(po => po.ExpiresAt > now)
+              : query.Where(po => po.ExpiresAt <= now);
+        }
 
-      //if (request.IsExpired.HasValue)
-      //{
-      //  query = request.IsExpired.Value
-      //      ? query.Where(po => po.ExpiresAt <= now)
-      //      : query.Where(po => po.ExpiresAt > now);
-      //}
+        if (request.IsExpired.HasValue)
+        {
+          query = request.IsExpired.Value
+              ? query.Where(po => po.ExpiresAt <= now)
+              : query.Where(po => po.ExpiresAt > now);
+        }
 
-      //// Sorting
-      //query = request.SortBy?.ToLower() switch
-      //{
-      //  "title" => request.SortDescending ? query.OrderByDescending(po => po.Title) : query.OrderBy(po => po.Title),
-      //  "votes" => request.SortDescending ? query.OrderByDescending(po => po.Votes) : query.OrderBy(po => po.Votes),
-      //  "expiresat" => request.SortDescending ? query.OrderByDescending(po => po.ExpiresAt) : query.OrderBy(po => po.ExpiresAt),
-      //  "createdat" => request.SortDescending ? query.OrderByDescending(po => po.CreatedAt) : query.OrderBy(po => po.CreatedAt),
-      //  _ => query.OrderByDescending(po => po.CreatedAt)
-      //};
+        // Sorting
+        query = request.SortBy?.ToLower() switch
+        {
+          "title" => request.SortDescending ? query.OrderByDescending(po => po.Title) : query.OrderBy(po => po.Title),
+          "votes" => request.SortDescending ? query.OrderByDescending(po => po.Votes) : query.OrderBy(po => po.Votes),
+          "expiresat" => request.SortDescending ? query.OrderByDescending(po => po.ExpiresAt) : query.OrderBy(po => po.ExpiresAt),
+          "createdat" => request.SortDescending ? query.OrderByDescending(po => po.CreatedAt) : query.OrderBy(po => po.CreatedAt),
+          _ => query.OrderByDescending(po => po.CreatedAt)
+        };
 
-      //// Projection
-      //var dtoQuery = query.Select(po => new PlayerOptionDto
-      //{
-      //  Id = po.Id.Value,
-      //  Title = po.Title,
-      //  Description = po.Description,
-      //  Votes = po.Votes,
-      //  ExpiresAt = po.ExpiresAt,
-      //  CreatedAt = po.CreatedAt ?? DateTime.MinValue,
-      //  PlayerId = po.PlayerId.Value,
-      //  OrganizationId = po.OrganizationId.Value,
-      //  IsActive = po.ExpiresAt > now,
-      //  IsExpired = po.ExpiresAt <= now,
-      //  IsPopular = po.Votes >= 100,
-      //  IsTrending = po.Votes >= 50 && po.ExpiresAt > now,
-      //  DaysRemaining = po.ExpiresAt > now
-      //        ? (int)Math.Ceiling((po.ExpiresAt - now).TotalDays)
-      //        : 0,
-      //  PopularityLevel = po.Votes >= 1000 ? "Viral" :
-      //                      po.Votes >= 500 ? "Very Popular" :
-      //                      po.Votes >= 100 ? "Popular" :
-      //                      po.Votes >= 50 ? "Trending" :
-      //                      po.Votes >= 10 ? "Active" : "New",
-      //  EngagementScore = po.CreatedAt.HasValue && po.CreatedAt.Value < now
-      //        ? (decimal)(po.Votes / Math.Max(1, (now - po.CreatedAt.Value).TotalDays))
-      //        : 0,
-      //  // PlayerName / OrganizationName can be added once nav props are configured
-      //});
+      var dtoQuery = query.ProjectTo<PlayerOptionDto>(_mapper.ConfigurationProvider);
+      // Projection
 
-      //// Pagination
-      //var paginated = await PaginatedList<PlayerOptionDto>.CreateAsync(
-      //    dtoQuery,
-      //    request.PageNumber,
-      //    request.PageSize);
 
-      //return ServiceResponse.Ok(paginated, "Player options retrieved.");
-      return null;
+        // Pagination
+        var paginated = await PaginatedListFactory.CreateAsync(
+            dtoQuery,
+            request.PageNumber,
+            request.PageSize);
+
+        return ServiceResponse.Ok(paginated, "Player options retrieved.");
+
       }
   }
 }

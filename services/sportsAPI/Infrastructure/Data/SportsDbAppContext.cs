@@ -9,6 +9,7 @@ using Domain.ValueObjects.ConcreteTypes;
 using Domain.VoteAccount;
 using Infrastructure.Data.VM;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Reflection;
 
 namespace Infrastructure.Data
@@ -37,11 +38,25 @@ namespace Infrastructure.Data
       return base.SaveChanges();
     }
 
-    public override Task<int> SaveChangesAsync(
-        CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-      ApplyAuditInformation();
-      return base.SaveChangesAsync(cancellationToken);
+
+      var events = ChangeTracker
+          .Entries<IAggregate>()
+          .Select(e => e.Entity.ClearDomainEvents())
+          .SelectMany(e => e)
+          .ToList();
+
+      var result = await base.SaveChangesAsync(cancellationToken);
+
+
+      if (events.Any())
+      {
+        var dispatcher = this.GetService<IDomainEventDispatcher>();
+        await dispatcher.DispatchAsync(events, cancellationToken);
+      }
+
+      return result;
     }
 
     private void ApplyAuditInformation()

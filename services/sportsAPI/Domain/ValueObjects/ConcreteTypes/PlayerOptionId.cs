@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,21 +11,21 @@ namespace Domain.ValueObjects.ConcreteTypes
     {
         public Guid Value { get; set; }
 
-    private PlayerOptionId(Guid value)
-    {
-        Value = value;
-    }
-
-    public static PlayerOptionId Of(Guid value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        if (value == Guid.Empty)
+        public PlayerOptionId(Guid value)
         {
-            throw new DomainExceptions("PlayerOptionId cannot be empty");
+            Value = value;
         }
 
-        return new PlayerOptionId(value);
-    }
+        public static PlayerOptionId Of(Guid value)
+        {
+            ArgumentNullException.ThrowIfNull(value);
+
+            if (value == Guid.Empty)
+            {
+                throw new DomainExceptions("PlayerOptionId cannot be empty");
+            }
+
+            return new PlayerOptionId(value);
+        }
 }
 }

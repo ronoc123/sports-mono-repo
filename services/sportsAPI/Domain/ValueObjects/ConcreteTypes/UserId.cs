@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +10,7 @@ namespace Domain.ValueObjects.ConcreteTypes
     {
 
         public Guid Value { get; }
-        private UserId(Guid value)
+        public UserId(Guid value)
         {
             Value = value;
         }

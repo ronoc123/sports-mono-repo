@@ -10,7 +10,7 @@ namespace Domain.VoteAccount
   public sealed class VoteAccount : Aggregate<VoteAccountId>
   {
         internal VoteAccount() { } // EF
-
+        
         public OrganizationId OrgId { get; private set; } = default!;
         public UserId UserId { get; private set; } = default!;
 

@@ -4,7 +4,7 @@ public record ThemeId
 {
     public Guid Value { get; }
 
-    private ThemeId(Guid value)
+    public ThemeId(Guid value)
     {
         Value = value;
     }

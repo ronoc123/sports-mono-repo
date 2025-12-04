@@ -1,62 +1,55 @@
-using Application.Common.Interfaces;
 using Application.Common.Models;
-using Application.PlayerOptions.Queries.GetAllPlayerOptions;
 using Contracts.Contracts;
-using Domain.Organizations.Entities;
+using Domain.Player;
+using Domain.PlayerOption;
+using Domain.Organizations;
 using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.PlayerOptions.Commands.CreatePlayerOption;
-
-public class CreatePlayerOptionCommandHandler : IRequestHandler<CreatePlayerOptionCommand, ServiceResponse<Guid>>
+namespace Application.PlayerOptions.Commands.CreatePlayerOption
 {
-  private readonly IRepository _repo;
-
-  public CreatePlayerOptionCommandHandler(IRepository repo)
+  public class CreatePlayerOptionCommandHandler
+      : IRequestHandler<CreatePlayerOptionCommand, ServiceResponse<Guid>>
   {
-    _repo = repo;
-  }
+    private readonly IRepository _repo;
 
-    public async Task<ServiceResponse<Guid>> Handle(CreatePlayerOptionCommand request, CancellationToken cancellationToken)
+    public CreatePlayerOptionCommandHandler(IRepository repo)
     {
-    //var organization = await _organizationRepository.GetOrganizationByIdAsync(request.OrganizationId, cancellationToken);
-    //if (organization is null)
-    //{
-    //    throw new ValidationException("Organization Not Found.");
-    //}
+      _repo = repo;
+    }
 
-    //var playerId = PlayerId.Of(request.PlayerId);
+    public async Task<ServiceResponse<Guid>> Handle(
+        CreatePlayerOptionCommand request,
+        CancellationToken cancellationToken)
+    {
 
-    //var player = await _playerRepository
-    //  .Query(asNoTracking: true)
-    //  .Where(p => p.Id == playerId)
-    //  .FirstOrDefaultAsync(cancellationToken);
+      var organization = await _repo.GetByIdAsync<Organization, OrganizationId>(request.OrganizationId, cancellationToken);
 
-    //if (player is null)
-    //{
-    //    throw new ValidationException("Player Not Found.");
-    //}
+      if (organization is null)
+        throw new ValidationException("Organization not found.");
 
-    //if (player.LeagueId != organization.LeagueId)
-    //{
-    //  throw new ValidationException("Player must be in the same league as the organization");
-    //}
+      var playerId = request.PlayerId;
 
-    //var option = organization.CreatePlayerOption(
-    //  request.Title,
-    //  request.Description,
-    //  playerId,
-    //  request.ExpiresAt);
+      var player = await _repo
+          .Query<Player>(asNoTracking: true)
+          .Where(p => p.Id == playerId)
+          .FirstOrDefaultAsync(cancellationToken);
 
-    //await _organizationRepository.UpdateOrganizationAsync(organization, cancellationToken);
-    //await _organizationRepository.SaveChangesAsync(cancellationToken);
+      if (player is null)
+        throw new ValidationException("Player not found.");
 
-    //return ServiceResponse.Ok(option.Id.Value, "Player option created.");
+      if (player.LeagueId != organization.LeagueId)
+        throw new ValidationException("Player must be in the same league as the organization.");
 
-    return null;
+      var option = PlayerOption.Create(request.Title, request.Description, playerId, organization.Id, request.ExpiresAt);
 
+      await _repo.AddAsync(option, cancellationToken);
+      await _repo.SaveChangesAsync(cancellationToken);
+
+      return ServiceResponse.Ok(option.Id.Value, "Player option created.");
+    }
   }
 }

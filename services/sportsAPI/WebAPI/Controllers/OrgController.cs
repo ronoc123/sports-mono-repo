@@ -7,6 +7,7 @@ using Application.Organizations.Queries.GetAllOrganizations;
 using Application.Organizations.Queries.GetOrganizationDetails;
 using Application.Themes.Queries.GetTheme;
 using Contracts.Contracts;
+using Contracts.Responses;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

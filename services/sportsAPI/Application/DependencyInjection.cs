@@ -25,8 +25,11 @@ public static class DependencyInjection
         // Add AutoMapper
 
         services.AddAutoMapper(typeof(OrganizationMappingPorfile).Assembly);
+        services.AddAutoMapper(typeof(PlayerOptionMappingProfile).Assembly);
+        services.AddAutoMapper(typeof(PlayerMappingProfile).Assembly);
+        services.AddAutoMapper(typeof(LeagueMappingProfile).Assembly);
 
 
-        return services;
+    return services;
     }
 }

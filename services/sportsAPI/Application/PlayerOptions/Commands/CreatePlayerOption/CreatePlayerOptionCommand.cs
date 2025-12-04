@@ -9,7 +9,7 @@ namespace Application.PlayerOptions.Commands.CreatePlayerOption;
 public record CreatePlayerOptionCommand(
     string Title,
     string Description,
-    Guid PlayerId,
+    PlayerId PlayerId,
     OrganizationId OrganizationId,
     DateTime? ExpiresAt = null
 ) : IRequest<ServiceResponse<Guid>>;

@@ -10,7 +10,7 @@ namespace Domain.ValueObjects.ConcreteTypes
     {
         public Guid Value { get; }
 
-        private PointCodeId(Guid value)
+        public PointCodeId(Guid value)
         {
             Value = value;
         }

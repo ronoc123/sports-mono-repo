@@ -9,7 +9,8 @@ namespace Domain.ValueObjects.ConcreteTypes
     public record OrganizationId
     {
         public Guid Value { get; set; }
-        private OrganizationId(Guid value)
+
+        public OrganizationId(Guid value)
         {
             Value = value;
         }

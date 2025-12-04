@@ -1,6 +1,7 @@
 using Application.Common.Models;
 using Application.Dto.Organization;
 using Contracts.Contracts;
+using Contracts.Responses;
 using MediatR;
 
 namespace Application.Organizations.Queries.GetAllOrganizations;

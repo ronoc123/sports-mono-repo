@@ -18,7 +18,32 @@ namespace Infrastructure.Repositories
     }
 
     public async Task<TAgg?> GetByIdAsync(TId id, CancellationToken ct = default)
-      => await _set.FindAsync(new object?[] { id! }, ct).AsTask();
+    {
+      // Case 1 — primitive or simple scalar IDs (Guid, int, string)
+      var idType = typeof(TId);
+
+      if (idType.IsPrimitive ||
+          idType == typeof(Guid) ||
+          idType == typeof(string))
+      {
+        // Old behavior preserved 100%
+        return await _set.FindAsync(new object?[] { id! }, ct).AsTask();
+      }
+
+      // Case 2 — Value Object IDs
+      var props = idType.GetProperties();
+
+      // If VO has no public properties (rare), fallback to old behavior
+      if (props.Length == 0)
+      {
+        return await _set.FindAsync(new object?[] { id! }, ct).AsTask();
+      }
+
+      // Extract VO property values in the declared order
+      object?[] keyValues = props.Select(p => p.GetValue(id)).ToArray();
+
+      return await _set.FindAsync(keyValues, ct).AsTask();
+    }
 
     public async Task<TAgg?> GetByIdAsync(CancellationToken ct = default, params object[] keyValues)
       => await _set.FindAsync(keyValues, ct).AsTask();

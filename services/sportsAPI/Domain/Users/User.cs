@@ -46,8 +46,7 @@ namespace Domain.Users
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateProfile(string firstName, string lastName, string? phone = null,
-            DateTime? dateOfBirth = null, string? bio = null)
+        public void UpdateProfile(string firstName, string lastName, string? phone = null, DateTime? dateOfBirth = null, string? bio = null)
         {
             ArgumentException.ThrowIfNullOrEmpty(firstName);
             ArgumentException.ThrowIfNullOrEmpty(lastName);

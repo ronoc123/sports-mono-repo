@@ -3,6 +3,7 @@ using Application.Common.Interfaces;
 using Application.Common.Models;
 using Application.Dto.League;
 using Contracts.Contracts;
+using Contracts.Responses;
 using Domain.Leagues;
 using Domain.Repositories;
 using MediatR;
@@ -48,12 +49,13 @@ public sealed class GetAllLeaguesQueryHandler
             Name = l.Name,
             CreatedAt = l.CreatedAt ?? DateTime.MinValue,
           });
-
-      var paginatedList = await PaginatedList<LeagueDto>.CreateAsync(
+      var paginatedList = await PaginatedListFactory.CreateAsync(
           dtoQuery,
           request.PageNumber,
           request.PageSize);
+
       return ServiceResponse.Ok(paginatedList, string.Empty);
+
   }
 }
 
