@@ -4,6 +4,7 @@ using Domain.VoteAccount;
 using Domain.ValueObjects.ConcreteTypes;
 using Domain.Repositories;
 using MediatR;
+using Domain.DomainServices.VotingService.VotingService;
 
 namespace Application.PlayerOptions.Commands.VotePlayerOption;
 
@@ -11,10 +12,12 @@ public class VotePlayerOptionCommandHandler
     : IRequestHandler<VotePlayerOptionCommand, ServiceResponse<bool>>
 {
   private readonly IRepository _repo;
+  private readonly IVotingService _votingService;
 
-  public VotePlayerOptionCommandHandler(IRepository repo)
+  public VotePlayerOptionCommandHandler(IRepository repo, IVotingService votingService)
   {
     _repo = repo;
+    _votingService = votingService;
   }
 
   public async Task<ServiceResponse<bool>> Handle(VotePlayerOptionCommand request, CancellationToken ct)
@@ -31,12 +34,9 @@ public class VotePlayerOptionCommandHandler
     var account = await _repo.GetByIdAsync<VoteAccount>(ct, orgId, userId);
 
     if (account is null)
-      return ServiceResponse.Fail<bool>("VoteAccount does not exist for this user/org");
+      return ServiceResponse.Fail<bool>("No Payment account found");
 
-    string spendId = Guid.NewGuid().ToString();
-    var token = account.AuthorizeSpend(optionId, request.VoteAmount, spendId);
-
-    option.CastVote(userId, token);
+    _votingService.Vote(account, option, userId, request.VoteAmount, Guid.NewGuid().ToString());
 
     await _repo.SaveChangesAsync(ct);
 

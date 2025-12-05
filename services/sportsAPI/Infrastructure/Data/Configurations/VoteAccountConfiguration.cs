@@ -1,5 +1,6 @@
-using Domain.VoteAccount;
+using Domain.Shared_kernel;
 using Domain.ValueObjects.ConcreteTypes;
+using Domain.VoteAccount;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,40 +11,26 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
   public void Configure(EntityTypeBuilder<VoteAccount> builder)
   {
 
-    // Aggregate Id is a composite; ignore the VO Id property if present
-    builder.Ignore(x => x.Id);
+        builder.Ignore(x => x.Id);
 
-    // Composite PK: one account per (org, user)
-    builder.HasKey(x => new { x.OrgId, x.UserId });
+        builder.HasKey(x => new { x.OrgId, x.UserId });
 
-    builder.Property(c => c.OrgId).HasConversion(
-      organizationId => organizationId.Value,
-      value => OrganizationId.Of(value));
+        builder.Property(c => c.OrgId).HasConversion(
+            x => x.Value,
+            v => OrganizationId.Of(v));
 
-    builder.Property(c => c.UserId).HasConversion(
-      userId => userId.Value,
-      value => UserId.Of(value));
+        builder.Property(c => c.UserId).HasConversion(
+            x => x.Value,
+            v => UserId.Of(v));
 
-    builder.Property(x => x.Balance)
-      .HasColumnName("balance")
-      .IsRequired();
+        builder.Property(x => x.Balance).IsRequired();
+        builder.Property(x => x.Version).IsConcurrencyToken();
 
-    builder.Property(x => x.Version)
-      .HasColumnName("version")
-      .IsRequired()
-      .IsConcurrencyToken();
+        builder.Property(x => x.CreatedAt).HasColumnType("datetime2");
+        builder.Property(x => x.UpdatedAt).HasColumnType("datetime2");
 
-    builder.Property(x => x.CreatedAt)
-      .HasColumnType("datetime2")
-      .HasDefaultValueSql("SYSUTCDATETIME()")
-      .IsRequired();
+        builder.Navigation(x => x.Transactions)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
-    builder.Property(x => x.UpdatedAt)
-      .HasColumnType("datetime2")
-      .HasDefaultValueSql("SYSUTCDATETIME()")
-      .IsRequired();
-
-    // Check constraint: keep balances non-negative
-    builder.ToTable(t => t.HasCheckConstraint("ck_vote_accounts_balance_nonneg", "[balance] >= 0"));
   }
 }

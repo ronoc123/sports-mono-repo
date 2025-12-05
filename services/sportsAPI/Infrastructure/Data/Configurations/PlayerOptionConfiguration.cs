@@ -25,6 +25,5 @@ public class PlayerOptionConfiguration : IEntityTypeConfiguration<PlayerOption>
             playerId => playerId.Value,
             value => PlayerId.Of(value));
 
-        builder.Ignore(x => x.VoteHistory);
   }
 }

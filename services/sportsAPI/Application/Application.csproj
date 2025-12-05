@@ -23,6 +23,7 @@
   <ItemGroup>
     <Folder Include="Events\Player\" />
     <Folder Include="Events\Organization\" />
+    <Folder Include="Votes\" />
   </ItemGroup>
 
 </Project>

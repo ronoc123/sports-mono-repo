@@ -1,6 +1,9 @@
 using Application;
 using Application.Common.Interfaces;
 using Domain.Abstractions;
+using Domain.DomainServices.RewardService;
+using Domain.DomainServices.Voting;
+using Domain.DomainServices.VotingService.VotingService;
 using Domain.Organizations.Entities;
 using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
@@ -26,20 +29,19 @@ namespace Infrastructure
       // Register IApplicationDbContext
       services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SportsDbAppContext>());
 
-
-
-      // Register repositories
       // TO BE REMOVED 
       services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 
       services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
+      services.AddScoped<IVotingService, VotingService>();
+      services.AddScoped<IRewardRedemptionService, RewardRedemptionService>();
+
+
       services.AddMediatR(cfg =>
         cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyMarker).Assembly));
 
       services.AddScoped<IRepository, Repository>();
-
-
 
       return services;
     }

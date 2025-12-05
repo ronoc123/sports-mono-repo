@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SportsDbAppContext))]
-    partial class SportsDbAppContextModelSnapshot : ModelSnapshot
+    [Migration("20251204034221_RewardItem-AR")]
+    partial class RewardItemAR
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,52 +266,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("RewardItems", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Shared_kernel.VoteTransaction", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("Amount")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("OrgId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("PlayerOptionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RefId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SpendId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("VoteAccountOrgId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("VoteAccountUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VoteAccountOrgId", "VoteAccountUserId");
-
-                    b.ToTable("VoteTransactions");
-                });
-
             modelBuilder.Entity("Domain.VoteAccount.VoteAccount", b =>
                 {
                     b.Property<Guid>("OrgId")
@@ -318,10 +275,13 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Balance")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("balance");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -333,15 +293,72 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.Property<long>("Version")
                         .IsConcurrencyToken()
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("version");
 
                     b.HasKey("OrgId", "UserId");
 
-                    b.ToTable("VoteAccounts");
+                    b.ToTable("VoteAccounts", t =>
+                        {
+                            t.HasCheckConstraint("ck_vote_accounts_balance_nonneg", "[balance] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Infrastructure.Data.VM.VoteTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Choice")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetimeoffset")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PlayerOptionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("RefId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SpendId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VoteTransactions", t =>
+                        {
+                            t.HasCheckConstraint("ck_vt_amount_nonzero", "[amount] <> 0");
+
+                            t.HasCheckConstraint("ck_vt_reason_amount_sign", "([reason] = 'vote_spend' AND [amount] < 0) OR ([reason] <> 'vote_spend' AND [amount] > 0)");
+
+                            t.HasCheckConstraint("ck_vt_vote_spend_requires_fields", "([reason] <> 'vote_spend') OR ([playerOptionId] IS NOT NULL AND [spendId] IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("Domain.Organizations.Organization", b =>
@@ -490,18 +507,6 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Venue")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Shared_kernel.VoteTransaction", b =>
-                {
-                    b.HasOne("Domain.VoteAccount.VoteAccount", null)
-                        .WithMany("Transactions")
-                        .HasForeignKey("VoteAccountOrgId", "VoteAccountUserId");
-                });
-
-            modelBuilder.Entity("Domain.VoteAccount.VoteAccount", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

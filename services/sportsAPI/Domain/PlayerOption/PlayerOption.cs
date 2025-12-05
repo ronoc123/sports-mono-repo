@@ -14,8 +14,6 @@ namespace Domain.PlayerOption
 
     public long Votes { get; private set; }
 
-    private readonly List<VoteTransaction> _votes = new();
-    public IReadOnlyList<VoteTransaction> VoteHistory => _votes;
     public bool IsActive => DateTime.UtcNow < ExpiresAt;
     public bool IsExpired => !IsActive;
     public TimeSpan TimeRemaining => IsActive ? ExpiresAt - DateTime.UtcNow : TimeSpan.Zero;
@@ -94,26 +92,19 @@ namespace Domain.PlayerOption
 
     public void CastVote(UserId userId, SpendToken spend)
     {
-      if (!IsActive) throw new InvalidOperationException("Voting is not open.");
-      if (spend.PlayerOptionId != Id) throw new InvalidOperationException("Spend not authorized for this option.");
-      if (spend.OrgId != OrganizationId) throw new InvalidOperationException("Spend not authorized for this organization.");
-      if (spend.Amount <= 0) throw new InvalidOperationException("Vote amount must be positive.");
+      if (!IsActive)
+        throw new InvalidOperationException("Voting is not open.");
 
-      // Idempotency: ignore duplicate SpendId on this option
-      if (_votes.Any(v => v.SpendId == spend.SpendId))
-        return;
+      if (spend.PlayerOptionId != Id)
+        throw new InvalidOperationException("Spend token not authorized for this option.");
 
-      var row = VoteTransaction.ForVoteSpend(
-          OrganizationId,
-          userId,
-          Id,
-          amount: spend.Amount,
-          spendId: spend.SpendId);
+      if (spend.OrgId != OrganizationId)
+        throw new InvalidOperationException("Spend token not authorized for this organization.");
 
-      _votes.Add(row);
+      if (spend.Amount <= 0)
+        throw new InvalidOperationException("Vote amount must be positive.");
+
       Votes += spend.Amount;
-
-      // AddEvent(new PlayerOptionVoted(Id, OrganizationId, userId, spend.Amount, spend.SpendId));
     }
 
     // Helpers

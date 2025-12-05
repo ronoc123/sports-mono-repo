@@ -1,5 +1,6 @@
 namespace Domain.VoteAccount
 {
+  using Domain.Rewards;
   using Domain.Shared_kernel;
   using Domain.ValueObjects.ConcreteTypes;
 
@@ -20,6 +21,11 @@ namespace Domain.VoteAccount
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
+        private readonly List<VoteTransaction> _transactions = new();
+        public IReadOnlyList<VoteTransaction> Transactions => _transactions;
+
+
+
         // Idempotency for spends authorized by this account
         private readonly HashSet<string> _appliedSpendIds = new();
 
@@ -39,13 +45,20 @@ namespace Domain.VoteAccount
           return new VoteAccount(VoteAccountId.Of(orgId, userId), initialBalance);
         }
 
-        public void Credit(long amount, string reason, long? refId = null)
+        public void ApplyReward(RedemptionToken token)
         {
-          if (amount <= 0) throw new DomainExceptions("Credit amount must be positive.");
-          Balance += amount;
-          touch();
-          // AddEvent(new VotesCredited(Id, amount, reason, refId, DateTimeOffset.UtcNow));
-        }
+          if (token.Amount <= 0) throw new DomainExceptions("Invalid reward amount.");
+          Balance += token.Amount;
+
+          _transactions.Add(
+              VoteTransaction.ForRewardCredit(
+                  token.OrgId,
+                  token.RedeemingUser,
+                  token.Amount,
+                  token.RewardItemId.ToString()
+              ));
+          }
+
 
         public SpendToken AuthorizeSpend(PlayerOptionId optionId, long amount, string spendId)
         {
@@ -53,44 +66,37 @@ namespace Domain.VoteAccount
           ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
           if (amount <= 0) throw new DomainExceptions("Spend amount must be positive.");
 
-          // If we already authorized this spendId, re-issue the token (no double-debit).
           if (_appliedSpendIds.Contains(spendId))
             return new SpendToken(Id, OrgId, optionId, amount, spendId);
 
-          if (Balance < amount) throw new DomainExceptions("Insufficient balance.");
+          if (Balance < amount)
+            throw new DomainExceptions("Insufficient balance.");
 
-          Balance -= amount;
+
           _appliedSpendIds.Add(spendId);
-          touch();
-          // AddEvent(new VotesSpent(Id, optionId, amount, spendId, DateTimeOffset.UtcNow));
 
           return new SpendToken(Id, OrgId, optionId, amount, spendId);
         }
 
-        public void Refund(long amount, string spendId, string reason = "refund")
+        public void ApplySpend(SpendToken token)
         {
-          ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
-          if (amount <= 0) throw new DomainExceptions("Refund amount must be positive.");
+          if (!_appliedSpendIds.Contains(token.SpendId))
+            throw new DomainExceptions("Spend was not authorized.");
 
-          // We don't require the spendId to exist here—ops can choose policy.
-          Balance += amount;
-          touch();
-          // AddEvent(new VotesRefunded(Id, amount, spendId, reason, DateTimeOffset.UtcNow));
-        }
+          if (Balance < token.Amount)
+            throw new DomainExceptions("Insufficient balance at finalization.");
 
-        public void Adjust(long delta, string reason = "adjust")
-        {
-          var newBal = Balance + delta;
-          if (newBal < 0) throw new DomainExceptions("Adjustment would make balance negative.");
-          Balance = newBal;
-          touch();
-          // AddEvent(new VotesAdjusted(Id, delta, reason, DateTimeOffset.UtcNow));
-        }
+          Balance -= token.Amount;
 
-        private void touch()
-        {
-          Version++;
-          UpdatedAt = DateTime.UtcNow;
-        }
+          _transactions.Add(
+            VoteTransaction.ForVoteSpend(
+                OrgId,
+                UserId,
+                token.PlayerOptionId,
+                token.Amount,
+                token.SpendId
+            ));
+          }
+
   }
 }

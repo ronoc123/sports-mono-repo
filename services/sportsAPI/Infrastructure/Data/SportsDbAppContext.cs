@@ -5,9 +5,9 @@ using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Player;
 using Domain.PlayerOption;
-using Domain.ValueObjects.ConcreteTypes;
+using Domain.Rewards;
+using Domain.Shared_kernel;
 using Domain.VoteAccount;
-using Infrastructure.Data.VM;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Reflection;
@@ -25,6 +25,8 @@ namespace Infrastructure.Data
     public DbSet<League> Leagues => Set<League>();
     public DbSet<VoteAccount> VoteAccounts => Set<VoteAccount>();
     public DbSet<VoteTransaction> VoteTransactions => Set<VoteTransaction>();
+
+    public DbSet<RewardItem> RewardItems => Set<RewardItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
