@@ -24,11 +24,6 @@ namespace Domain.VoteAccount
         private readonly List<VoteTransaction> _transactions = new();
         public IReadOnlyList<VoteTransaction> Transactions => _transactions;
 
-
-
-        // Idempotency for spends authorized by this account
-        private readonly HashSet<string> _appliedSpendIds = new();
-
         private VoteAccount(VoteAccountId id, long initialBalance)
         {
           Id = id;
@@ -66,37 +61,24 @@ namespace Domain.VoteAccount
           ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
           if (amount <= 0) throw new DomainExceptions("Spend amount must be positive.");
 
-          if (_appliedSpendIds.Contains(spendId))
-            return new SpendToken(Id, OrgId, optionId, amount, spendId);
 
           if (Balance < amount)
             throw new DomainExceptions("Insufficient balance.");
 
-
-          _appliedSpendIds.Add(spendId);
 
           return new SpendToken(Id, OrgId, optionId, amount, spendId);
         }
 
         public void ApplySpend(SpendToken token)
         {
-          if (!_appliedSpendIds.Contains(token.SpendId))
-            throw new DomainExceptions("Spend was not authorized.");
 
           if (Balance < token.Amount)
             throw new DomainExceptions("Insufficient balance at finalization.");
 
           Balance -= token.Amount;
 
-          _transactions.Add(
-            VoteTransaction.ForVoteSpend(
-                OrgId,
-                UserId,
-                token.PlayerOptionId,
-                token.Amount,
-                token.SpendId
-            ));
-          }
+          _transactions.Add(VoteTransaction.ForVoteSpend(OrgId, UserId, token.PlayerOptionId, token.Amount,token.SpendId));
+         }
 
   }
 }

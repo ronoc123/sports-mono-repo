@@ -85,22 +85,4 @@ export class SidebarComponent {
       this.currentRoute().startsWith(route + "/")
     );
   }
-
-  // Quick actions
-  onQuickAction(action: string) {
-    switch (action) {
-      case "profile":
-        this.navigateTo("/profile");
-        break;
-      case "settings":
-        this.navigateTo("/settings");
-        break;
-      case "logout":
-        // This should be handled by parent component
-        console.log("Logout requested");
-        break;
-      default:
-        console.log("Unknown action:", action);
-    }
-  }
 }

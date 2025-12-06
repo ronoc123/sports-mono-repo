@@ -1,7 +1,6 @@
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   background-color: #fafafa;
   overflow: hidden;
   border-right: 1px solid #e0e0e0;
@@ -28,7 +27,7 @@
 }
 
 .organization-dropdown-trigger {
-  width: 100%;
+  width: 90%;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -53,10 +52,9 @@
 }
 
 .org-logo {
-  width: 32px;
-  height: 32px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  object-fit: cover;
   border: 1px solid #e0e0e0;
 }
 

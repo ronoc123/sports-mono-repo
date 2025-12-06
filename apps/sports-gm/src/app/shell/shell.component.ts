@@ -2,7 +2,6 @@ import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { MainLayoutComponent, NavItem } from "@sports-ui/ui";
-import { AuthService } from "@sports-ui/feature-auth";
 
 @Component({
   selector: "app-shell",
@@ -12,7 +11,6 @@ import { AuthService } from "@sports-ui/feature-auth";
     <ui-main-layout
       [navItems]="navItems"
       [config]="layoutConfig"
-      [permissionChecker]="checkPermission"
       [organizations]="organizations"
       [selectedOrganization]="selectedOrganization"
     ></ui-main-layout>
@@ -27,8 +25,6 @@ import { AuthService } from "@sports-ui/feature-auth";
   ],
 })
 export class ShellComponent {
-  protected readonly authService = inject(AuthService);
-
   // Mock data for now
   organizations: any[] = [];
   selectedOrganization = null;

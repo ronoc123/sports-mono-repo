@@ -35,7 +35,7 @@ export class ShellComponent {
 
   // Layout configuration for Sports UI
   layoutConfig = {
-    appTitle: "Sports UI",
+    appTitle: "Sportify",
     appLogo: "/assets/sports-logo.png",
     showUserMenu: true,
     showNotifications: true,
@@ -98,6 +98,5 @@ export class ShellComponent {
     //   ],
     // },
     { name: "Profile", icon: "person", route: "/profile" },
-    { name: "Settings", icon: "settings", route: "/settings" },
   ];
 }

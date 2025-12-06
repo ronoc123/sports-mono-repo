@@ -1,7 +1,7 @@
 .layout {
   display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 24px;
+  grid-template-rows: 0.25fr 0.25fr;
+  gap: 12px;
 }
 .field {
   position: relative;

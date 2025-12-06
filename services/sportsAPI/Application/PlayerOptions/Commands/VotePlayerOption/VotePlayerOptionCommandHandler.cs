@@ -36,7 +36,7 @@ public class VotePlayerOptionCommandHandler
     if (account is null)
       return ServiceResponse.Fail<bool>("No Payment account found");
 
-    _votingService.Vote(account, option, userId, request.VoteAmount, Guid.NewGuid().ToString());
+    _votingService.Vote(account, option, userId, request.VoteAmount);
 
     await _repo.SaveChangesAsync(ct);
 

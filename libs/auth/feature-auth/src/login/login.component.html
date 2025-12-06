@@ -1,0 +1,23 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header class="login-header">
+      <div class="logo-section">
+        <mat-icon class="app-logo">sports</mat-icon>
+        <h1>Sportify</h1>
+      </div>
+      <mat-card-title>Welcome Back</mat-card-title>
+      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="google-signin-section">
+        <lib-google-signin
+          [signingIn]="facade.authenticating()"
+          (credential)="onGoogleCredential($event)"
+          (error)="onGoogleError($event)"
+        >
+        </lib-google-signin>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

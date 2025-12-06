@@ -1,3 +1,3 @@
-export * from "./lib/login/login.component";
-export * from "./lib/google-signin/google-signin.component";
-export * from "./lib/tokens/google-tokens";
+export * from "./login/login.component";
+export * from "./google-signin/google-signin.component";
+export * from "./tokens/google-tokens";

@@ -9,6 +9,6 @@ namespace Domain.DomainServices.VotingService.VotingService
 {
   public interface IVotingService
   {
-    public void Vote(VoteAccount.VoteAccount account, PlayerOption.PlayerOption option, UserId userId, long amount, string spendId);
+    public void Vote(VoteAccount.VoteAccount account, PlayerOption.PlayerOption option, UserId userId, long amount);
   }
 }

@@ -4,7 +4,7 @@
   <div class="organization-selector">
     <button class="organization-dropdown-trigger">
       <div class="selected-org">
-        <img [src]="'test'" [alt]="'test'" class="org-logo" />
+        <img src="assets/rams-logo.png" [alt]="'test'" class="org-logo" />
         <span class="org-name">Rams</span>
       </div>
     </button>
@@ -76,34 +76,13 @@
     </mat-tree>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="quick-actions">
-    <mat-divider></mat-divider>
-    <div class="actions-header">
-      <mat-icon>flash_on</mat-icon>
-      <span>Quick Actions</span>
-    </div>
-    <button mat-button class="action-button" (click)="navigateTo('/redeem')">
-      <mat-icon>redeem</mat-icon>
-      <span>Redeem Code</span>
-    </button>
-    <button
-      mat-button
-      class="action-button"
-      (click)="navigateTo('/player-option')"
-    >
-      <mat-icon>how_to_vote</mat-icon>
-      <span>Vote</span>
-    </button>
-  </div>
-
   <!-- Footer -->
   <div class="sidebar-footer">
     <div class="app-info">
       <mat-icon class="footer-icon">sports</mat-icon>
       <div class="app-details">
-        <span class="app-name">Sports UI</span>
-        <span class="app-version">v1.0.0</span>
+        <span class="app-name">Sportify</span>
+        <!-- <span class="app-version">v1.0.0</span> -->
       </div>
     </div>
   </div>

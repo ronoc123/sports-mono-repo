@@ -64,7 +64,7 @@ export class MainLayoutComponent {
   // Inputs
   readonly navItems = input.required<NavItem[]>();
   readonly config = input<LayoutConfig>({
-    appTitle: "Sports UI",
+    appTitle: "Sportify",
     showUserMenu: true,
     showNotifications: true,
     showSearch: false,

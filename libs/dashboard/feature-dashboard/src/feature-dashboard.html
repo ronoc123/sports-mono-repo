@@ -75,27 +75,4 @@
       </mat-card>
     </div>
   </div>
-
-  <!-- Recent Activity Section -->
-  <div class="activity-section">
-    <h2>Recent Activity</h2>
-    <mat-card class="activity-card">
-      <mat-card-content>
-        <div class="activity-list">
-          <div *ngFor="let activity of recentActivities" class="activity-item">
-            <div class="activity-icon" [ngClass]="'activity-' + activity.type">
-              <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
-            </div>
-            <div class="activity-content">
-              <div class="activity-title">{{ activity.title }}</div>
-              <div class="activity-description">{{ activity.description }}</div>
-              <div class="activity-time">
-                {{ getTimeAgo(activity.timestamp) }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
 </div>

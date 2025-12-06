@@ -114,19 +114,19 @@ export class FeatureDashboard implements OnInit {
       {
         label: "Create Player Option",
         icon: "add_circle",
-        route: "/player-options/create",
+        route: "/player-option",
         color: "primary",
       },
       {
-        label: "Add New User",
-        icon: "person_add",
-        route: "/users/create",
+        label: "Profile Management",
+        icon: "person",
+        route: "/profile",
         color: "accent",
       },
       {
-        label: "View Reports",
+        label: "Roaster",
         icon: "assessment",
-        route: "/reports",
+        route: "/active-roaster",
         color: "primary",
       },
       {
@@ -134,34 +134,6 @@ export class FeatureDashboard implements OnInit {
         icon: "settings",
         route: "/system/settings",
         color: "warn",
-      },
-    ];
-
-    // Load recent activities
-    this.recentActivities = [
-      {
-        title: "New user registered",
-        description: "John Doe joined the platform",
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        type: "success",
-      },
-      {
-        title: "Player option created",
-        description: "Trade deadline decision for Team Alpha",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-        type: "info",
-      },
-      {
-        title: "System maintenance",
-        description: "Scheduled maintenance completed successfully",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-        type: "success",
-      },
-      {
-        title: "High vote activity",
-        description: "Unusual voting pattern detected",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-        type: "warning",
       },
     ];
   }
