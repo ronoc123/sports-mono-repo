@@ -9,46 +9,39 @@ using Web;
 using Web.Web;
 // using BuildingBlocks.Messageing.MassTransit; // Temporarily disabled
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Clean Architecture layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSportifyWeb();
-// Add CORS services
+
 builder.Services.AddCors(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // More permissive policy for development
-        options.AddPolicy("AllowFrontend", policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-    }
-    else
-    {
-        // Restrictive policy for production
-        options.AddPolicy("AllowFrontend", policy =>
-        {
-            policy.WithOrigins(
-                    "http://localhost:4200",   // Angular default
-                    "http://localhost:3000",   // React default
-                    "http://localhost:5173",   // Vite default
-                    "http://localhost:8080",   // Vue default
-                    "https://localhost:4200",  // HTTPS versions
-                    "https://localhost:3000",
-                    "https://localhost:5173",
-                    "https://localhost:8080"
-                  )
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
-        });
-    }
+  options.AddPolicy("AllowAll", policy =>
+  {
+    policy
+        .AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+  });
+
+  options.AddPolicy("AllowFrontend", policy =>
+  {
+    policy
+        .WithOrigins(
+            "http://localhost:4200",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:8080",
+            "https://localhost:4200",
+            "https://localhost:3000",
+            "https://localhost:5173",
+            "https://localhost:8080"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+  });
 });
 
 // Add JWT Authentication - configured to validate tokens from Identity Service
@@ -123,11 +116,6 @@ builder.Services.AddSwaggerGen(options =>
 // Register additional services
 builder.Services.AddHttpClient();
 
-// Register DatabaseSeeder (commented out - needs refactoring for new architecture)
-// builder.Services.AddTransient<DatabaseSeeder>();
-
-// Add Message Broker - temporarily disabled for testing
-// builder.Services.AddMessageBroker(builder.Configuration);
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -138,8 +126,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// CORS must be called before UseAuthentication and UseAuthorization
-app.UseCors("AllowFrontend");
+if (app.Environment.IsDevelopment())
+{
+  app.UseCors("AllowAll");  // 🔥 100% fixes your Docker + Visual Studio port chaos
+}
+else
+{
+  app.UseCors("AllowFrontend");  // restrictive prod policy
+}
+
 
 app.UseHttpsRedirection();
 

@@ -274,7 +274,7 @@ Services
 nx g @nx/angular:service dashboard.service --project=dashboard-data-access
 
 Library
-nx g @nx/angular:lib --name feature-[feature-name] --directory=libs/product-domains/[feature-name] --standalone --routing --lazy --tags=scope:feature,type:feature --simpleName --skipTests
+npx nx generate @nx/angular:library --name=[feature-name] --directory=libs/organization/[feature-name] --importPath=@sports-ui/[feature-name] --standalone
 
 Component
 nx g @nx/angular:component libs/dashboard/feature-dashboard/src/quick-action/quick-action

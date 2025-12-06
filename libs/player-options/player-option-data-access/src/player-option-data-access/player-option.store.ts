@@ -1,5 +1,5 @@
 import { patchState, signalStore, withMethods, withState } from "@ngrx/signals";
-import { PlayerOptionDto } from "./playey-option.model";
+import { PlayerOptionDto } from "./player-option.model";
 
 type Status = "idle" | "loading" | "error" | "success";
 
@@ -10,20 +10,22 @@ interface PlayerOptionState {
   lastVotedId?: string;
 }
 
-const initialState: PlayerOptionState = {
-  status: "idle",
-  options: [],
-};
-
 export const PlayerOptionStore = signalStore(
-  withState(initialState),
+  withState<PlayerOptionState>({
+    status: "idle",
+    options: [],
+    error: undefined,
+  }),
+
   withMethods((store) => ({
     setLoading() {
       patchState(store, { status: "loading", error: undefined });
     },
+
     setError(msg: string) {
       patchState(store, { status: "error", error: msg });
     },
+
     setOptions(opts: PlayerOptionDto[]) {
       patchState(store, { options: opts, status: "success" });
     },

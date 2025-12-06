@@ -17,7 +17,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatDividerModule } from "@angular/material/divider";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
-import { AuthFacade, AuthService } from "@sports-ui/auth-data-access";
+import { AuthFacade } from "@sports-ui/auth-data-access";
 
 @Component({
   selector: "lib-login",

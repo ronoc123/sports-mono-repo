@@ -12,7 +12,7 @@ export class ApiService {
     return this.http.get<T>(`${this.api_url}${url}`, {
       headers: this.headers,
       params,
-      withCredentials: true,
+      withCredentials: false,
     });
   }
 
@@ -25,14 +25,14 @@ export class ApiService {
   put<T, D>(url: string, data: D): Observable<T> {
     return this.http.put<T>(`${this.api_url}${url}`, JSON.stringify(data), {
       headers: this.headers,
-      withCredentials: true,
+      withCredentials: false,
     });
   }
 
   delete<T>(url: string): Observable<T> {
     return this.http.delete<T>(`${this.api_url}${url}`, {
       headers: this.headers,
-      withCredentials: true,
+      withCredentials: false,
     });
   }
 

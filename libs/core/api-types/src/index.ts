@@ -5,3 +5,4 @@ export * from "./lib/league";
 export * from "./lib/user";
 export * from "./lib/code";
 export * from "./lib/theme";
+export * from "./lib/environments/environment";

@@ -121,8 +121,8 @@ export class MainLayoutComponent {
   // Get responsive sidenav width
   getSidenavWidth(): string {
     if (this.breakpointObserver.isMatched(Breakpoints.Handset)) {
-      return "280px"; // Wider on mobile for better touch targets
+      return "280px";
     }
-    return "260px"; // Standard width on desktop
+    return "260px";
   }
 }

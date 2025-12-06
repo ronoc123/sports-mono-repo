@@ -60,3 +60,10 @@ export type ServiceResponse<T> = {
   validationErrors?: Record<string, string[]> | null;
   details?: unknown;
 };
+
+export interface PaginatedList<T> {
+  items: T[];
+  pageNumber: number;
+  totalPages: number;
+  totalCount: number;
+}

@@ -3,8 +3,7 @@ import { ApplicationConfig } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import { environment } from "../../../../libs/core/environments/index";
+import { environment } from "@sports-ui/api-types";
 
 import { appRoutes } from "./app.routes";
 import {
@@ -15,6 +14,7 @@ import {
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { GOOGLE_CLIENT_ID } from "@sports-ui/feature-auth";
 import { AuthStore } from "@sports-ui/auth-data-access";
+import { PlayerOptionStore } from "@sports-ui/player-options-data-access";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -22,8 +22,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([apiBaseUrlInterceptor])),
     provideAnimationsAsync(),
     AuthStore,
-    // ✅ Only the CONFIG token is required
-
+    PlayerOptionStore,
     { provide: APP_ENVIRONMENT, useValue: environment },
     { provide: API_URL, useValue: environment.apiUrl },
     { provide: GOOGLE_CLIENT_ID, useValue: environment.googleClientId },

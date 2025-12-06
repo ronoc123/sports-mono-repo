@@ -1,67 +1,38 @@
 import { Injectable, inject } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable, map } from "rxjs";
+import { ServiceResponse, PaginatedList } from "@sports-ui/api-types";
 import {
   PlayerOptionDto,
   GetAllPlayerOptionsQuery,
-  ServiceResponse,
-  PaginatedList,
-} from "./playey-option.model"; // <- your TS interfaces file
+} from "./player-option.model"; // <- your TS interfaces file
+import { ApiService } from "@sports-ui/http-client";
+import { environment } from "@sports-ui/api-types";
 
 @Injectable({ providedIn: "root" })
 export class PlayerOptionApi {
-  private http = inject(HttpClient);
+  private readonly http = inject(ApiService);
 
-  /** Full envelope (useful if you want pagination metadata) */
   getPlayerOptions(
     query: GetAllPlayerOptionsQuery = {}
   ): Observable<ServiceResponse<PaginatedList<PlayerOptionDto>>> {
-    const params = toParams(query);
-    return this.http.get<ServiceResponse<PaginatedList<PlayerOptionDto>>>(
-      `player-options`,
-      { params }
+    return this.http.get(
+      `${environment.sportsApi}PlayerOption/GetPlayerOptionsByOrganization`,
+      this.toParams(query)
     );
   }
 
-  /** Convenience: just the items[] for simple lists */
-  getPlayerOptionItems$(
-    query: GetAllPlayerOptionsQuery = {}
-  ): Observable<PlayerOptionDto[]> {
-    return this.getPlayerOptions(withDefaults(query)).pipe(
-      map((res) => res.data?.items ?? [])
-    );
+  private toParams(q: GetAllPlayerOptionsQuery): HttpParams {
+    let params = new HttpParams();
+
+    if (q.organizationId)
+      params = params.set("organizationId", q.organizationId);
+    if (q.playerId) params = params.set("playerId", q.playerId);
+    if (q.pageNumber) params = params.set("pageNumber", q.pageNumber);
+    if (q.pageSize) params = params.set("pageSize", q.pageSize);
+    if (q.searchTerm) params = params.set("searchTerm", q.searchTerm);
+    if (q.sortBy) params = params.set("sortBy", q.sortBy);
+
+    return params;
   }
-}
-
-/* ---------- helpers ---------- */
-
-function withDefaults(q: GetAllPlayerOptionsQuery): GetAllPlayerOptionsQuery {
-  return {
-    pageNumber: q.pageNumber ?? 1,
-    pageSize: q.pageSize ?? 10,
-    sortBy: q.sortBy ?? "CreatedAt",
-    sortDescending: q.sortDescending ?? true,
-    searchTerm: q.searchTerm ?? null,
-    organizationId: q.organizationId ?? null,
-    playerId: q.playerId ?? null,
-    isActive: q.isActive ?? null,
-    isExpired: q.isExpired ?? null,
-  };
-}
-
-function toParams(q: GetAllPlayerOptionsQuery): HttpParams {
-  let p = new HttpParams();
-  const add = (k: string, v: unknown) =>
-    v === undefined || v === null || v === "" ? p : p.set(k, String(v));
-
-  p = add("pageNumber", q.pageNumber);
-  p = add("pageSize", q.pageSize);
-  p = add("pearchTerm", q.searchTerm);
-  p = add("organizationId", q.organizationId);
-  p = add("playerId", q.playerId);
-  p = add("isActive", q.isActive);
-  p = add("sExpired", q.isExpired);
-  p = add("SortBy", q.sortBy);
-  p = add("SortDescending", q.sortDescending);
-  return p;
 }
