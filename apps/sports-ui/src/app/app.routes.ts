@@ -1,6 +1,7 @@
 import { Route } from "@angular/router";
 import { Component } from "@angular/core";
 import { RouterModule } from "@angular/router";
+import { authGuard } from "@sports-ui/auth-data-access";
 
 // Simple error components
 @Component({
@@ -41,7 +42,7 @@ export const appRoutes: Route[] = [
   // Main app shell with layout (protected routes)
   {
     path: "",
-    canActivate: [],
+    canActivate: [authGuard],
     loadComponent: () =>
       import("./shell/shell.component").then((m) => m.ShellComponent),
     children: [

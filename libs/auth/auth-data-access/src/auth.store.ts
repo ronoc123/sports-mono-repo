@@ -20,6 +20,16 @@ function readStorage(remember: boolean): AuthState | null {
     return null;
   }
 }
+
+function writeStorage(state: AuthState) {
+  try {
+    const store = localStorage;
+    store.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore storage errors */
+  }
+}
+
 function clearStorage() {
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -31,9 +41,15 @@ function clearStorage() {
   } catch {}
 }
 
+function loadInitialState(): AuthState {
+  const fromLocal = readStorage(true);
+  const fromSession = readStorage(false);
+  return fromLocal ?? fromSession ?? initialAuthState;
+}
+
 /* ---------- the store ---------- */
 export const AuthStore = signalStore(
-  withState<AuthState>(initialAuthState),
+  withState<AuthState>(loadInitialState()),
   withComputed((state) => ({
     isExpired: computed(() => {
       const exp = state.tokens()?.expiresAt;
@@ -76,7 +92,9 @@ export const AuthStore = signalStore(
         authenticating: false,
         error: null,
       };
+
       patchState(store, next);
+      writeStorage(next);
     },
 
     /** Clear session but keep rememberMe preference */

@@ -1,0 +1,36 @@
+<div class="organization-selector">
+  <button class="organization-dropdown-trigger" (click)="toggleDropdown()">
+    <div class="selected-org">
+      <img
+        class="org-logo"
+        [src]="'assets/' + selectedOrg()?.logoUrl"
+        [alt]="selectedOrg()?.name"
+      />
+      <span class="org-name">{{ selectedOrg()?.name }}</span>
+    </div>
+
+    <span class="expand-icon" [class.open]="dropdownOpen()">▼</span>
+  </button>
+
+  <div class="organization-dropdown" *ngIf="dropdownOpen()">
+    <div class="dropdown-header">Select an Organization</div>
+
+    <div class="dropdown-content organizations-list">
+      <button
+        class="dropdown-item"
+        *ngFor="let org of organizations()"
+        (click)="chooseOrg(org)"
+      >
+        <img
+          class="org-logo-option"
+          [src]="'assets/' + org.logoUrl"
+          [alt]="'logo'"
+        />
+        <div class="org-info">
+          <span class="org-name">{{ org.name }}</span>
+          <span class="org-details">{{ org.sport }} • {{ org.location }}</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>

@@ -11,6 +11,7 @@ import { MatSidenav } from "@angular/material/sidenav";
 import { Router } from "@angular/router";
 
 import { LayoutConfig } from "./main-layout.component";
+import { AuthFacade } from "@sports-ui/auth-data-access";
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -35,8 +36,8 @@ export class NavbarComponent {
   // Inputs
   readonly config = input.required<LayoutConfig>();
   readonly drawer = input.required<MatSidenav>();
-  readonly currentUser = input<any>(null);
-
+  protected authFacade = inject(AuthFacade);
+  currentUser = this.authFacade.user;
   // Navigation methods
   navigateToProfile() {
     this.router.navigate(["/profile"]);
@@ -51,8 +52,7 @@ export class NavbarComponent {
   }
 
   logout() {
-    // This should be handled by the parent component or auth service
-    console.log("Logout requested");
+    this.authFacade.logout();
   }
 
   // Toggle sidebar

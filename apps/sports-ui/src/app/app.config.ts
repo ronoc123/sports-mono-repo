@@ -15,6 +15,7 @@ import {
 import { GOOGLE_CLIENT_ID } from "@sports-ui/feature-auth";
 import { AuthStore } from "@sports-ui/auth-data-access";
 import { PlayerOptionStore } from "@sports-ui/player-options-data-access";
+import { OrganizationStore } from "@sports-ui/organization-data-access";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     AuthStore,
     PlayerOptionStore,
+    OrganizationStore,
     { provide: APP_ENVIRONMENT, useValue: environment },
     { provide: API_URL, useValue: environment.apiUrl },
     { provide: GOOGLE_CLIENT_ID, useValue: environment.googleClientId },

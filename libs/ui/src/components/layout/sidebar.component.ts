@@ -21,7 +21,12 @@ import { NavigationEnd, Router } from "@angular/router";
 import { filter } from "rxjs";
 
 import { NavItem } from "./main-layout.component";
-import { AuthStore } from "@sports-ui/auth-data-access";
+import { AuthFacade, AuthStore } from "@sports-ui/auth-data-access";
+import {
+  OrganizationFeatureService,
+  OrganizationStore,
+} from "@sports-ui/organization-data-access";
+import { OrganizationBadgeComponent } from "../organization-badge/organization-badge";
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -37,16 +42,18 @@ import { AuthStore } from "@sports-ui/auth-data-access";
     MatDividerModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    OrganizationBadgeComponent,
   ],
   templateUrl: "./sidebar.component.html",
   styleUrl: "./sidebar.component.css",
 })
 export class SidebarComponent {
   readonly router = inject(Router);
-  protected userStore = inject(AuthStore);
+  protected authFacade = inject(AuthFacade);
+  protected organizationService = inject(OrganizationFeatureService);
   // Inputs
   readonly navItems = input.required<NavItem[]>();
-  currentUser = computed(() => this.userStore.user());
+  currentUser = this.authFacade.user;
 
   // Tree control
   treeControl = new NestedTreeControl<NavItem>((node) => node.children);
@@ -71,6 +78,11 @@ export class SidebarComponent {
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => this.currentRoute.set(e.urlAfterRedirects));
   }
+
+  ngOnInit() {
+    this.organizationService.loadOrganizations();
+  }
+
   // Navigation methods
   navigateTo(route?: string) {
     if (route) {

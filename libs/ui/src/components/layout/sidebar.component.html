@@ -1,14 +1,12 @@
 <!-- Sidebar Wrapper -->
 <div class="sidebar-container">
   <!-- Organization Selector -->
-  <div class="organization-selector">
-    <button class="organization-dropdown-trigger">
-      <div class="selected-org">
-        <img src="assets/rams-logo.png" [alt]="'test'" class="org-logo" />
-        <span class="org-name">Rams</span>
-      </div>
-    </button>
-  </div>
+  <lib-organization-badge
+    [organizations]="organizationService.organizations()"
+    [selectedOrg]="organizationService.selectedOrganization()"
+    (selectOrganization)="organizationService.selectOrganization($event)"
+  >
+  </lib-organization-badge>
 
   <!-- User Info Section -->
   <div class="user-info-section">
@@ -54,7 +52,6 @@
               }}
             </mat-icon>
           </button>
-
           <button
             mat-button
             (click)="navigateTo(node.route)"

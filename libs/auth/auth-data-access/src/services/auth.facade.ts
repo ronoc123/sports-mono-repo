@@ -10,7 +10,6 @@ export class AuthFacade {
   private store = inject(AuthStore);
   private api = inject(AuthApi);
   readonly router = inject(Router);
-  // expose store signals
   readonly user = this.store.user;
   readonly loggedIn = this.store.loggedIn;
   readonly authenticating = this.store.authenticating;
@@ -21,6 +20,7 @@ export class AuthFacade {
   }
   logout() {
     this.store.logout();
+    this.router.navigate(["/login"]);
   }
 
   async signInWithGoogle(googleToken: string) {
@@ -28,10 +28,7 @@ export class AuthFacade {
     this.store.setError(null);
 
     try {
-      // Decide which shape your AuthApi returns:
-      // A) direct payload: AuthResponse
       const res = await firstValueFrom(this.api.loginWithGoogle(googleToken));
-      // If your API returns ServiceResponse<AuthResponse>, narrow here:
       const { user, accessToken, refreshToken, expiresAt } = res;
 
       this.store.loginSuccess(user, {

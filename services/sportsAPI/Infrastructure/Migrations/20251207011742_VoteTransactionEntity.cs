@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate1 : Migration
+    public partial class VoteTransactionEntity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -113,6 +113,26 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RewardItems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrganizationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VoteValue = table.Column<long>(type: "bigint", nullable: false),
+                    QrCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RedeemedBy = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    RedeemedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RewardItems", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Themes",
                 columns: table => new
                 {
@@ -138,10 +158,10 @@ namespace Infrastructure.Migrations
                 {
                     OrgId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    balance = table.Column<long>(type: "bigint", nullable: false),
-                    version = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "SYSUTCDATETIME()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "SYSUTCDATETIME()"),
+                    Balance = table.Column<long>(type: "bigint", nullable: false),
+                    Version = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastModified = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LastModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -149,7 +169,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VoteAccounts", x => new { x.OrgId, x.UserId });
-                    table.CheckConstraint("ck_vote_accounts_balance_nonneg", "[balance] >= 0");
                 });
 
             migrationBuilder.CreateTable(
@@ -162,19 +181,27 @@ namespace Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Amount = table.Column<long>(type: "bigint", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RefId = table.Column<long>(type: "bigint", nullable: true),
+                    RefId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerOptionId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    SpendId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
-                    Choice = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false, defaultValueSql: "SYSUTCDATETIME()")
+                    SpendId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    VoteAccountOrgId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    VoteAccountUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VoteTransactions", x => x.Id);
-                    table.CheckConstraint("ck_vt_amount_nonzero", "[amount] <> 0");
-                    table.CheckConstraint("ck_vt_reason_amount_sign", "([reason] = 'vote_spend' AND [amount] < 0) OR ([reason] <> 'vote_spend' AND [amount] > 0)");
-                    table.CheckConstraint("ck_vt_vote_spend_requires_fields", "([reason] <> 'vote_spend') OR ([playerOptionId] IS NOT NULL AND [spendId] IS NOT NULL)");
+                    table.ForeignKey(
+                        name: "FK_VoteTransactions_VoteAccounts_VoteAccountOrgId_VoteAccountUserId",
+                        columns: x => new { x.VoteAccountOrgId, x.VoteAccountUserId },
+                        principalTable: "VoteAccounts",
+                        principalColumns: new[] { "OrgId", "UserId" });
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VoteTransactions_VoteAccountOrgId_VoteAccountUserId",
+                table: "VoteTransactions",
+                columns: new[] { "VoteAccountOrgId", "VoteAccountUserId" });
         }
 
         /// <inheritdoc />
@@ -193,13 +220,16 @@ namespace Infrastructure.Migrations
                 name: "Players");
 
             migrationBuilder.DropTable(
+                name: "RewardItems");
+
+            migrationBuilder.DropTable(
                 name: "Themes");
 
             migrationBuilder.DropTable(
-                name: "VoteAccounts");
+                name: "VoteTransactions");
 
             migrationBuilder.DropTable(
-                name: "VoteTransactions");
+                name: "VoteAccounts");
         }
     }
 }

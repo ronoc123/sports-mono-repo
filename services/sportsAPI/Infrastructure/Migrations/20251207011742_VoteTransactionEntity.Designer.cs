@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SportsDbAppContext))]
-    [Migration("20251205232506_VoteTransactionEntity")]
+    [Migration("20251207011742_VoteTransactionEntity")]
     partial class VoteTransactionEntity
     {
         /// <inheritdoc />
@@ -291,7 +291,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SpendId")
@@ -322,13 +321,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Balance")
-                        .HasColumnType("bigint")
-                        .HasColumnName("balance");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -340,21 +336,15 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("Version")
                         .IsConcurrencyToken()
-                        .HasColumnType("bigint")
-                        .HasColumnName("version");
+                        .HasColumnType("bigint");
 
                     b.HasKey("OrgId", "UserId");
 
-                    b.ToTable("VoteAccounts", t =>
-                        {
-                            t.HasCheckConstraint("ck_vote_accounts_balance_nonneg", "[balance] >= 0");
-                        });
+                    b.ToTable("VoteAccounts");
                 });
 
             modelBuilder.Entity("Domain.Organizations.Organization", b =>

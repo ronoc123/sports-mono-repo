@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace sportsAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class OrgController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -28,7 +28,7 @@ namespace sportsAPI.Controllers
         [HttpGet("GetAllOrganization")]
         public async Task<ServiceResponse<PaginatedList<OrganizationDto>>> GetAllOrganizations(
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
+            [FromQuery] int pageSize = 50,
             [FromQuery] string? searchTerm = null,
             [FromQuery] Guid? leagueId = null,
             [FromQuery] string? sport = null,
