@@ -24,7 +24,6 @@
     <Folder Include="Events\Player\" />
     <Folder Include="Events\Organization\" />
     <Folder Include="Votes\Commands\" />
-    <Folder Include="Votes\Queries\" />
   </ItemGroup>
 
 </Project>

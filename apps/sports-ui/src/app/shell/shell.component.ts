@@ -54,7 +54,7 @@ export class ShellComponent {
   navItems: NavItem[] = [
     { name: "Dashboard", icon: "dashboard", route: "/" },
     { name: "Player Options", icon: "how_to_vote", route: "/player-option" },
-    { name: "Active Roster", icon: "people_alt", route: "/active-roaster" },
+    { name: "Active Raoster", icon: "people_alt", route: "/active-roaster" },
     { name: "Redeem Codes", icon: "redeem", route: "/redeem" },
     // {
     //   name: "Management",

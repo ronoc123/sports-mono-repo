@@ -30,7 +30,8 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
         builder.Property(x => x.UpdatedAt).HasColumnType("datetime2");
 
         builder.Navigation(x => x.Transactions)
-            .UsePropertyAccessMode(PropertyAccessMode.Field);
+            .UsePropertyAccessMode(PropertyAccessMode.Field)
+            .AutoInclude();
 
   }
 }

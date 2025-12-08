@@ -55,9 +55,9 @@ export class ShellComponent {
       icon: "people",
       children: [
         {
-          name: "Active Roster",
+          name: "Active Roaster",
           icon: "people_alt",
-          route: "/players/roster",
+          route: "/players/roaster",
         },
         {
           name: "Player Options",

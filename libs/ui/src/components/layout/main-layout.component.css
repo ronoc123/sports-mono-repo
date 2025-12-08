@@ -9,13 +9,15 @@
   display: flex;
 }
 
+/* SIDENAV REGION */
 .sidenav {
-  background-color: #fafafa;
-  border-right: 1px solid #e0e0e0;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  min-width: 280px;
+  background-color: #181818; /* Deep dark */
+  border-right: 1px solid #222; /* Soft dark border */
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.4);
+  min-width: 350px;
 }
 
+/* MAIN CONTENT */
 .main-content {
   display: flex;
   flex-direction: column;
@@ -23,24 +25,22 @@
   overflow: hidden;
 }
 
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* NAVBAR is already dark in your other file */
 
+/* PAGE CONTENT AREA */
 .page-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #f5f5f5;
-  min-height: 0; /* Important for flex scrolling */
+  background-color: #1a1a1a; /* Slightly lighter dark background */
+  min-height: 0;
   padding: 24px;
+  color: #e5e5e5; /* Default readable text */
 }
 
+/* FOOTER */
 .footer {
-  background-color: #fff;
-  border-top: 1px solid #e0e0e0;
+  background-color: #1e1e1e;
+  border-top: 1px solid #222;
   padding: 16px 24px;
   margin-top: auto;
 }
@@ -53,11 +53,11 @@
 
 .footer-content p {
   margin: 0;
-  color: #666;
+  color: #999;
   font-size: 14px;
 }
 
-/* Responsive adjustments */
+/* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   .page-content {
     padding: 16px;
@@ -74,20 +74,21 @@
   }
 }
 
-/* Dark theme support */
+/* DARK THEME OVERRIDE (NOW MATCHES YOUR DARK PALETTE) */
 .dark-theme {
   .sidenav {
-    background-color: #303030;
-    border-right-color: #424242;
+    background-color: #181818;
+    border-right-color: #222;
   }
 
   .page-content {
-    background-color: #121212;
+    background-color: #101010;
+    color: #e5e5e5;
   }
 
   .footer {
     background-color: #1e1e1e;
-    border-top-color: #424242;
+    border-top-color: #222;
   }
 
   .footer-content p {
@@ -95,7 +96,7 @@
   }
 }
 
-/* High contrast theme support */
+/* HIGH CONTRAST (unchanged) */
 .high-contrast-theme {
   .sidenav {
     border-right: 2px solid #000;

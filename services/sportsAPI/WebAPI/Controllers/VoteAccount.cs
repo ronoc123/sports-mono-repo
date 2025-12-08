@@ -1,7 +1,12 @@
 using Application.Dto.VoteAccount;
 using Application.Organizations.Queries.GetOrganizationDetails;
+using Application.PlayerOptions.Queries.GetAllPlayerOptions;
+using Application.Votes.Queries.GetVoteAccount;
 using Contracts.Contracts;
+using Domain.ValueObjects.ConcreteTypes;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -11,13 +16,11 @@ namespace WebAPI.Controllers
   [ApiController]
   public class VoteAccount : ControllerBase
   {
-    // GET: api/<VoteAccount>
-    [HttpGet]
-    public IEnumerable<string> Get()
+    private readonly IMediator _mediator;
+    public VoteAccount(IMediator meduator)
     {
-      return new string[] { "value1", "value2" };
+        _mediator = meduator;
     }
-
     // GET api/<VoteAccount>/5
     [HttpGet("get-vote-account/{userId}")]
     public async Task<ServiceResponse<VoteAccountDto>> GetAll([FromQuery] Guid userId)
@@ -26,9 +29,12 @@ namespace WebAPI.Controllers
     }
 
     [HttpGet("get-vote-account/{userId}/organization/{organizationId}")]
-    public async Task<ServiceResponse<VoteAccountDto>> Get([FromQuery] Guid userId, [FromQuery] Guid organizationId)
+    public async Task<ServiceResponse<VoteAccountDto>> Get( Guid userId, Guid organizationId)
     {
-      return null;
+      var query = new GetVoteAccountQuery(UserId.Of(userId), OrganizationId.Of(organizationId));
+
+      var result = await _mediator.Send(query);
+      return result;
     }
 
     // POST api/<VoteAccount>

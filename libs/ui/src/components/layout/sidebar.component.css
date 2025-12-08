@@ -1,17 +1,15 @@
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  background-color: #fafafa;
-  overflow: hidden;
-  border-right: 1px solid #e0e0e0;
-  width: 280px;
+  background-color: #181818; /* Dark base */
+  border-right: 1px solid #222;
+  color: white;
 }
-
 /* Organization Selector */
 .organization-selector {
   padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: white;
+  border-bottom: 1px solid #222;
+  background-color: #1e1e1e; /* Slightly lighter dark */
 }
 
 .selector-header {
@@ -19,7 +17,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
-  color: #666;
+  color: #bbb; /* soft gray */
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -32,16 +30,17 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #333;
   border-radius: 8px;
-  background-color: white;
+  background-color: #181818;
+  color: #e5e5e5;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .organization-dropdown-trigger:hover {
-  border-color: #2196f3;
-  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+  border-color: #4aa8ff;
+  box-shadow: 0 2px 4px rgba(74, 168, 255, 0.2);
 }
 
 .selected-org {
@@ -55,19 +54,19 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #333;
 }
 
 .org-name {
   font-weight: 500;
-  color: #333;
+  color: #eee;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .expand-icon {
-  color: #666;
+  color: #bbb;
   transition: transform 0.2s ease;
 }
 
@@ -76,10 +75,10 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: #1e1e1e;
+  border: 1px solid #333;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 1000;
   max-height: 300px;
   overflow: hidden;
@@ -91,10 +90,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
+  border-bottom: 1px solid #333;
+  background-color: #181818;
   font-weight: 600;
-  color: #333;
+  color: #e5e5e5;
 }
 
 .dropdown-content {
@@ -108,7 +107,7 @@
   justify-content: center;
   gap: 12px;
   padding: 24px;
-  color: #666;
+  color: #aaa;
 }
 
 .organizations-list {
@@ -120,7 +119,7 @@
   height: 28px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #333;
 }
 
 .org-info {
@@ -131,13 +130,13 @@
 
 .org-info .org-name {
   font-weight: 500;
-  color: #333;
+  color: #e5e5e5;
   margin-bottom: 2px;
 }
 
 .org-details {
   font-size: 12px;
-  color: #666;
+  color: #999;
 }
 
 .empty-state {
@@ -146,14 +145,12 @@
   align-items: center;
   gap: 8px;
   padding: 24px;
-  color: #999;
+  color: #777;
   text-align: center;
 }
 
 .empty-state mat-icon {
   font-size: 32px;
-  width: 32px;
-  height: 32px;
 }
 
 /* User Info Section */
@@ -162,15 +159,15 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background-color: white;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #222;
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #2196f3;
+  background-color: #4aa8ff;
   color: white;
   display: flex;
   align-items: center;
@@ -187,13 +184,13 @@
 
 .user-name {
   font-weight: 600;
-  color: #333;
+  color: #e5e5e5;
   font-size: 14px;
 }
 
 .user-email {
   font-size: 12px;
-  color: #666;
+  color: #aaa;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -205,9 +202,9 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background-color: white;
-  border-bottom: 1px solid #e0e0e0;
-  color: #666;
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #222;
+  color: #ccc;
 }
 
 /* Navigation Menu */
@@ -215,10 +212,6 @@
   flex: 1;
   overflow-y: auto;
   padding: 8px;
-}
-
-.nav-tree {
-  padding: 0;
 }
 
 .nav-item {
@@ -229,21 +222,19 @@
   padding: 12px 16px;
   margin: 2px 0;
   border-radius: 8px;
-  text-align: left;
   font-size: 14px;
   font-weight: 500;
-  color: #555;
+  color: #bbb;
   transition: all 0.2s ease;
-  text-transform: none;
 }
 
 .nav-item:hover {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #222;
+  color: #fff;
 }
 
 .nav-item.active-route {
-  background-color: #2196f3;
+  background-color: #4aa8ff; /* Blue highlight */
   color: white;
 }
 
@@ -256,39 +247,13 @@
   font-size: 20px;
   width: 20px;
   height: 20px;
-  color: #666;
-}
-
-.nav-text {
-  flex: 1;
-}
-
-.expandable-node {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.toggle-button {
-  margin-right: 4px;
-  color: #666;
-}
-
-.toggle-icon {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
-.nav-item.expandable {
-  flex: 1;
-  margin-left: 0;
+  color: #888;
 }
 
 /* Quick Actions */
 .quick-actions {
   padding: 16px;
-  background-color: white;
+  background-color: #1e1e1e;
 }
 
 .actions-header {
@@ -296,7 +261,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
-  color: #666;
+  color: #bbb;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -307,28 +272,25 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   gap: 12px;
   padding: 12px 16px;
   margin: 4px 0;
   border-radius: 8px;
-  text-align: left;
   font-size: 14px;
-  color: #555;
+  color: #ccc;
   transition: all 0.2s ease;
-  text-transform: none;
 }
 
 .action-button:hover {
-  background-color: #f5f5f5;
-  color: #2196f3;
+  background-color: #222;
+  color: #4aa8ff;
 }
 
 /* Footer */
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid #e0e0e0;
-  background-color: white;
+  border-top: 1px solid #222;
+  background-color: #1e1e1e;
 }
 
 .app-info {
@@ -338,66 +300,17 @@
 }
 
 .footer-icon {
-  color: #2196f3;
+  color: #4aa8ff;
   font-size: 24px;
-  width: 24px;
-  height: 24px;
-}
-
-.app-details {
-  display: flex;
-  flex-direction: column;
 }
 
 .app-name {
   font-weight: 600;
-  color: #333;
+  color: #e5e5e5;
   font-size: 14px;
 }
 
 .app-version {
   font-size: 12px;
-  color: #666;
-}
-
-/* Animations */
-@keyframes dropdown-slide {
-  from {
-    transform: translateY(-8px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Global Sidebar Overrides */
-::ng-deep mat-sidenav {
-  border-right: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-::ng-deep .mat-tree-node {
-  min-height: auto !important;
-}
-
-::ng-deep .mat-tree {
-  background: transparent !important;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .sidebar-container {
-    width: 260px;
-  }
-
-  .user-email {
-    display: none;
-  }
-
-  .org-details {
-    display: none;
-  }
+  color: #aaa;
 }

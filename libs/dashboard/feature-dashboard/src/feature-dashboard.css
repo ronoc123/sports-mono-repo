@@ -51,7 +51,6 @@ h2 {
   margin: 0 0 16px 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #333;
 }
 
 /* Stats Section */
@@ -64,12 +63,13 @@ h2 {
 .stat-card {
   width: 100%;
   max-width: 520px;
-  background: #ffffff;
+  background: #111; /* match player-card background */
   border-radius: 18px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #222; /* match card border */
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* match card shadow */
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  color: white;
 }
 
 .stat-card:hover {
@@ -103,7 +103,7 @@ h2 {
   margin: 0 0 8px 0;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #666;
+
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -111,13 +111,11 @@ h2 {
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #333;
   margin-bottom: 4px;
 }
 
 .stat-subtitle {
   font-size: 0.85rem;
-  color: #666;
 }
 
 .stat-action {
@@ -164,15 +162,15 @@ h2 {
 .action-card {
   width: 100%;
   max-width: 520px;
-  background: #ffffff;
+  background: #111; /* match player-card background */
   border-radius: 18px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #222; /* match card border */
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* match card shadow */
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.action-card:hover {
+.s .action-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
