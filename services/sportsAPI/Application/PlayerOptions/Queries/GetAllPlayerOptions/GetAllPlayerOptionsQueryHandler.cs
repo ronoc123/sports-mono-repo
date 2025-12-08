@@ -1,15 +1,18 @@
 
 using Application.Common.Models;
 using Application.Dto.Organization;
+using Application.Dto.Player;
 using Application.Dto.PlayerOption;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Contracts.Contracts;
 using Contracts.Responses;
+using Domain.Player;
 using Domain.PlayerOption;
 using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading;
@@ -34,7 +37,9 @@ namespace Application.PlayerOptions.Queries.GetAllPlayerOptions
     {
         var now = DateTime.UtcNow;
 
-        var query = _repo.Query<PlayerOption>();
+      var query = _repo.Query<PlayerOption>();
+
+
 
         // Filters
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -79,17 +84,29 @@ namespace Application.PlayerOptions.Queries.GetAllPlayerOptions
           _ => query.OrderByDescending(po => po.CreatedAt)
         };
 
-      var dtoQuery = query.ProjectTo<PlayerOptionDto>(_mapper.ConfigurationProvider);
-      // Projection
+          var dtoQuery = query.ProjectTo<PlayerOptionDto>(_mapper.ConfigurationProvider);
+          var list = await dtoQuery.ToListAsync(cancellationToken);
 
 
-        // Pagination
-        var paginated = await PaginatedListFactory.CreateAsync(
-            dtoQuery,
-            request.PageNumber,
-            request.PageSize);
+          foreach (var po in list)
+          {
+            var player = await _repo.GetByIdAsync<Player, PlayerId>(
+                PlayerId.Of(po.PlayerId),
+                cancellationToken);
 
-        return ServiceResponse.Ok(paginated, "Player options retrieved.");
+            if (player != null)
+              po.Player = _mapper.Map<PlayerDto>(player);
+          }
+
+
+          // Pagination
+          var paginated = PaginatedListFactory.Create(
+              list,
+              request.PageNumber,
+              request.PageSize);
+
+
+          return ServiceResponse.Ok(paginated, "Player options retrieved.");
 
       }
   }

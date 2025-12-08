@@ -21,6 +21,7 @@ public interface IRepository
   IQueryable<TAgg> Query<TAgg>(bool asNoTracking = true)
       where TAgg : class;
 
+
   Task<IReadOnlyList<TAgg>> ListAsync<TAgg>(
       Expression<Func<TAgg, bool>>? filter = null,
       Func<IQueryable<TAgg>, IOrderedQueryable<TAgg>>? orderBy = null,

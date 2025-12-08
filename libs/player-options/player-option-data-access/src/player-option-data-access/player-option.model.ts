@@ -1,3 +1,6 @@
+import { Player } from "@sports-ui/api-types";
+import { PlayerDto } from "@sports-ui/organization-data-access";
+
 export interface PlayerOptionDto {
   id: string;
   title: string;
@@ -10,6 +13,7 @@ export interface PlayerOptionDto {
   isPopular: boolean;
   isTrending: boolean;
   daysRemaining: number;
+  player: PlayerDto;
 }
 
 export interface GetAllPlayerOptionsQuery {

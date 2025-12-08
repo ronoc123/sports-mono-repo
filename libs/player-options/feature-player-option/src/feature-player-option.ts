@@ -27,14 +27,14 @@ import { PlayerOptionFeatureService } from "@sports-ui/player-options-data-acces
 })
 export class FeaturePlayerOption implements OnInit {
   feature = inject(PlayerOptionFeatureService);
-
+  organization = this.feature.selectedOrganization;
   options = this.feature.options;
   loading = this.feature.status;
   error = this.feature.error;
 
   ngOnInit() {
     this.feature.loadPlayerOptions({
-      organizationId: "CDC010B6-464B-4895-9E4F-83F43335BF9C",
+      organizationId: this.organization()?.id ?? "",
     });
   }
 }

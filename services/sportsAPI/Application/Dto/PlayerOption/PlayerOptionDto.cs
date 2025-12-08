@@ -1,3 +1,4 @@
+using Application.Dto.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,7 @@ namespace Application.Dto.PlayerOption
     public bool IsPopular { get; set; }
     public bool IsTrending { get; set; }
     public int DaysRemaining { get; set; }
+
+    public PlayerDto Player { get; set; }
   }
 }

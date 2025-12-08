@@ -38,6 +38,7 @@ public sealed class Repository : IRepository
           ? _db.Set<TAgg>().AsNoTracking()
           : _db.Set<TAgg>();
 
+
   public async Task<IReadOnlyList<TAgg>> ListAsync<TAgg>(
       Expression<Func<TAgg, bool>>? filter = null,
       Func<IQueryable<TAgg>, IOrderedQueryable<TAgg>>? orderBy = null,

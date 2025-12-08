@@ -1,5 +1,5 @@
 import { patchState, signalStore, withMethods, withState } from "@ngrx/signals";
-import { OrganizationDto, OrganizationDetailsDto } from "./organization.model";
+import { OrganizationDto } from "./organization.model";
 
 type Status = "idle" | "loading" | "error" | "success";
 

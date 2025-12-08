@@ -79,16 +79,11 @@ public class GetAllPlayersQueryHandler : IRequestHandler<GetAllPlayersQuery, Ser
           Position = p.Position,
           ImageUrl = p.ImageUrl,
           Age = p.Age,
-          UpdatedAt = p.UpdatedAt,
           LeagueId = p.LeagueId.Value,
           OrganizationId = p.OrganizationId != null ? p.OrganizationId.Value : null,
           IsActive = p.Age >= 16 && p.Age <= 50,
           IsVeteran = p.Age >= 35,
           IsYoungPlayer = p.Age <= 23,
-          MarketValue = p.Age <= 20 ? 50000m :
-                         p.Age <= 25 ? 100000m :
-                         p.Age <= 30 ? 80000m :
-                         p.Age <= 35 ? 40000m : 20000m,
         });
 
         // Create paginated result

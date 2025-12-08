@@ -1,1 +1,28 @@
-<div>To be done</div>
+<div class="options-container">
+  <div *ngFor="let po of options()" class="player-card">
+    <div class="player-header">
+      <div class="player-avatar"></div>
+
+      <div class="player-info">
+        <div class="player-name">{{ po.player.name }}</div>
+        <div class="player-sub">{{ po.player.position }}</div>
+        <div class="player-team">Age: {{ po.player.age }}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="votes-section">
+      <div class="votes-left">
+        <div class="votes-number">{{ po.votes }}</div>
+        <div class="votes-label">votes</div>
+      </div>
+      <button class="vote-btn">Vote</button>
+    </div>
+
+    <div class="card-footer">
+      <button class="edit-btn">Edit</button>
+      <button class="remove-btn">Remove</button>
+    </div>
+  </div>
+</div>

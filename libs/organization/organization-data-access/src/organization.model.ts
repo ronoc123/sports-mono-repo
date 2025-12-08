@@ -90,12 +90,16 @@ export interface PlayerOptionDto {
 }
 
 export interface PlayerDto {
-  id: string;
+  id: string; // Guid in C# → string in TS
+  leagueId: string; // Guid
+  organizationId?: string | null; // Nullable Guid → optional string
   name: string;
   position: string;
   imageUrl: string;
-  updatedAt: string;
   age: number;
+  isActive: boolean;
+  isVeteran: boolean;
+  isYoungPlayer: boolean;
 }
 
 export interface ThemeDto {
