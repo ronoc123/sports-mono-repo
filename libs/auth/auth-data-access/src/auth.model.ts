@@ -5,7 +5,14 @@ export interface SessionUser {
   email: string;
   firstName?: string;
   lastName?: string;
-  userName?: string;
+  fullName?: string;
+
+  profilePictureUrl?: string;
+  isGoogleUser?: boolean;
+
+  createdAt?: string;
+  lastLoginAt?: string;
+
   roles?: string[];
   permissions?: string[];
 }

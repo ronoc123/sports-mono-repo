@@ -76,7 +76,7 @@ export const appRoutes: Route[] = [
       {
         path: "profile",
         loadChildren: () =>
-          import("@sports-ui/profile").then((m) => m.profileRoutes),
+          import("@sports-ui/feature-profile").then((m) => m.profileRoutes),
       },
 
       // Organization route (placeholder - redirect to dashboard for now)
@@ -84,20 +84,6 @@ export const appRoutes: Route[] = [
         path: "organization",
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
-      },
-
-      // Theme route (placeholder - redirect to profile for now)
-      {
-        path: "themes",
-        loadChildren: () =>
-          import("@sports-ui/profile").then((m) => m.profileRoutes),
-      },
-
-      // Settings route (placeholder for now)
-      {
-        path: "settings",
-        loadComponent: () =>
-          import("@sports-ui/profile").then((m) => m.Profile),
       },
     ],
   },

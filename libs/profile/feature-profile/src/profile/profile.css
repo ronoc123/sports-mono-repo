@@ -1,0 +1,248 @@
+/***********************
+  GRID LAYOUT
+************************/
+
+.profile-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Desktop layout */
+@media (min-width: 900px) {
+  .profile-container {
+    grid-template-columns: 2fr 1fr;
+    grid-template-areas:
+      "profile votesummary"
+      "transactions transactions";
+  }
+
+  .profile-card.profile {
+    grid-area: profile;
+  }
+
+  .profile-card.vote-summary-card {
+    grid-area: votesummary;
+  }
+
+  .profile-card.vote-transactions-card {
+    grid-area: transactions;
+  }
+}
+
+/***********************
+  CARD BASE STYLES
+************************/
+
+.profile-card {
+  width: 100%;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  color: var(--color-text);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+/***********************
+  PROFILE HEADER
+************************/
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.profile-sub {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.profile-role {
+  font-size: 0.85rem;
+  color: var(--color-tertiary);
+  margin-top: 4px;
+}
+
+/***********************
+  DETAILS
+************************/
+
+.divider {
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-details {
+  padding: 18px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.detail-label {
+  opacity: 0.8;
+}
+
+.detail-value {
+  font-weight: 600;
+}
+
+/***********************
+  FOOTER
+************************/
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--color-secondary);
+  border-top: 1px solid var(--color-border);
+}
+
+.edit-btn,
+.remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.edit-btn {
+  color: var(--color-tertiary);
+}
+
+.edit-btn:hover {
+  color: #74c0ff;
+}
+
+.remove-btn {
+  color: #ff6b6b;
+}
+
+.remove-btn:hover {
+  color: #ff8787;
+}
+
+/***********************
+  VOTE SUMMARY CARD
+************************/
+
+.vote-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.vote-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.vote-balance {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-tertiary);
+}
+
+.vote-details {
+  padding: 16px;
+}
+
+/***********************
+  TRANSACTIONS CARD
+************************/
+
+.transactions-header {
+  padding: 16px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.transaction-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.transaction-item {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-amount {
+  width: 60px;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.transaction-amount.positive {
+  color: #2ecc71;
+}
+
+.transaction-amount.negative {
+  color: #e74c3c;
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.transaction-reason {
+  font-weight: 600;
+}
+
+.transaction-date {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.transaction-meta {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
