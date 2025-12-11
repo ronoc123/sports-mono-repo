@@ -31,6 +31,7 @@
         "libs/dashboard/feature-dashboard/src/index.ts"
       ],
       "@sports-ui/feature-error": ["libs/error/src/index.ts"],
+      "@sports-ui/feature-layout": ["libs/layout/feature-layout/src/index.ts"],
       "@sports-ui/feature-organization": [
         "libs/organization/feature-organization/src/index.ts"
       ],

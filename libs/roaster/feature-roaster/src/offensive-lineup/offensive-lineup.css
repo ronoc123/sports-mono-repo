@@ -5,6 +5,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
+  color: black;
 }
 
 .row {

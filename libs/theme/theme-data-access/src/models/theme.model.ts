@@ -1,8 +1,5 @@
-
 export interface ThemeConfig {
-  primaryColor: string;
-  accentColor: string;
-  backgroundColor: string;
-  textColor: string;
-  [key: string]: string;
+  colorPrimary: string;
+  colorSecondary: string;
+  colorTertiary: string;
 }

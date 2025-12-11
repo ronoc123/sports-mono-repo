@@ -2,23 +2,25 @@
 <div class="sidebar-container">
   <!-- Organization Selector -->
   <lib-organization-badge
-    [organizations]="organizationService.organizations()"
-    [selectedOrg]="organizationService.selectedOrganization()"
-    (selectOrganization)="organizationService.selectOrganization($event)"
+    [organizations]="organizations()"
+    [selectedOrg]="selectedOrganization()"
+    (selectOrganization)="onOrgSelected.emit($event)"
   >
   </lib-organization-badge>
 
-  <!-- User Info Section -->
-  <div class="user-info-section">
+  <!-- User Info Section (UI only, no service access) -->
+  <div class="user-info-section" *ngIf="selectedOrganization()">
     <div class="user-avatar">
-      {{ (currentUser()?.firstName || "U").substring(0, 1).toUpperCase() }}
+      {{ (selectedOrganization()?.name || "U").substring(0, 1).toUpperCase() }}
     </div>
     <div class="user-details">
-      <span class="user-name">{{ currentUser()?.firstName || "User" }}</span>
-      <span class="user-email">{{ currentUser()?.email }}</span>
+      <span class="user-name">{{ selectedOrganization()?.name }}</span>
+      <span class="user-email">{{ selectedOrganization()?.email }}</span>
     </div>
   </div>
+
   <mat-divider></mat-divider>
+
   <!-- Navigation Menu -->
   <div class="navigation-menu">
     <mat-tree
@@ -33,15 +35,14 @@
       >
         <button
           mat-button
-          (click)="navigateTo(node.route)"
-          [class.active-route]="isSelected(node.route)"
+          (click)="onNavSelected.emit(node)"
+          [class.active-route]="currentRoute() === node.route"
           class="nav-item"
         >
           <mat-icon class="nav-icon">{{ node.icon }}</mat-icon>
           <span class="nav-text">{{ node.name }}</span>
         </button>
       </mat-tree-node>
-
       <!-- Expandable node -->
       <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
         <div class="expandable-node">
@@ -54,19 +55,19 @@
           </button>
           <button
             mat-button
-            (click)="navigateTo(node.route)"
-            [class.active-route]="isSelected(node.route)"
+            (click)="onNavSelected.emit(node)"
+            [class.active-route]="currentRoute() === node.route"
             class="nav-item expandable"
           >
-            <mat-icon *ngIf="node.icon" class="nav-icon">{{
-              node.icon
-            }}</mat-icon>
+            <mat-icon *ngIf="node.icon" class="nav-icon">
+              {{ node.icon }}
+            </mat-icon>
             <span class="nav-text">{{ node.name }}</span>
           </button>
         </div>
 
         <!-- Children -->
-        <div [class.child-container]="true">
+        <div class="child-container">
           <ng-container matTreeNodeOutlet></ng-container>
         </div>
       </mat-nested-tree-node>
@@ -79,7 +80,6 @@
       <mat-icon class="footer-icon">sports</mat-icon>
       <div class="app-details">
         <span class="app-name">Sportify</span>
-        <!-- <span class="app-version">v1.0.0</span> -->
       </div>
     </div>
   </div>

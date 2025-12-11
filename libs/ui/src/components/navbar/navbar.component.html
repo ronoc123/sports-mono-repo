@@ -1,51 +1,45 @@
 <mat-toolbar class="navbar">
   <div class="navbar-left">
-    <!-- Hamburger Icon -->
     <div class="sidebar-footer">
       <div class="app-info">
         <mat-icon class="footer-icon">sports</mat-icon>
       </div>
     </div>
-    <button mat-icon-button (click)="toggleSidebar()" class="menu-button">
-      <mat-icon>menus</mat-icon>
+
+    <!-- Sidebar Toggle -->
+    <button mat-icon-button (click)="toggleNavBar.emit()" class="menu-button">
+      <mat-icon>menu</mat-icon>
     </button>
   </div>
+
   <div class="navbar-right">
     <!-- User Menu -->
-    <div class="user-section">
-      <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+    <div class="user-section" *ngIf="user()">
+      <!-- <button mat-button [matMenuTriggerFor]="userMenu" class="user-button"> -->
+      <button mat-button class="user-button">
         <div class="user-info-section">
           <div class="user-avatar">
-            {{
-              (currentUser()?.firstName || "U").substring(0, 1).toUpperCase()
-            }}
+            {{ (user()?.firstName || "U").substring(0, 1).toUpperCase() }}
           </div>
         </div>
         <mat-icon>arrow_drop_down</mat-icon>
       </button>
       <mat-menu #userMenu="matMenu" class="user-menu">
         <mat-divider></mat-divider>
-        <button mat-menu-item (click)="navigateToProfile()">
+        <button mat-menu-item (click)="openProfile.emit()">
           <mat-icon>person</mat-icon>
           <span>Profile</span>
         </button>
-        <button mat-menu-item (click)="navigateToSettings()">
+        <button mat-menu-item (click)="openSettings.emit()">
           <mat-icon>settings</mat-icon>
           <span>Settings</span>
         </button>
         <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout()" class="logout-item">
+        <button mat-menu-item (click)="logout.emit()" class="logout-item">
           <mat-icon>logout</mat-icon>
           <span>Logout</span>
         </button>
       </mat-menu>
     </div>
-    <!-- Login Button (when not authenticated) -->
-    <ng-template #loginButton>
-      <button mat-raised-button color="primary" class="login-button">
-        <mat-icon>login</mat-icon>
-        Login
-      </button>
-    </ng-template>
   </div>
 </mat-toolbar>

@@ -1,0 +1,29 @@
+/* Whole page container */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Sidebar + content container */
+.layout-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar fixed on left */
+.sidebar {
+  width: 275px;
+  background: #181818;
+  border-right: 1px solid #222;
+  overflow-y: auto;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #121212;
+  color: white;
+}

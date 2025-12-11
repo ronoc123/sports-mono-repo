@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
 
-@Injectable({ providedIn: 'root' })
-export class ThemeService { 
+@Injectable({ providedIn: "root" })
+export class ThemeService {
   applyTheme(themeVars: { [key: string]: string }) {
     const root = document.documentElement;
 

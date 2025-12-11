@@ -6,6 +6,6 @@ export * from "./components/code-redemption/code-redemption";
 export * from "./components/voting-panel/voting-panel";
 
 // Layout components
-export * from "./components/layout/main-layout.component";
-export * from "./components/layout/sidebar.component";
-export * from "./components/layout/navbar.component";
+
+export * from "./components/navbar/navbar.component";
+export * from "./components/sidebar/sidebar.component";

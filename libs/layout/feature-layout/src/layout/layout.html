@@ -1,0 +1,26 @@
+<lib-ui-navbar
+  class="navbar"
+  [config]="layoutConfig"
+  [user]="user()"
+  (toggleNavBar)="onToggleSidebar()"
+  (logout)="onLogout()"
+  (openProfile)="onOpenProfile()"
+  (openSettings)="onOpenSettings()"
+></lib-ui-navbar>
+
+<div class="layout-body">
+  <aside class="sidebar">
+    <lib-ui-sidebar
+      [navItems]="navItems()"
+      [currentRoute]="router.url"
+      [organizations]="organizations()"
+      [selectedOrganization]="selectedOrganization()"
+      (onOrgSelected)="onSelectOrg($event)"
+      (onNavSelected)="onNavItemClick($event)"
+    ></lib-ui-sidebar>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
