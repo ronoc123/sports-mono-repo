@@ -1,7 +1,8 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AuthFacade } from "@sports-ui/auth-data-access";
-
+import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
+import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 @Component({
   selector: "lib-profile",
   standalone: true,
@@ -11,29 +12,18 @@ import { AuthFacade } from "@sports-ui/auth-data-access";
 })
 export class Profile {
   private authFacade = inject(AuthFacade);
+  private voteAccountFacade = inject(VoteAccountFacade);
+  private organizationFacade = inject(OrganizationFeatureService);
+  voteAccount = this.voteAccountFacade.account;
+  transactions = this.voteAccountFacade.transactions;
+  user = this.authFacade.user;
 
-  user = this.authFacade.user; // <-- signal with user info
-  voteAccount = {
-    balance: 250,
-    version: 3,
-    createdAt: "2025-01-10T10:00:00Z",
-    updatedAt: "2025-12-08T12:30:00Z",
-    transactions: [
-      {
-        id: 1001,
-        amount: 50,
-        reason: "Voted: Trade Proposal",
-        createdAt: "2025-12-07T14:20:00Z",
-        refId: "TRD-553",
-        playerOptionId: "d9f03a02-e6b9-4fc5-b756-828f4c52de07",
-      },
-      {
-        id: 1002,
-        amount: -25,
-        reason: "Redeemed Reward",
-        createdAt: "2025-12-06T09:10:00Z",
-        spendId: "RWD-884",
-      },
-    ],
-  };
+  ngOnInit() {
+    const user = this.user();
+    const org = this.organizationFacade.selectedOrganization();
+
+    if (user && org) {
+      this.voteAccountFacade.load(user.id, org.id);
+    }
+  }
 }

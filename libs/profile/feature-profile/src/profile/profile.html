@@ -45,7 +45,7 @@
   <div class="profile-card vote-summary-card">
     <div class="vote-header">
       <div class="vote-title">Vote Account</div>
-      <div class="vote-balance">{{ voteAccount.balance }}</div>
+      <div class="vote-balance">{{ voteAccount()?.balance || "0" }}</div>
     </div>
 
     <div class="divider"></div>
@@ -53,18 +53,18 @@
     <div class="vote-details">
       <div class="detail-row">
         <span class="detail-label">Version:</span>
-        <span class="detail-value">{{ voteAccount.version }}</span>
+        <span class="detail-value">{{ voteAccount()?.version || 1 }}</span>
       </div>
 
       <div class="detail-row">
         <span class="detail-label">Created:</span>
-        <span class="detail-value">{{ voteAccount.createdAt | date }}</span>
+        <span class="detail-value">{{ voteAccount()?.createdAt | date }}</span>
       </div>
 
       <div class="detail-row">
         <span class="detail-label">Updated:</span>
         <span class="detail-value"
-          >{{ voteAccount.updatedAt | date:'medium' }}</span
+          >{{ voteAccount()?.updatedAt | date:'medium' }}</span
         >
       </div>
     </div>
@@ -79,7 +79,7 @@
     <div class="divider"></div>
 
     <div class="transaction-list">
-      <div class="transaction-item" *ngFor="let t of voteAccount.transactions">
+      <div class="transaction-item" *ngFor="let t of transactions()">
         <div
           class="transaction-amount"
           [class.positive]="t.amount > 0"
