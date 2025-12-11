@@ -12,7 +12,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  color: #666;
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -59,7 +59,7 @@
   color: #3c4043;
   border: 1px solid #dadce0;
   border-radius: 8px;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -129,7 +129,7 @@
     max-width: 100%;
     font-size: 13px;
   }
-  
+
   .button-content {
     gap: 8px;
   }

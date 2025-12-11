@@ -5,7 +5,7 @@
 }
 .field {
   position: relative;
-  background: #181818;
+  background: var(--color-secondary);
   border-radius: 8px;
   padding: 20px;
   display: grid;

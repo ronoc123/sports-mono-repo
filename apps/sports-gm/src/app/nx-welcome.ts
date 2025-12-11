@@ -141,7 +141,7 @@ import { CommonModule } from "@angular/common";
       #hero .text-container a {
         background-color: rgba(255, 255, 255, 1);
         border-radius: 0.75rem;
-        color: rgba(55, 65, 81, 1);
+        color: var(--color-text);
         display: inline-block;
         margin-top: 1.5rem;
         padding: 1rem 2rem;
@@ -154,7 +154,7 @@ import { CommonModule } from "@angular/common";
         padding-right: 2rem;
       }
       #hero .logo-container svg {
-        color: rgba(255, 255, 255, 1);
+        color: var(--color-text);
         width: 66.666667%;
       }
       #middle-content {

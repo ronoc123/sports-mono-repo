@@ -3,6 +3,7 @@
   [config]="layoutConfig"
   [user]="user()"
   (toggleNavBar)="onToggleSidebar()"
+  (toggleTheme)="onToggleTheme()"
   (logout)="onLogout()"
   (openProfile)="onOpenProfile()"
   (openSettings)="onOpenSettings()"
@@ -12,6 +13,7 @@
   <aside class="sidebar">
     <lib-ui-sidebar
       [navItems]="navItems()"
+      [user]="user()"
       [currentRoute]="router.url"
       [organizations]="organizations()"
       [selectedOrganization]="selectedOrganization()"

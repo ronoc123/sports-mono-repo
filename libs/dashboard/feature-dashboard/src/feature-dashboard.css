@@ -14,10 +14,14 @@
 }
 
 .welcome-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-tertiary) 0%,
+    var(--color-surface) 100%
+  );
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  color: white;
 }
 
 .welcome-content {
@@ -63,13 +67,13 @@ h2 {
 .stat-card {
   width: 100%;
   max-width: 520px;
-  background: #111; /* match player-card background */
+  background: var(--color-card); /* match player-card background */
   border-radius: 18px;
-  border: 1px solid #222; /* match card border */
+  border: 1px solid var(--color-border); /* match card border */
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* match card shadow */
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  color: white;
+  color: var(--color-text);
 }
 
 .stat-card:hover {
@@ -162,9 +166,9 @@ h2 {
 .action-card {
   width: 100%;
   max-width: 520px;
-  background: #111; /* match player-card background */
+  background: var(--color-card); /* match player-card background */
   border-radius: 18px;
-  border: 1px solid #222; /* match card border */
+  border: 1px solid var(--color-border); /* match card border */
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* match card shadow */
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -236,18 +240,18 @@ h2 {
 
 .activity-title {
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 
 .activity-description {
-  color: #666;
+  color: var(--color-text);
   font-size: 0.9rem;
   margin-bottom: 4px;
 }
 
 .activity-time {
-  color: #999;
+  color: var(--color-text);
   font-size: 0.8rem;
 }
 
@@ -283,6 +287,7 @@ h2 {
     flex-direction: column;
     text-align: center;
     gap: 16px;
+    color: var(--color-primary);
   }
 
   .welcome-text h1 {

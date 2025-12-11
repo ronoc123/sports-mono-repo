@@ -12,6 +12,19 @@
     box-sizing: border-box;
 }
 
+:root {
+  --color-primary: #ffffff;
+  --color-secondary: #f5f5f5;
+  --color-border: #dddddd;
+  --color-card: #fafafa;
+  --color-text: #121212;
+  --color-tertiary: #4aa8ff;
+  --color-surface: #121212;
+
+}
+
+
+
 body {
     font-family: 'Poppins', sans-serif;
 }

@@ -4,8 +4,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 16px;
-  background: #181818;
-  border-bottom: 1px solid #222;
+  background: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   position: sticky;
   top: 0;
@@ -14,7 +14,7 @@
 
 /* Left section icons */
 .menu-button {
-  color: #bbb;
+  color: var(--color-text);
 }
 
 /* User section container */
@@ -30,13 +30,17 @@
   gap: 8px;
   padding: 8px 12px;
   border-radius: 24px;
-  background-color: #222;
-  color: #eee;
+  background-color: var(--color-border);
+  color: var(--color-text);
   text-transform: none;
   font-weight: 500;
+  background-color: var(--color-surface);
 }
 .user-button:hover {
-  background-color: #2d2d2d;
+  background-color: var(--color-secondary);
+}
+.theme-text {
+  color: var(--color-text);
 }
 
 /* Avatar */
@@ -44,7 +48,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #4aa8ff;
+  background-color: var(--color-tertiary);
   color: white;
   display: flex;
   align-items: center;
@@ -55,8 +59,8 @@
 
 /* User dropdown menu */
 .user-menu {
-  background: #181818 !important;
-  color: #ddd;
+  background: var(--color-tertiary) !important;
+  color: var(--color-text);
   min-width: 200px;
 }
 

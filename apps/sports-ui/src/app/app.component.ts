@@ -16,7 +16,4 @@ import { RouterModule } from "@angular/router";
     `,
   ],
 })
-export class AppComponent {
-  // This component now just serves as the root router outlet
-  // Authentication and layout logic is handled by the routing system
-}
+export class AppComponent {}

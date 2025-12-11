@@ -9,13 +9,12 @@
   </lib-organization-badge>
 
   <!-- User Info Section (UI only, no service access) -->
-  <div class="user-info-section" *ngIf="selectedOrganization()">
+  <div class="user-info-section" *ngIf="user()">
     <div class="user-avatar">
-      {{ (selectedOrganization()?.name || "U").substring(0, 1).toUpperCase() }}
+      {{ (user()?.firstName || "U").substring(0, 1).toUpperCase() }}
     </div>
     <div class="user-details">
-      <span class="user-name">{{ selectedOrganization()?.name }}</span>
-      <span class="user-email">{{ selectedOrganization()?.email }}</span>
+      <span class="user-email">{{ user()?.email }}</span>
     </div>
   </div>
 

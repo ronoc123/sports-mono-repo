@@ -54,6 +54,7 @@ export class SidebarComponent {
   readonly currentRoute = input<string>("");
   readonly organizations = input<any[]>([]);
   readonly selectedOrganization = input<any>(null);
+  readonly user = input<any>(null);
 
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
   readonly onOrgSelected = output<any>();

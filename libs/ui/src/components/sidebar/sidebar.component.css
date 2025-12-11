@@ -2,9 +2,9 @@
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  background-color: #181818;
-  border-right: 1px solid #222;
-  color: white;
+  background-color: var(--color-secondary);
+  border-right: 1px solid var(--color-border);
+  color: var(--color-text);
   height: 100%;
 }
 
@@ -14,15 +14,15 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background-color: #1e1e1e;
-  border-bottom: 1px solid #222;
+  background-color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #4aa8ff;
+  background-color: var(--color-tertiary);
   color: white;
   display: flex;
   align-items: center;
@@ -39,13 +39,13 @@
 
 .user-name {
   font-weight: 600;
-  color: #e5e5e5;
+  color: var(--color-text);
   font-size: 14px;
 }
 
 .user-email {
   font-size: 12px;
-  color: #aaa;
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -67,24 +67,24 @@
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #bbb;
+  color: var(--color-text);
   transition: all 0.2s ease;
 }
 
 .nav-item:hover {
-  background-color: #222;
-  color: #fff;
+  background-color: var(--color-border);
+  color: var(--color-text);
 }
 
 .nav-item.active-route {
-  background-color: #4aa8ff;
+  background-color: var(--color-tertiary);
   color: white;
 }
 
 .nav-icon {
   margin-right: 12px;
   font-size: 20px;
-  color: #888;
+  color: var(--color-text);
 }
 
 /* Expandable Tree Controls */
@@ -94,7 +94,7 @@
 }
 
 .toggle-button {
-  color: #bbb;
+  color: var(--color-text);
 }
 
 .toggle-icon {
@@ -109,8 +109,8 @@
 /* Footer */
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid #222;
-  background-color: #1e1e1e;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-primary);
 }
 
 .app-info {
@@ -120,12 +120,12 @@
 }
 
 .footer-icon {
-  color: #4aa8ff;
+  color: var(--color-text);
   font-size: 24px;
 }
 
 .app-name {
   font-weight: 600;
-  color: #e5e5e5;
+  color: var(--color-text);
   font-size: 14px;
 }
