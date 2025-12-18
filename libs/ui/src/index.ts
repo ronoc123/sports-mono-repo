@@ -9,3 +9,5 @@ export * from "./components/voting-panel/voting-panel";
 
 export * from "./components/navbar/navbar.component";
 export * from "./components/sidebar/sidebar.component";
+
+export * from "./components/toast/toast";

@@ -13,6 +13,7 @@ import { MatSidenav } from "@angular/material/sidenav";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 import { ThemeService } from "@sports-ui/ui-theme-data-access";
+import { ToastFeature } from "@sports-ui/toast-feature";
 
 import {
   NavItem,
@@ -24,7 +25,7 @@ import {
 @Component({
   selector: "lib-feature-layout",
   standalone: true,
-  imports: [NavbarComponent, SidebarComponent, RouterOutlet],
+  imports: [NavbarComponent, SidebarComponent, RouterOutlet, ToastFeature],
   templateUrl: "./layout.html",
   styleUrls: ["./layout.css"],
 })

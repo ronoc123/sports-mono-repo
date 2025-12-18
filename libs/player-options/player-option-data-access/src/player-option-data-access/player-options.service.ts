@@ -4,7 +4,6 @@ import { PlayerOptionApi } from "./player-option-data-access";
 import { GetAllPlayerOptionsQuery } from "./player-option.model";
 import { firstValueFrom } from "rxjs";
 import { OrganizationStore } from "@sports-ui/organization-data-access";
-
 @Injectable({ providedIn: "root" })
 export class PlayerOptionFeatureService {
   private store = inject(PlayerOptionStore);

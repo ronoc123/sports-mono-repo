@@ -51,6 +51,9 @@
       "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
       "@sports-ui/feature-user": ["libs/product-domains/users/src/index.ts"],
       "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
+      "@sports-ui/notification": [
+        "libs/notification/notification/src/index.ts"
+      ],
       "@sports-ui/organization-data-access": [
         "libs/organization/organization-data-access/src/index.ts"
       ],
@@ -69,6 +72,9 @@
       "@sports-ui/roaster": ["libs/roaster/feature-roaster/src/index.ts"],
       "@sports-ui/roaster-data-access": [
         "libs/roaster/roaster-data-access/src/index.ts"
+      ],
+      "@sports-ui/toast-feature": [
+        "libs/notification/toast-feature/src/index.ts"
       ],
       "@sports-ui/ui": ["libs/ui/src/index.ts"],
       "@sports-ui/ui-feature-theme": ["libs/theme/feature-theme/src/index.ts"],
