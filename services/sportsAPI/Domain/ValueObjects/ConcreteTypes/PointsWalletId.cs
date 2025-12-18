@@ -1,3 +1,4 @@
+using BuildingBlocks.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace Domain.ValueObjects.ConcreteTypes
 
       if (value == Guid.Empty)
       {
-        throw new DomainExceptions("PointsWalletId cannot be empty");
+        throw new DomainException("PointsWalletId cannot be empty");
       }
 
       return new PointsWalletId(value);

@@ -1,12 +1,14 @@
 using Application.Dto.VoteAccount;
 using Application.Organizations.Queries.GetOrganizationDetails;
 using Application.PlayerOptions.Queries.GetAllPlayerOptions;
+using Application.Votes.Commands.RedeemReward;
 using Application.Votes.Queries.GetVoteAccount;
 using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,13 +25,13 @@ namespace WebAPI.Controllers
     }
     // GET api/<VoteAccount>/5
     [HttpGet("get-vote-account/{userId}")]
-    public async Task<ServiceResponse<VoteAccountDto>> GetAll([FromQuery] Guid userId)
+    public async Task<ServiceResponse<List<VoteAccountDto>>> GetAll([FromQuery] Guid userId)
     {
       return null;
     }
 
     [HttpGet("get-vote-account/{userId}/organization/{organizationId}")]
-    public async Task<ServiceResponse<VoteAccountDto>> Get( Guid userId, Guid organizationId)
+    public async Task<ServiceResponse<VoteAccountDto>> Get(Guid userId, Guid organizationId)
     {
       var query = new GetVoteAccountQuery(UserId.Of(userId), OrganizationId.Of(organizationId));
 
@@ -38,9 +40,13 @@ namespace WebAPI.Controllers
     }
 
     // POST api/<VoteAccount>
-    [HttpPost]
-    public void Redeem([FromBody] string value)
+    [HttpPost("redeem-vote/{userId}/reward/{rewardItemId}")]
+    public async Task<ServiceResponse<VoteAccountDto>> Redeem(Guid userId, Guid rewardItemId)
     {
+      var query = new RedeemRewardCommand(UserId.Of(userId), RewardItemId.Of(rewardItemId));
+
+      var result = await _mediator.Send(query);
+      return result;
     }
 
   }

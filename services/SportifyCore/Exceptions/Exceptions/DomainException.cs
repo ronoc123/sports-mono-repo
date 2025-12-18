@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 
 namespace BuildingBlocks.Exceptions
 {
-  public abstract class DomainException : Exception
+  public class DomainException : Exception
   {
     public virtual string Code => ErrorCodes.DomainRule;
-    protected DomainException(string message) : base(message) { }
+
+    public DomainException(string message)
+        : base(message)
+    {
+    }
   }
+
 }

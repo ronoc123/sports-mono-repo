@@ -10,13 +10,15 @@ namespace Domain.DomainServices.RewardService
 {
   public class RewardRedemptionService : IRewardRedemptionService
   {
-    public void RedeemReward(RewardItem reward, VoteAccount.VoteAccount account, UserId userId, string redemptionId)
+    public VoteAccount.VoteAccount RedeemReward(RewardItem reward, VoteAccount.VoteAccount account)
     {
-      var token = reward.GenerateRedemption(userId, redemptionId);
+      var token = reward.GenerateRedemption(account.UserId, Guid.NewGuid().ToString());
 
       account.ApplyReward(token);
 
       reward.MarkRedeemed(token.RedeemingUser);
+
+      return account;
     }
   }
 

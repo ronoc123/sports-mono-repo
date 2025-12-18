@@ -1,28 +1,26 @@
-<div
-  class="card"
-  tabindex="0"
-  role="button"
-  (click)="onClick()"
-  (keydown.enter)="onClick()"
-  (keydown.space)="onClick()"
->
-  <div class="card-header">
-    <img
-      [src]="option().player?.imageUrl || '/assets/default-player.png'"
-      alt="{{ option().player?.name || 'Player' }}"
-      class="player-image"
-    />
+<div class="player-card">
+  <div class="player-header">
+    <div class="player-avatar"></div>
+
     <div class="player-info">
-      <h2>{{ option().player?.name || 'Unknown Player' }}</h2>
-      <p class="team">{{ option().player?.teamName || 'Dallas Cowboys' }}</p>
-      <p>Position: {{ option().player?.position || 'N/A' }}</p>
-      <p>Age: {{ option().player?.age || 'N/A' }}</p>
-      <p>Updated {{ option().player?.updatedAt | date: 'MMM d, y' }}</p>
+      <div class="player-name">{{ option().player.name }}</div>
+      <div class="player-sub">{{ option().player.position }}</div>
+      <div class="player-team">Age: {{ option().player.age }}</div>
     </div>
   </div>
 
-  <div class="card-body">
-    <p><strong>Votes:</strong> {{ option().votes }}</p>
-    <p>{{ option().description }}</p>
+  <div class="divider"></div>
+
+  <div class="votes-section">
+    <div class="votes-left">
+      <div class="votes-number">{{ option().votes }}</div>
+      <div class="votes-label">votes</div>
+    </div>
+    <button class="vote-btn" (click)="selected.emit(option())">Vote</button>
+  </div>
+
+  <div class="card-footer">
+    <button class="edit-btn">Edit</button>
+    <button class="remove-btn">Remove</button>
   </div>
 </div>

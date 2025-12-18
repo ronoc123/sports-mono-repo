@@ -27,4 +27,22 @@ export class VoteAccountFacade {
       this.store.setError(err?.message ?? "Failed to load vote account");
     }
   }
+
+  async vote(
+    playerOptionId: string,
+    userId: string,
+    voteAmount: number,
+    organizationId: string
+  ) {
+    this.store.setLoading();
+
+    try {
+      await firstValueFrom(
+        this.api.castVote(playerOptionId, userId, voteAmount)
+      );
+      await this.load(userId, organizationId);
+    } catch (err: any) {
+      this.store.setError(err?.message ?? "Failed to cast vote");
+    }
+  }
 }

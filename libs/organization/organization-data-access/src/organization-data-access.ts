@@ -8,10 +8,8 @@ import { PaginatedList, ServiceResponse } from "@sports-ui/api-types";
 
 import {
   OrganizationDto,
-  OrganizationDetailsDto,
   CreateOrganizationCommand,
   UpdateOrganizationCommand,
-  DeleteOrganizationCommand,
   GetAllOrganizationsQuery,
 } from "./organization.model";
 

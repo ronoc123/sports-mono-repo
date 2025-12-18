@@ -1,3 +1,5 @@
+using BuildingBlocks.Exceptions;
+
 namespace Domain.ValueObjects.ConcreteTypes;
 
 public record ThemeId
@@ -15,7 +17,7 @@ public record ThemeId
 
         if (value == Guid.Empty)
         {
-            throw new DomainExceptions("ThemeId cannot be empty");
+            throw new DomainException("ThemeId cannot be empty");
         }
 
         return new ThemeId(value);

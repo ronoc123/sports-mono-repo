@@ -1,4 +1,6 @@
 
+using BuildingBlocks.Exceptions;
+
 namespace Domain.ValueObjects.ConcreteTypes
 {
   public record RewardItemId
@@ -15,7 +17,7 @@ namespace Domain.ValueObjects.ConcreteTypes
       ArgumentNullException.ThrowIfNull(value);
       if (value == Guid.Empty)
       {
-        throw new DomainExceptions("RewardItemId cannot be empty");
+        throw new DomainException("RewardItemId cannot be empty");
       }
 
       return new RewardItemId(value);

@@ -32,7 +32,7 @@ namespace Domain.Leagues
 
           var trimmed = name.Trim();
           if (trimmed.Length > 200)
-            throw new DomainExceptions("League name cannot exceed 200 characters.");
+            throw new DomainException("League name cannot exceed 200 characters.");
 
           if (string.Equals(Name, trimmed, StringComparison.OrdinalIgnoreCase))
             return; // no change

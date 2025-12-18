@@ -18,4 +18,16 @@ export class VoteAccountApi {
       `${environment.sportsApi}voteaccount/get-vote-account/${userId}/organization/${organizationId}`
     );
   }
+
+  castVote(
+    playerOptionId: string,
+    userId: string,
+    voteAmount: number
+  ): Observable<ServiceResponse<boolean>> {
+    return this.http.post(`${environment.sportsApi}PlayerOption/vote`, {
+      playerOptionId,
+      userId,
+      voteAmount,
+    });
+  }
 }

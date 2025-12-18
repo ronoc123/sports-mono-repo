@@ -1,5 +1,6 @@
 namespace Domain.VoteAccount
 {
+  using BuildingBlocks.Exceptions;
   using Domain.Rewards;
   using Domain.Shared_kernel;
   using Domain.ValueObjects.ConcreteTypes;
@@ -36,13 +37,13 @@ namespace Domain.VoteAccount
 
         public static VoteAccount Create(OrganizationId orgId, UserId userId, long initialBalance = 0)
         {
-          if (initialBalance < 0) throw new DomainExceptions("Initial balance cannot be negative.");
+          if (initialBalance < 0) throw new DomainException("Initial balance cannot be negative.");
           return new VoteAccount(VoteAccountId.Of(orgId, userId), initialBalance);
         }
 
         public void ApplyReward(RedemptionToken token)
         {
-          if (token.Amount <= 0) throw new DomainExceptions("Invalid reward amount.");
+          if (token.Amount <= 0) throw new DomainException("Invalid reward amount.");
           Balance += token.Amount;
 
           _transactions.Add(
@@ -59,11 +60,11 @@ namespace Domain.VoteAccount
         {
           ArgumentNullException.ThrowIfNull(optionId);
           ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
-          if (amount <= 0) throw new DomainExceptions("Spend amount must be positive.");
+          if (amount <= 0) throw new DomainException("Spend amount must be positive.");
 
 
           if (Balance < amount)
-            throw new DomainExceptions("Insufficient balance.");
+            throw new DomainException("Insufficient balance.");
 
 
           return new SpendToken(Id, OrgId, optionId, amount, spendId);
@@ -73,7 +74,7 @@ namespace Domain.VoteAccount
         {
 
           if (Balance < token.Amount)
-            throw new DomainExceptions("Insufficient balance at finalization.");
+            throw new DomainException("Insufficient balance at finalization.");
 
           Balance -= token.Amount;
 

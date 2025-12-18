@@ -46,48 +46,9 @@ export interface OrganizationDto {
 // ORGANIZATION DETAILS DTO (used on /organizationDetails)
 // -------------------------------------------------------
 
-export interface OrganizationDetailsDto {
-  id: string;
-  name: string;
-  teamId?: string | null;
-  teamName?: string | null;
-  teamShortName?: string | null;
-  formedYear?: number | null;
-  sport?: string | null;
-  stadium?: string | null;
-  location?: string | null;
-  stadiumCapacity?: number | null;
-  website?: string | null;
-  facebook?: string | null;
-  twitter?: string | null;
-  instagram?: string | null;
-  description?: string | null;
-  color1?: string | null;
-  color2?: string | null;
-  color3?: string | null;
-  badgeUrl?: string | null;
-  logoUrl?: string | null;
-  fanart1Url?: string | null;
-  fanart2Url?: string | null;
-  fanart3Url?: string | null;
-
-  playerOptions: PlayerOptionDto[];
-  theme?: ThemeDto | null;
-}
-
 // -------------------------------------------------------
 // NESTED DTOs
 // -------------------------------------------------------
-
-export interface PlayerOptionDto {
-  id: string;
-  title: string;
-  description: string;
-  votes: number;
-  createdAt: string;
-  expiresAt: string;
-  player: PlayerDto;
-}
 
 export interface PlayerDto {
   id: string; // Guid in C# → string in TS

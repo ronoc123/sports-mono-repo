@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SportsDbAppContext))]
-    [Migration("20251207011742_VoteTransactionEntity")]
-    partial class VoteTransactionEntity
+    [Migration("20251212034414_VoteTransactionEntity2")]
+    partial class VoteTransactionEntity2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

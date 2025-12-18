@@ -1,21 +1,19 @@
-import { Component, input, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {PlayerOption} from '@sports-ui/api-types';
+import { Component, input, output } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { PlayerOptionDto } from "@sports-ui/player-options-data-access";
 
 @Component({
-  selector: 'lib-player-option-card',
+  selector: "lib-player-option-card",
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './player-option-card.html',
-  styleUrl: './player-option-card.css',
+  templateUrl: "./player-option-card.html",
+  styleUrl: "./player-option-card.css",
 })
-
 export class PlayerOptionCardComponent {
-
-  option = input.required<PlayerOption>();
-  selected = output<PlayerOption>();
+  option = input.required<PlayerOptionDto>();
+  selected = output<PlayerOptionDto>();
 
   onClick() {
-    // this.selected.emit(this.option());
+    this.selected.emit(this.option());
   }
 }

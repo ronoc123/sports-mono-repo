@@ -7,7 +7,13 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
-import { PlayerOptionFeatureService } from "@sports-ui/player-options-data-access";
+import {
+  PlayerOptionDto,
+  PlayerOptionFeatureService,
+} from "@sports-ui/player-options-data-access";
+import { PlayerOptionCardComponent } from "@sports-ui/ui";
+import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
+import { AuthFacade } from "@sports-ui/auth-data-access";
 
 @Component({
   selector: "lib-feature-player-option",
@@ -21,12 +27,15 @@ import { PlayerOptionFeatureService } from "@sports-ui/player-options-data-acces
     MatChipsModule,
     MatProgressBarModule,
     MatSnackBarModule,
+    PlayerOptionCardComponent,
   ],
   templateUrl: "./feature-player-option.html",
   styleUrl: "./feature-player-option.css",
 })
 export class FeaturePlayerOption implements OnInit {
   feature = inject(PlayerOptionFeatureService);
+  selected = inject(VoteAccountFacade);
+  authFacade = inject(AuthFacade);
   organization = this.feature.selectedOrganization;
   options = this.feature.options;
   loading = this.feature.status;
@@ -36,5 +45,14 @@ export class FeaturePlayerOption implements OnInit {
     this.feature.loadPlayerOptions({
       organizationId: this.organization()?.id ?? "",
     });
+  }
+
+  onSelectOption(option: PlayerOptionDto) {
+    this.selected.vote(
+      option.id,
+      this.authFacade.user()?.id ?? "",
+      1,
+      this.organization()?.id ?? ""
+    );
   }
 }

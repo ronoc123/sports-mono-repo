@@ -9,7 +9,7 @@ namespace Domain.DomainServices.RewardService
 {
   public interface IRewardRedemptionService
   {
-    public void RedeemReward(RewardItem reward, VoteAccount.VoteAccount account, UserId userId, string redemptionId);
+    public VoteAccount.VoteAccount RedeemReward(RewardItem reward, VoteAccount.VoteAccount account);
 
   }
 }

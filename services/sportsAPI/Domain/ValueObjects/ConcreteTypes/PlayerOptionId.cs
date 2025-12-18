@@ -1,9 +1,10 @@
+using BuildingBlocks.Exceptions;
+using Domain.Organizations.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain.Organizations.Entities;
 
 namespace Domain.ValueObjects.ConcreteTypes
 {
@@ -22,7 +23,7 @@ namespace Domain.ValueObjects.ConcreteTypes
 
             if (value == Guid.Empty)
             {
-                throw new DomainExceptions("PlayerOptionId cannot be empty");
+                throw new DomainException("PlayerOptionId cannot be empty");
             }
 
             return new PlayerOptionId(value);

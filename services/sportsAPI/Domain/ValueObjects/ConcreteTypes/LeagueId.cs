@@ -1,3 +1,4 @@
+using BuildingBlocks.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Domain.ValueObjects.ConcreteTypes
             ArgumentNullException.ThrowIfNull(value);
             if (value == Guid.Empty)
             {
-                throw new DomainExceptions("LeagueId cannot be empty");
+                throw new DomainException("LeagueId cannot be empty");
             }
 
             return new LeagueId(value);

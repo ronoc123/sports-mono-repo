@@ -22,13 +22,13 @@ namespace Domain.Rewards
     public static RewardItem Create(OrganizationId orgId, long voteValue, string qrCode, string redemptionId)
     {
       if (voteValue <= 0)
-        throw new DomainExceptions("RewardItem must have a positive VoteValue.");
+        throw new DomainException("RewardItem must have a positive VoteValue.");
 
       if (string.IsNullOrWhiteSpace(qrCode))
-        throw new DomainExceptions("QR Code cannot be empty.");
+        throw new DomainException("QR Code cannot be empty.");
 
       if (string.IsNullOrWhiteSpace(redemptionId))
-        throw new DomainExceptions("RedemptionId cannot be empty.");
+        throw new DomainException("RedemptionId cannot be empty.");
 
       var item = new RewardItem
       {
@@ -44,10 +44,10 @@ namespace Domain.Rewards
     internal RedemptionToken GenerateRedemption(UserId userId, string redemptionId)
     {
       if (IsRedeemed)
-        throw new DomainExceptions("Reward already redeemed.");
+        throw new DomainException("Reward already redeemed.");
 
       if (string.IsNullOrWhiteSpace(redemptionId))
-        throw new DomainExceptions("RedemptionId required.");
+        throw new DomainException("RedemptionId required.");
 
       return new RedemptionToken(
           RewardItemId: Id,
@@ -60,7 +60,7 @@ namespace Domain.Rewards
     internal void MarkRedeemed(UserId userId)
     {
       if (IsRedeemed)
-        throw new DomainExceptions("Reward already redeemed.");
+        throw new DomainException("Reward already redeemed.");
 
       RedeemedBy = userId;
       RedeemedAt = DateTime.UtcNow;
