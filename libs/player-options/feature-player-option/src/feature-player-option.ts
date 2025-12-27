@@ -14,7 +14,6 @@ import {
 import { PlayerOptionCardComponent } from "@sports-ui/ui";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
-import { ToastService } from "@sports-ui/notification";
 
 @Component({
   selector: "lib-feature-player-option",
@@ -41,13 +40,11 @@ export class FeaturePlayerOption implements OnInit {
   options = this.feature.options;
   loading = this.feature.status;
   error = this.feature.error;
-  toast = inject(ToastService);
 
   ngOnInit() {
     this.feature.loadPlayerOptions({
       organizationId: this.organization()?.id ?? "",
     });
-    this.toast.success("Player options loaded successfully");
   }
 
   onSelectOption(option: PlayerOptionDto) {

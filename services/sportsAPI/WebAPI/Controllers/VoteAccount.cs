@@ -1,6 +1,7 @@
 using Application.Dto.VoteAccount;
 using Application.Organizations.Queries.GetOrganizationDetails;
 using Application.PlayerOptions.Queries.GetAllPlayerOptions;
+using Application.Votes.Commands.EmailReward;
 using Application.Votes.Commands.RedeemReward;
 using Application.Votes.Queries.GetVoteAccount;
 using Contracts.Contracts;
@@ -47,6 +48,16 @@ namespace WebAPI.Controllers
 
       var result = await _mediator.Send(query);
       return result;
+    }
+
+    // POST api/<VoteAccount>
+    [HttpPost("email-vote/{userId}/reward/{rewardItemId}")]
+    public async Task<IActionResult> Send(Guid userId, Guid rewardItemId)
+    {
+      var query = new EmailRewardCommand(UserId.Of(userId));
+
+      var result = await _mediator.Send(query);
+      return null;
     }
 
   }

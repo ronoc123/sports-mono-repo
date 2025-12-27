@@ -2,12 +2,13 @@ import { Injectable, inject } from "@angular/core";
 import { VoteAccountStore } from "./vote-account.store";
 import { VoteAccountApi } from "./vote-account-data-access";
 import { firstValueFrom } from "rxjs";
+import { ToastService } from "@sports-ui/notification";
 
 @Injectable({ providedIn: "root" })
 export class VoteAccountFacade {
   private store = inject(VoteAccountStore);
   private api = inject(VoteAccountApi);
-
+  private toast = inject(ToastService);
   account = this.store.account;
   balance = this.store.balance;
   transactions = this.store.transactions;
@@ -23,8 +24,9 @@ export class VoteAccountFacade {
       );
 
       this.store.setAccount(account?.data ?? null);
+      // this.toast.success(account?.message ?? "Vote account loaded");
     } catch (err: any) {
-      this.store.setError(err?.message ?? "Failed to load vote account");
+      this.toast.error(err?.message ?? "Failed to load vote account");
     }
   }
 
@@ -40,9 +42,10 @@ export class VoteAccountFacade {
       await firstValueFrom(
         this.api.castVote(playerOptionId, userId, voteAmount)
       );
+      this.toast.success("Votes applied!");
       await this.load(userId, organizationId);
     } catch (err: any) {
-      this.store.setError(err?.message ?? "Failed to cast vote");
+      this.toast.error("Unable to apply votes");
     }
   }
 }

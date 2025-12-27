@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   webapi:
     build:
@@ -6,10 +8,14 @@ services:
     ports:
       - "5000:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sports.database;Database=SportsDb;User=sa;Password=Test123!;TrustServerCertificate=True
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Server=sports.database;Database=SportsDb;User=sa;Password=Test123!;TrustServerCertificate=True
+      MessageBroker__Host: sports.rabbitmq
+      MessageBroker__UserName: guest
+      MessageBroker__Password: guest
     depends_on:
       - sqlserver
+      - rabbitmq
 
   identityapi:
     build:
@@ -18,10 +24,14 @@ services:
     ports:
       - "5001:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sports.database;Database=SportsIdentityDb;User=sa;Password=Test123!;TrustServerCertificate=True
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Server=sports.database;Database=SportsIdentityDb;User=sa;Password=Test123!;TrustServerCertificate=True
+      MessageBroker__Host: sports.rabbitmq
+      MessageBroker__UserName: guest
+      MessageBroker__Password: guest
     depends_on:
       - sqlserver
+      - rabbitmq
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
       interval: 10s
@@ -33,9 +43,33 @@ services:
       context: ./NotificationAPI
       dockerfile: Dockerfile
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_ENVIRONMENT: Development
+      MessageBroker__Host: sports.rabbitmq
+      MessageBroker__UserName: guest
+      MessageBroker__Password: guest
+      Email__SmtpHost: smtp
+      Email__SmtpPort: 25
+      Email__EnableSsl: "false"
+      Email__FromEmail: no-reply@local.dev
+      Email__FromName: Local Dev
     depends_on:
-      - sqlserver
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: sports.rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  smtp:
+    image: rnwood/smtp4dev
+    ports:
+      - "3000:80"
+      - "2525:25"
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -43,9 +77,9 @@ services:
     ports:
       - "1433:1433"
     environment:
-      - SA_PASSWORD=Test123!
-      - ACCEPT_EULA=Y
-      - MSSQL_PID=Express
+      SA_PASSWORD: Test123!
+      ACCEPT_EULA: Y
+      MSSQL_PID: Express
     volumes:
       - sql_data:/var/opt/mssql
 

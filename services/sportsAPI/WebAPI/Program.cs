@@ -7,7 +7,8 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Web;
 using Web.Web;
-// using BuildingBlocks.Messageing.MassTransit; // Temporarily disabled
+using BuildingBlocks.Messageing.MassTransit;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSportifyWeb();
+builder.Services.AddMessageBroker(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {

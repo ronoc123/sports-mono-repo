@@ -4,11 +4,14 @@ import { PlayerOptionApi } from "./player-option-data-access";
 import { GetAllPlayerOptionsQuery } from "./player-option.model";
 import { firstValueFrom } from "rxjs";
 import { OrganizationStore } from "@sports-ui/organization-data-access";
+import { ToastService } from "@sports-ui/notification";
+
 @Injectable({ providedIn: "root" })
 export class PlayerOptionFeatureService {
   private store = inject(PlayerOptionStore);
   private api = inject(PlayerOptionApi);
   private organzationStore = inject(OrganizationStore);
+  private toast = inject(ToastService);
   // expose state
   readonly options = this.store.options;
   readonly status = this.store.status;
@@ -23,8 +26,9 @@ export class PlayerOptionFeatureService {
 
       const items = res.data?.items ?? [];
       this.store.setOptions(items);
+      this.toast.success(res.message || "Success");
     } catch (e: any) {
-      this.store.setError(e?.message ?? "Failed to load player options");
+      this.toast.error(e?.message || "Failed");
     }
   }
 }

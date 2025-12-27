@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Messaging\BuildingBlocks.Messageing\BuildingBlocks.Messageing.csproj" />
     <ProjectReference Include="..\..\SportifyCore\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>

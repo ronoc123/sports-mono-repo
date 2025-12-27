@@ -17,13 +17,13 @@ using System.Threading.Tasks;
 
 namespace Application.Votes.Commands.RedeemReward
 {
-  public class RedeemRewardHandler : IRequestHandler<RedeemRewardCommand, ServiceResponse<VoteAccountDto>>
+  public class EmailRewardHandler : IRequestHandler<RedeemRewardCommand, ServiceResponse<VoteAccountDto>>
   {
     private readonly IRepository _repo;
     private readonly IMapper _mapper;
     private readonly IRewardRedemptionService _rewardService;
 
-    public RedeemRewardHandler(IRepository repo, IMapper mapper, IRewardRedemptionService rewardService)
+    public EmailRewardHandler(IRepository repo, IMapper mapper, IRewardRedemptionService rewardService)
     {
       _repo = repo;
       _mapper = mapper;

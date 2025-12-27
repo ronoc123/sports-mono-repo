@@ -1,5 +1,6 @@
-﻿
 
+
+using BuildingBlocks.Messageing.Publisher;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,20 +14,25 @@ namespace BuildingBlocks.Messageing.MassTransit
         {
             services.AddMassTransit(config =>
             {
-                config.SetKebabCaseEndpointNameFormatter();
-                if (assembly != null)
-                    config.AddConsumers(assembly);
+              config.SetKebabCaseEndpointNameFormatter();
 
-                config.UsingRabbitMq((context, configurator) =>
+              if (assembly != null)
+              {
+                config.AddConsumers(assembly);
+              }
+
+              config.UsingRabbitMq((context, configurator) =>
+              {
+                configurator.Host(configuration["MessageBroker:Host"], host =>
                 {
-                    configurator.Host(new Uri(configuration["MessageBroker:Host"]!), host =>
-                    {
-                        host.Username(configuration["MessageBroker:UserName"]);
-                        host.Password(configuration["MessageBroker:Password"]);
-                    });
-                    configurator.ConfigureEndpoints(context);
+                  host.Username(configuration["MessageBroker:UserName"]);
+                  host.Password(configuration["MessageBroker:Password"]);
                 });
+
+                configurator.ConfigureEndpoints(context);
+              });
             });
+            services.AddScoped<IEventPublisher, EventPublisher>();
 
             return services;
         }

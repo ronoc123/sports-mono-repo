@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SportsAPI", "SportsAPI", "{8D34BC52-1EA0-456E-A796-24D8ADD97CAC}"
 EndProject
@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SportifyCore", "SportifyCor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		ReadMe.txt = ReadMe.txt
 	EndProjectSection
 EndProject
@@ -43,8 +44,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptions", "SportifyCore\Exceptions\Exceptions.csproj", "{57EBCAF7-E02A-C283-8576-722E59E12696}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationAPI", "NotificationAPI\NotificationAPI.csproj", "{DA8056EF-29BE-93E0-F479-3A73AC1A12E0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks", "Messaging\BuildingBlocks\BuildingBlocks.csproj", "{8EA2BCCA-2AB8-095A-BABE-096C3DEE74B0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks.Messageing", "Messaging\BuildingBlocks.Messageing\BuildingBlocks.Messageing.csproj", "{A1FB8B0A-E322-3620-E287-C5946562FD52}"
 EndProject
@@ -104,10 +103,6 @@ Global
 		{DA8056EF-29BE-93E0-F479-3A73AC1A12E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA8056EF-29BE-93E0-F479-3A73AC1A12E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA8056EF-29BE-93E0-F479-3A73AC1A12E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8EA2BCCA-2AB8-095A-BABE-096C3DEE74B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8EA2BCCA-2AB8-095A-BABE-096C3DEE74B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8EA2BCCA-2AB8-095A-BABE-096C3DEE74B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8EA2BCCA-2AB8-095A-BABE-096C3DEE74B0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A1FB8B0A-E322-3620-E287-C5946562FD52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A1FB8B0A-E322-3620-E287-C5946562FD52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1FB8B0A-E322-3620-E287-C5946562FD52}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -133,7 +128,6 @@ Global
 		{DA44DE23-34BD-5134-F29D-22BECC31010A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{57EBCAF7-E02A-C283-8576-722E59E12696} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{DA8056EF-29BE-93E0-F479-3A73AC1A12E0} = {27E1D2CC-14AF-498E-A1EE-EC8012903E50}
-		{8EA2BCCA-2AB8-095A-BABE-096C3DEE74B0} = {07232A56-8FF4-4293-81BE-8CEA1BE8CA7E}
 		{A1FB8B0A-E322-3620-E287-C5946562FD52} = {07232A56-8FF4-4293-81BE-8CEA1BE8CA7E}
 		{A234FC94-AA51-A558-AC74-0D69EA0D971A} = {28A0ECCA-3C53-428C-9C13-E6403B165225}
 	EndGlobalSection
