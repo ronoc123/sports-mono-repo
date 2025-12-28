@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SportsAPI", "SportsAPI", "{
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{53E9DE0D-CC72-4FB9-B665-BF5FF72334BF}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MessagingService", "MessagingService", "{07232A56-8FF4-4293-81BE-8CEA1BE8CA7E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{07232A56-8FF4-4293-81BE-8CEA1BE8CA7E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NotificationService", "NotificationService", "{27E1D2CC-14AF-498E-A1EE-EC8012903E50}"
 EndProject
