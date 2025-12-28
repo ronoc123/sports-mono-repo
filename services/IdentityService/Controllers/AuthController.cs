@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using IdentityService.DTOs;
 using IdentityService.Models;
 using IdentityService.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityService.Controllers;
 
@@ -197,24 +197,24 @@ public class AuthController : ControllerBase
 
     [HttpPost("google")]
     public async Task<IActionResult> Google([FromBody] GoogleLoginRequest request)
-  {
-    if (string.IsNullOrWhiteSpace(request.GoogleToken))
     {
-      return BadRequest(new AuthenticationResponse { Success = false, Message = "Missing idToken" });
-    }
+        if (string.IsNullOrWhiteSpace(request.GoogleToken))
+        {
+            return BadRequest(new AuthenticationResponse { Success = false, Message = "Missing idToken" });
+        }
 
-    try
-    {
-      var result = await _googleAuthService.AuthenticateGoogleUserAsync(request.GoogleToken);
-      if (!result.Success) return Unauthorized(result);
-      return Ok(result);
+        try
+        {
+            var result = await _googleAuthService.AuthenticateGoogleUserAsync(request.GoogleToken);
+            if (!result.Success) return Unauthorized(result);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during Google authentication");
+            return StatusCode(500, new AuthenticationResponse { Success = false, Message = "Server error" });
+        }
     }
-    catch (Exception ex)
-    {
-      _logger.LogError(ex, "Error during Google authentication");
-      return StatusCode(500, new AuthenticationResponse { Success = false, Message = "Server error" });
-    }
-  }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
@@ -313,4 +313,52 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { Success = false, Message = "An error occurred during logout" });
         }
     }
+
+    [HttpGet("get")]
+    public async Task<IActionResult> GetUser([FromQuery] string? email, [FromQuery] string? userId)
+    {
+        if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(userId))
+        {
+            return BadRequest(new
+            {
+                Message = "Either email or userId must be provided."
+            });
+        }
+
+        ApplicationUser? user;
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            user = await _userManager.FindByEmailAsync(email);
+        }
+        else
+        {
+            user = await _userManager.FindByIdAsync(userId!);
+        }
+
+        if (user == null)
+        {
+            return NotFound(new
+            {
+                Message = "User not found."
+            });
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return Ok(new UserInfo
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            FullName = user.FullName,
+            ProfilePictureUrl = user.ProfilePictureUrl,
+            IsGoogleUser = user.IsGoogleUser,
+            Roles = roles.ToList(),
+            CreatedAt = user.CreatedAt,
+            LastLoginAt = user.LastLoginAt
+        });
+    }
+
 }

@@ -1,14 +1,14 @@
 
-  namespace NotificationAPI.Email.Templates
-  {
+namespace NotificationAPI.Email.Templates
+{
     public static class RewardEmailTemplate
     {
-      public static string Render(string email, string claimToken, DateTime expiresAt)
-      {
-        var claimUrl = $"https://your-app.com/rewards/claim/{claimToken}";
-        var expiresText = expiresAt.ToString("MMMM dd, yyyy");
+        public static string Render(string email, DateTime expiresAt)
+        {
+            var claimUrl = $"https://your-app.com/rewards/claim";
+            var expiresText = expiresAt.ToString("MMMM dd, yyyy");
 
-        return $@"
+            return $@"
         <!DOCTYPE html>
         <html>
         <head>
@@ -33,7 +33,7 @@
           </ p >
 
           < p style = ""font - size: 0.9em; color: #666;"">
-            This link expires on<strong>{ expiresText}</ strong >.
+            This link expires on<strong>{expiresText}</ strong >.
           </ p >
 
           < hr />
@@ -43,7 +43,7 @@
           </ p >
         </ body >
         </ html > ";
-       }
-     }
- }
+        }
+    }
+}
 

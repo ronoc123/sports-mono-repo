@@ -19,6 +19,8 @@ csharp_wrap_parameters = false
 csharp_wrap_method_parameters = false
 csharp_wrap_constructor_parameters = false
 csharp_wrap_record_parameters = false
+max_line_length = 999
+csharp_wrap_record_parameters = false
 
 # Keep usings tight
 dotnet_separate_import_directive_groups = false
