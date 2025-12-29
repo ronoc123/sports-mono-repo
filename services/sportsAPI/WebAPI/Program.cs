@@ -1,4 +1,5 @@
 using Application;
+using BuildingBlocks.Messageing.MassTransit;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,8 +8,6 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Web;
 using Web.Web;
-using BuildingBlocks.Messageing.MassTransit;
-using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,34 +15,34 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSportifyWeb();
-builder.Services.AddMessageBroker(builder.Configuration);
+builder.Services.AddMessageBroker(builder.Configuration, typeof(RewardReveivedConsumer).Assembly);
 
 builder.Services.AddCors(options =>
 {
-  options.AddPolicy("AllowAll", policy =>
-  {
-    policy
-        .AllowAnyOrigin()
-        .AllowAnyHeader()
-        .AllowAnyMethod();
-  });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+          .AllowAnyOrigin()
+          .AllowAnyHeader()
+          .AllowAnyMethod();
+    });
 
-  options.AddPolicy("AllowFrontend", policy =>
-  {
-    policy
-        .WithOrigins(
-            "http://localhost:4200",
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://localhost:8080",
-            "https://localhost:4200",
-            "https://localhost:3000",
-            "https://localhost:5173",
-            "https://localhost:8080"
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod();
-  });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+          .WithOrigins(
+              "http://localhost:4200",
+              "http://localhost:3000",
+              "http://localhost:5173",
+              "http://localhost:8080",
+              "https://localhost:4200",
+              "https://localhost:3000",
+              "https://localhost:5173",
+              "https://localhost:8080"
+          )
+          .AllowAnyHeader()
+          .AllowAnyMethod();
+    });
 });
 
 // Add JWT Authentication - configured to validate tokens from Identity Service
@@ -130,11 +129,11 @@ if (app.Environment.IsDevelopment())
 
 if (app.Environment.IsDevelopment())
 {
-  app.UseCors("AllowAll");  // 🔥 100% fixes your Docker + Visual Studio port chaos
+    app.UseCors("AllowAll");  // 🔥 100% fixes your Docker + Visual Studio port chaos
 }
 else
 {
-  app.UseCors("AllowFrontend");  // restrictive prod policy
+    app.UseCors("AllowFrontend");  // restrictive prod policy
 }
 
 

@@ -1,7 +1,3 @@
-
-
-using MediatR;
-
 namespace Domain.Organizations
 {
     public class Organization : Aggregate<OrganizationId>
@@ -28,152 +24,152 @@ namespace Domain.Organizations
         public string? Description { get; private set; }
 
 
-      // Factory
-      public static Organization Create(
-          LeagueId leagueId,
-          string name,
-          string? teamId,
-          string? teamName,
-          string? teamShortName,
-          int? formedYear,
-          string? sport,
-          string? stadium,
-          string? location,
-          int? capacity,
-          string? badgeUrl,
-          string? logoUrl,
-          string? fanart1Url,
-          string? fanart2Url,
-          string? fanart3Url,
-          string? website,
-          string? facebook,
-          string? twitter,
-          string? instagram,
-          string? color1,
-          string? color2,
-          string? color3,
-          string? description)
-      {
-        ArgumentNullException.ThrowIfNull(leagueId);
-        ArgumentException.ThrowIfNullOrEmpty(name);
-
-        var venue = new Venue(
-            stadium ?? string.Empty,
-            location ?? string.Empty,
-            capacity ?? 0);
-
-        var mediaAssets = new MediaAssets(
-            badgeUrl ?? string.Empty,
-            logoUrl ?? string.Empty,
-            fanart1Url ?? string.Empty,
-            fanart2Url ?? string.Empty,
-            fanart3Url ?? string.Empty);
-
-        var socialLinks = new SocialLinks(
-            website ?? string.Empty,
-            facebook ?? string.Empty,
-            twitter ?? string.Empty,
-            instagram ?? string.Empty);
-
-        var teamColors = new TeamColors(
-            color1 ?? string.Empty,
-            color2 ?? string.Empty,
-            color3 ?? string.Empty);
-
-        var org = new Organization
+        // Factory
+        public static Organization Create(
+            LeagueId leagueId,
+            string name,
+            string? teamId,
+            string? teamName,
+            string? teamShortName,
+            int? formedYear,
+            string? sport,
+            string? stadium,
+            string? location,
+            int? capacity,
+            string? badgeUrl,
+            string? logoUrl,
+            string? fanart1Url,
+            string? fanart2Url,
+            string? fanart3Url,
+            string? website,
+            string? facebook,
+            string? twitter,
+            string? instagram,
+            string? color1,
+            string? color2,
+            string? color3,
+            string? description)
         {
-          Id = OrganizationId.Of(Guid.NewGuid()),
-          LeagueId = leagueId,
-          CreatedAt = DateTime.UtcNow
-        };
+            ArgumentNullException.ThrowIfNull(leagueId);
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
-        org.Rename(name);
-        org.UpdateTeamInfo(teamId, teamName, teamShortName, sport);
-        org.SetFormedYear(formedYear);
-        org.SetVenue(venue);
-        org.SetMediaAssets(mediaAssets);
-        org.SetSocialLinks(socialLinks);
-        org.SetTeamColors(teamColors);
-        org.SetDescription(description);
+            var venue = new Venue(
+                stadium ?? string.Empty,
+                location ?? string.Empty,
+                capacity ?? 0);
 
-        return org;
-      }
+            var mediaAssets = new MediaAssets(
+                badgeUrl ?? string.Empty,
+                logoUrl ?? string.Empty,
+                fanart1Url ?? string.Empty,
+                fanart2Url ?? string.Empty,
+                fanart3Url ?? string.Empty);
 
-      // Mutations (Organization-only invariants)
+            var socialLinks = new SocialLinks(
+                website ?? string.Empty,
+                facebook ?? string.Empty,
+                twitter ?? string.Empty,
+                instagram ?? string.Empty);
 
-      public void Rename(string name)
+            var teamColors = new TeamColors(
+                color1 ?? string.Empty,
+                color2 ?? string.Empty,
+                color3 ?? string.Empty);
+
+            var org = new Organization
+            {
+                Id = OrganizationId.Of(Guid.NewGuid()),
+                LeagueId = leagueId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            org.Rename(name);
+            org.UpdateTeamInfo(teamId, teamName, teamShortName, sport);
+            org.SetFormedYear(formedYear);
+            org.SetVenue(venue);
+            org.SetMediaAssets(mediaAssets);
+            org.SetSocialLinks(socialLinks);
+            org.SetTeamColors(teamColors);
+            org.SetDescription(description);
+
+            return org;
+        }
+
+        // Mutations (Organization-only invariants)
+
+        public void Rename(string name)
         {
-          ArgumentException.ThrowIfNullOrEmpty(name);
-          var trimmed = name.Trim();
+            ArgumentException.ThrowIfNullOrEmpty(name);
+            var trimmed = name.Trim();
 
-          if (trimmed.Length > 200)
-            throw new ArgumentException("Organization name cannot exceed 200 characters.", nameof(name));
+            if (trimmed.Length > 200)
+                throw new ArgumentException("Organization name cannot exceed 200 characters.", nameof(name));
 
-          if (string.Equals(Name, trimmed, StringComparison.OrdinalIgnoreCase))
-            return;
+            if (string.Equals(Name, trimmed, StringComparison.OrdinalIgnoreCase))
+                return;
 
-          Name = trimmed;
-          // AddEvent(new OrganizationRenamed(Id, Name));
+            Name = trimmed;
+            // AddEvent(new OrganizationRenamed(Id, Name));
         }
 
         public void UpdateTeamInfo(string? teamId, string? teamName, string? teamShortName, string? sport)
         {
-          if (!string.IsNullOrEmpty(teamId) && teamId.Length > 50)
-            throw new ArgumentException("Team ID cannot exceed 50 characters", nameof(teamId));
-          if (!string.IsNullOrEmpty(teamName) && teamName.Length > 200)
-            throw new ArgumentException("Team name cannot exceed 200 characters", nameof(teamName));
-          if (!string.IsNullOrEmpty(teamShortName) && teamShortName.Length > 10)
-            throw new ArgumentException("Team short name cannot exceed 10 characters", nameof(teamShortName));
-          if (!string.IsNullOrEmpty(sport) && sport.Length > 100)
-            throw new ArgumentException("Sport cannot exceed 100 characters", nameof(sport));
+            if (!string.IsNullOrEmpty(teamId) && teamId.Length > 50)
+                throw new ArgumentException("Team ID cannot exceed 50 characters", nameof(teamId));
+            if (!string.IsNullOrEmpty(teamName) && teamName.Length > 200)
+                throw new ArgumentException("Team name cannot exceed 200 characters", nameof(teamName));
+            if (!string.IsNullOrEmpty(teamShortName) && teamShortName.Length > 10)
+                throw new ArgumentException("Team short name cannot exceed 10 characters", nameof(teamShortName));
+            if (!string.IsNullOrEmpty(sport) && sport.Length > 100)
+                throw new ArgumentException("Sport cannot exceed 100 characters", nameof(sport));
 
-          TeamId = teamId;
-          TeamName = teamName;
-          TeamShortName = teamShortName;
-          Sport = sport;
-          // AddEvent(new OrganizationTeamInfoUpdated(Id, TeamId, TeamName, TeamShortName, Sport));
+            TeamId = teamId;
+            TeamName = teamName;
+            TeamShortName = teamShortName;
+            Sport = sport;
+            // AddEvent(new OrganizationTeamInfoUpdated(Id, TeamId, TeamName, TeamShortName, Sport));
         }
 
         public void SetFormedYear(int? formedYear)
         {
-          if (formedYear.HasValue && (formedYear < 1800 || formedYear > DateTime.UtcNow.Year + 1))
-            throw new ArgumentOutOfRangeException(nameof(formedYear), "Formed year is out of range.");
+            if (formedYear.HasValue && (formedYear < 1800 || formedYear > DateTime.UtcNow.Year + 1))
+                throw new ArgumentOutOfRangeException(nameof(formedYear), "Formed year is out of range.");
 
-          FormedYear = formedYear;
-          // AddEvent(new OrganizationFormedYearUpdated(Id, FormedYear));
+            FormedYear = formedYear;
+            // AddEvent(new OrganizationFormedYearUpdated(Id, FormedYear));
         }
 
         public void SetVenue(Venue venue)
         {
-          ArgumentNullException.ThrowIfNull(venue);
-          Venue = venue;
-          // AddEvent(new OrganizationVenueUpdated(Id));
+            ArgumentNullException.ThrowIfNull(venue);
+            Venue = venue;
+            // AddEvent(new OrganizationVenueUpdated(Id));
         }
 
         public void SetMediaAssets(MediaAssets mediaAssets)
         {
-          ArgumentNullException.ThrowIfNull(mediaAssets);
-          MediaAssets = mediaAssets;
-          // AddEvent(new OrganizationMediaAssetsUpdated(Id));
+            ArgumentNullException.ThrowIfNull(mediaAssets);
+            MediaAssets = mediaAssets;
+            // AddEvent(new OrganizationMediaAssetsUpdated(Id));
         }
 
         public void SetSocialLinks(SocialLinks socialLinks)
         {
-          ArgumentNullException.ThrowIfNull(socialLinks);
-          SocialLinks = socialLinks;
-          // AddEvent(new OrganizationSocialLinksUpdated(Id));
+            ArgumentNullException.ThrowIfNull(socialLinks);
+            SocialLinks = socialLinks;
+            // AddEvent(new OrganizationSocialLinksUpdated(Id));
         }
 
         public void SetTeamColors(TeamColors colors)
         {
-          ArgumentNullException.ThrowIfNull(colors);
-          TeamColors = colors;
-          // AddEvent(new OrganizationTeamColorsUpdated(Id));
+            ArgumentNullException.ThrowIfNull(colors);
+            TeamColors = colors;
+            // AddEvent(new OrganizationTeamColorsUpdated(Id));
         }
 
         public void SetDescription(string? description) => Description = description;
 
-      }
+    }
 
     // Domain events you can keep if you’re publishing them
     public sealed record OrganizationCreated(OrganizationId OrganizationId, LeagueId LeagueId, string Name) : DomainEvent;

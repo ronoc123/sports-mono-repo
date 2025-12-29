@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Domain.Abstractions;
 using Domain.Leagues;
+using Domain.Notification;
 using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Player;
@@ -26,6 +27,8 @@ namespace Infrastructure.Data
         public DbSet<VoteAccount> VoteAccounts => Set<VoteAccount>();
         public DbSet<VoteTransaction> VoteTransactions => Set<VoteTransaction>();
         public DbSet<RewardItem> RewardItems => Set<RewardItem>();
+
+        public DbSet<Notification> Notifications => Set<Notification>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

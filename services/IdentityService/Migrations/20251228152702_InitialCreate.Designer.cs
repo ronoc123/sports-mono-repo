@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IdentityService.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20251005171855_InitialCreate")]
+    [Migration("20251228152702_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -169,28 +169,28 @@ namespace IdentityService.Migrations
                         new
                         {
                             Id = "1",
-                            ConcurrencyStamp = "0c7f6aaf-78ad-4ae4-bb7d-c1f428faf2f2",
+                            ConcurrencyStamp = "8c390e0e-59fc-4bbf-a651-19b7bcf7b358",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "2",
-                            ConcurrencyStamp = "998546ca-c8da-4985-8e5a-ec1aabeb68c1",
+                            ConcurrencyStamp = "d27f95da-ea93-47c1-b06b-00dae99681d8",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
                             Id = "3",
-                            ConcurrencyStamp = "edcba918-c351-4970-81ec-3d475d1d338f",
+                            ConcurrencyStamp = "5b29f160-f14f-4e63-b2a8-c4ab2d812576",
                             Name = "CSP",
                             NormalizedName = "CSP"
                         },
                         new
                         {
                             Id = "4",
-                            ConcurrencyStamp = "e94b945e-56f7-4795-af11-21203eff56e4",
+                            ConcurrencyStamp = "67ce1d2e-808d-46b3-9a73-38825be6e8c7",
                             Name = "GM",
                             NormalizedName = "GM"
                         });

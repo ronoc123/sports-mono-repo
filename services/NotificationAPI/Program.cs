@@ -7,7 +7,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddMessageBroker(
     builder.Configuration,
-    assembly: typeof(RewardEmailRequestedConsumer).Assembly
+    typeof(RewardEmailRequestedConsumer).Assembly
 );
 
 // 🔹 Email configuration from appsettings.json

@@ -5,11 +5,13 @@ using BuildingBlocks.Messageing.Events;
 using BuildingBlocks.Messageing.Publisher;
 using Contracts.Contracts;
 using Domain.DomainServices.RewardService;
+using Domain.Organizations;
 using Domain.Repositories;
 using Domain.Rewards;
 using Domain.ValueObjects.ConcreteTypes;
 using Domain.VoteAccount;
 using MediatR;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace Application.Votes.Commands.EmailReward
@@ -44,8 +46,15 @@ namespace Application.Votes.Commands.EmailReward
             }
 
             var domainUserId = UserId.Of(userGuid);
-            var account = await _repo.GetByIdAsync<VoteAccount>(ct, OrganizationId.Of(request.OrganizationId), domainUserId);
 
+            var organization = await _repo.GetByIdAsync<Organization, OrganizationId>(OrganizationId.Of(request.OrganizationId));
+
+            if (organization is null)
+            {
+                throw new ValidationException("Organization Not Found");
+            }
+
+            var account = await _repo.GetByIdAsync<VoteAccount>(ct, OrganizationId.Of(request.OrganizationId), domainUserId);
 
             if (account is null)
             {
@@ -64,6 +73,10 @@ namespace Application.Votes.Commands.EmailReward
                 RewardId = reward.Id.Value,
                 Email = user.Email,
                 RedeemedAt = DateTime.UtcNow,
+                OrganizationId = organization.Id.Value,
+                UserId = userId,
+                Message = "You received a reward!",
+                Title = $"New Votes for {organization.Name}"
             };
 
             await _repo.SaveChangesAsync(ct);
