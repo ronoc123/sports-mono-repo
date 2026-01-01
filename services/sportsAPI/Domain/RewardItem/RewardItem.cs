@@ -13,13 +13,14 @@ namespace Domain.Rewards
         public OrganizationId OrganizationId { get; private set; }
         public long VoteValue { get; private set; }
         public string QrCode { get; private set; } = default!;
+        public string PromoCode { get; private set; }
         public UserId? RedeemedBy { get; private set; }
         public DateTime? RedeemedAt { get; private set; }
         public bool IsRedeemed => RedeemedBy is not null;
 
         internal RewardItem() { }
 
-        public static RewardItem Create(OrganizationId orgId, long voteValue, string qrCode = null, string redemptionId = null)
+        public static RewardItem Create(OrganizationId orgId, long voteValue, string qrCode = null, string promoCode = null)
         {
             if (voteValue <= 0)
                 throw new DomainException("RewardItem must have a positive VoteValue.");
@@ -30,6 +31,7 @@ namespace Domain.Rewards
                 OrganizationId = orgId,
                 VoteValue = voteValue,
                 QrCode = qrCode,
+                PromoCode = promoCode
             };
 
             return item;

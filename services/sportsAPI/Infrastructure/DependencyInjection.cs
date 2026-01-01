@@ -1,5 +1,6 @@
 using Application;
 using Application.Common.Interfaces;
+using Application.Common.Services;
 using Domain.Abstractions;
 using Domain.DomainServices.RewardService;
 using Domain.DomainServices.Voting;
@@ -9,6 +10,7 @@ using Infrastructure.Data;
 using Infrastructure.Events;
 using Infrastructure.Integrations.Identity;
 using Infrastructure.Repositories;
+using Infrastructure.Rewards;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +35,11 @@ namespace Infrastructure
 
             services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
+            services.AddScoped<IDomainVotingService, DomainVotingService>();
             services.AddScoped<IVotingService, VotingService>();
             services.AddScoped<IRewardRedemptionService, RewardRedemptionService>();
+            services.AddScoped<IQrCodeGenerator, QrCodeGenerator>();
+            services.AddScoped<IRedemptionCodeGenerator, RedemptionCodeGenerator>();
 
             services.AddHttpClient<IUserDirectory, UserDirectoryClient>(client =>
             {

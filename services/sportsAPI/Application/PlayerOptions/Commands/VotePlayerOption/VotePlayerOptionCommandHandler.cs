@@ -12,9 +12,9 @@ public class VotePlayerOptionCommandHandler
     : IRequestHandler<VotePlayerOptionCommand, ServiceResponse<bool>>
 {
   private readonly IRepository _repo;
-  private readonly IVotingService _votingService;
+  private readonly IDomainVotingService _votingService;
 
-  public VotePlayerOptionCommandHandler(IRepository repo, IVotingService votingService)
+  public VotePlayerOptionCommandHandler(IRepository repo, IDomainVotingService votingService)
   {
     _repo = repo;
     _votingService = votingService;

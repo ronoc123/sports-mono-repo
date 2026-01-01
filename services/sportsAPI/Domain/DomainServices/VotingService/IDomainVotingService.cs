@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Domain.DomainServices.VotingService.VotingService
 {
-  public interface IVotingService
+  public interface IDomainVotingService
   {
     public void Vote(VoteAccount.VoteAccount account, PlayerOption.PlayerOption option, UserId userId, long amount);
   }

@@ -48,7 +48,7 @@ namespace WebAPI.Controllers
 
         // POST api/<VoteAccount>
         [HttpPost("reward-for-user")]
-        public async Task<ServiceResponse<string>> Send([FromBody] EmailRewardCommand command)
+        public async Task<ServiceResponse<string>> Send([FromBody] EmailRewardRedemptionCommand command)
         {
             var result = await _mediator.Send(command);
             return result;
