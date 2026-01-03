@@ -42,7 +42,7 @@ namespace Application.Votes.Commands.EmailReward
             var emailEvent = new RewardEmailRequestedEvent
             {
                 RewardId = reward.Id.Value,
-                Email = "Testing",
+                Email = "Testing@gmail.com",
                 RedeemedAt = DateTime.UtcNow,
                 OrganizationId = account.OrgId.Value,
                 UserId = account.UserId.Value,

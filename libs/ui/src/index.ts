@@ -13,3 +13,4 @@ export * from "./components/sidebar/sidebar.component";
 export * from "./components/toast/toast";
 
 export * from "./components/notification/notification";
+export * from "./components/notification-badge/notification-badge";

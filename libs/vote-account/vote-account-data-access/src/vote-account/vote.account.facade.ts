@@ -39,13 +39,13 @@ export class VoteAccountFacade {
     this.store.setLoading();
 
     try {
-      await firstValueFrom(
+      const res = await firstValueFrom(
         this.api.castVote(playerOptionId, userId, voteAmount)
       );
-      this.toast.success("Votes applied!");
+      this.toast.success(res?.message ?? "Votes applied!");
       await this.load(userId, organizationId);
     } catch (err: any) {
-      this.toast.error("Unable to apply votes");
+      this.toast.error(err?.error?.message ?? "Failed to cast vote");
     }
   }
 }

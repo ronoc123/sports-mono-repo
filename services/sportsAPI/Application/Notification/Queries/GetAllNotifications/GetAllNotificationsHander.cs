@@ -29,6 +29,7 @@ namespace Application.Notifications.Queries.GetAllNotifications
                 .ToListAsync(cancellationToken);
 
             var dtoList = notifications
+                .Where(n => !n.IsRead)
                 .Select(NotificationDtoMapper.ToNotificationDto)
                 .ToList();
 

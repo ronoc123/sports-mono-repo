@@ -33,6 +33,7 @@ export class NotificationFacade {
   }
 
   async markAsRead(notificationId: string) {
+    console.log("Marking notification as read:", notificationId);
     try {
       await firstValueFrom(this.api.markAsRead(notificationId));
       this.store.markAsRead(notificationId);

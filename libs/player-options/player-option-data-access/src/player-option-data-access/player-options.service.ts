@@ -26,9 +26,8 @@ export class PlayerOptionFeatureService {
 
       const items = res.data?.items ?? [];
       this.store.setOptions(items);
-      this.toast.success(res.message || "Success");
     } catch (e: any) {
-      this.toast.error(e?.message || "Failed");
+      this.toast.error(e?.error?.message || "Unable to load player options");
     }
   }
 }

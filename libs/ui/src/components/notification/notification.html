@@ -1,10 +1,14 @@
-<div *ngIf="loading()">Loading…</div>
+<div class="notification-item" [class.unread]="!notification().isRead">
+  <div class="content">
+    <strong>{{ notification().title }}</strong>
+    <p>{{ notification().message }}</p>
+  </div>
 
-<div *ngFor="let n in notifications()" class="notification">
-  <strong>{{ n.title }}</strong>
-  <p>{{ n.message }}</p>
-
-  <button *ngIf="!n.isRead" (click)="markRead.emit(n.notificationId)">
+  <button
+    *ngIf="!notification().isRead"
+    class="mark-read"
+    (click)="markRead.emit(notification().notificationId)"
+  >
     Mark as read
   </button>
 </div>

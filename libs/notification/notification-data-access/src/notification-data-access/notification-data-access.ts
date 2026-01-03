@@ -40,7 +40,7 @@ export class NotificationApi {
 
   markAsRead(notificationId: string) {
     return this.http.post<ServiceResponse<boolean>>(
-      `/notifications/${notificationId}/read`
+      `${this.base}/${notificationId}/read`
     );
   }
 }

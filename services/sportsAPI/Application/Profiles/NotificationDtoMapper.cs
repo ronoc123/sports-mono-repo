@@ -9,7 +9,7 @@ namespace Application.Profiles
         {
             return new NotificationDto
             {
-                NotificationId = notification.Id,
+                NotificationId = notification.Id.Value,
                 UserId = notification.UserId.Value,
                 OrganizationId = notification.OrganizationId.Value,
                 Title = notification.Title,

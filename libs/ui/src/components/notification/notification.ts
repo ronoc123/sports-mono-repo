@@ -10,7 +10,7 @@ import { NotificationDto } from "@sports-ui/notification-data-access";
   styleUrls: ["./notification.css"],
 })
 export class NotificationComponent {
-  notifications = input<NotificationDto>();
+  notification = input.required<NotificationDto>();
   loading = input<boolean>(false);
 
   // outputs can stay the same

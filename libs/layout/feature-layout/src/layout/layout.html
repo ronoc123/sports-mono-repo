@@ -2,11 +2,13 @@
   class="navbar"
   [config]="layoutConfig"
   [user]="user()"
+  [notifications]="notifications()"
   (toggleNavBar)="onToggleSidebar()"
   (toggleTheme)="onToggleTheme()"
   (logout)="onLogout()"
   (openProfile)="onOpenProfile()"
   (openSettings)="onOpenSettings()"
+  (markRead)="onMarkRead($event)"
 ></lib-ui-navbar>
 
 <div class="layout-body">

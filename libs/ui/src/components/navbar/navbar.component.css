@@ -72,6 +72,12 @@
   color: #ff6b6b !important;
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 /* Mobile cleanup */
 @media (max-width: 768px) {
   .navbar {

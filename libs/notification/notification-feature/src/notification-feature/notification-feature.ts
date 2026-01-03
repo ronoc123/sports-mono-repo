@@ -8,12 +8,4 @@ import { NotificationComponent } from "@sports-ui/ui";
   templateUrl: "./notification-feature.html",
   styleUrl: "./notification-feature.css",
 })
-export class NotificationFeature {
-  facade = inject(NotificationFacade);
-  readonly notifications = this.facade.notifications;
-  readonly status = this.facade.status;
-
-  onMarkRead(id: string) {
-    this.facade.markAsRead(id);
-  }
-}
+export class NotificationFeature {}

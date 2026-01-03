@@ -1,4 +1,4 @@
-import { Component, input, output } from "@angular/core";
+import { Component, input, OnInit, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatSidenav } from "@angular/material/sidenav";
 import { MatDivider } from "@angular/material/divider";
@@ -8,6 +8,8 @@ import { MatToolbar } from "@angular/material/toolbar";
 import { LayoutConfig } from "../sidebar/sidebar.component";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { NotificationDto } from "@sports-ui/notification-data-access";
+import { NotificationBadgeComponent } from "../notification-badge/notification-badge";
 
 @Component({
   selector: "lib-ui-navbar",
@@ -19,6 +21,7 @@ import { MatButtonToggleModule } from "@angular/material/button-toggle";
     MatToolbar,
     MatSlideToggleModule,
     MatButtonToggleModule,
+    NotificationBadgeComponent,
   ],
   standalone: true,
   templateUrl: "./navbar.component.html",
@@ -28,10 +31,12 @@ export class NavbarComponent {
   readonly config = input<LayoutConfig>();
   readonly drawer = input<MatSidenav>();
   readonly user = input<any>();
+  readonly notifications = input<NotificationDto[]>([]);
 
   readonly toggleNavBar = output<void>();
   readonly logout = output<void>();
   readonly openProfile = output<void>();
   readonly openSettings = output<void>();
   readonly toggleTheme = output<void>();
+  readonly markRead = output<string>();
 }

@@ -21,6 +21,7 @@ import {
   NavbarComponent,
   SidebarComponent,
 } from "@sports-ui/ui";
+import { NotificationFacade } from "@sports-ui/notification-data-access";
 
 @Component({
   selector: "lib-feature-layout",
@@ -34,12 +35,15 @@ export class LayoutFeatureComponent implements OnInit {
   private authFacade = inject(AuthFacade);
   private orgFacade = inject(OrganizationFeatureService);
   private theme = inject(ThemeService);
+  private notificationFacade = inject(NotificationFacade);
   user = this.authFacade.user;
   organizations = this.orgFacade.organizations;
   selectedOrganization = this.orgFacade.selectedOrganization;
   @ViewChild("drawer") drawer!: MatSidenav;
   readonly navItems = input.required<NavItem[]>();
   mode = signal<"light" | "dark">("light");
+  readonly notifications = this.notificationFacade.notifications;
+  readonly status = this.notificationFacade.status;
 
   // Layout configuration
   layoutConfig: LayoutConfig = {
@@ -64,6 +68,20 @@ export class LayoutFeatureComponent implements OnInit {
       if (org) {
         this.theme.applyOrgTheme(org);
       }
+    });
+
+    // 🔔 Notifications effect
+    effect(() => {
+      const user = this.user();
+
+      // guard until we have what we need
+      if (!user) return;
+
+      this.notificationFacade.loadNotifications({
+        userId: user.id,
+        pageNumber: 1,
+        pageSize: 50,
+      });
     });
   }
 
@@ -100,5 +118,9 @@ export class LayoutFeatureComponent implements OnInit {
 
   onToggleTheme() {
     this.mode.update((prev) => (prev === "light" ? "dark" : "light"));
+  }
+
+  onMarkRead(id: string) {
+    this.notificationFacade.markAsRead(id);
   }
 }

@@ -1,18 +1,17 @@
 namespace Domain.VoteAccount
 {
-  using BuildingBlocks.Exceptions;
-  using Domain.Rewards;
-  using Domain.Shared_kernel;
-  using Domain.ValueObjects.ConcreteTypes;
+    using BuildingBlocks.Exceptions;
+    using Domain.Shared_kernel;
+    using Domain.ValueObjects.ConcreteTypes;
 
-  /// <summary>
-  /// Per-organization wallet for a user. AR key = (OrgId, UserId).
-  /// Only this AR mutates vote balances.
-  /// </summary>
-  public sealed class VoteAccount : Aggregate<VoteAccountId>
-  {
+    /// <summary>
+    /// Per-organization wallet for a user. AR key = (OrgId, UserId).
+    /// Only this AR mutates vote balances.
+    /// </summary>
+    public sealed class VoteAccount : Aggregate<VoteAccountId>
+    {
         internal VoteAccount() { } // EF
-        
+
         public OrganizationId OrgId { get; private set; } = default!;
         public UserId UserId { get; private set; } = default!;
 
@@ -27,59 +26,59 @@ namespace Domain.VoteAccount
 
         private VoteAccount(VoteAccountId id, long initialBalance)
         {
-          Id = id;
-          OrgId = id.OrgId;
-          UserId = id.UserId;
-          Balance = initialBalance;
-          Version = 0;
-          CreatedAt = UpdatedAt = DateTime.UtcNow;
+            Id = id;
+            OrgId = id.OrgId;
+            UserId = id.UserId;
+            Balance = initialBalance;
+            Version = 0;
+            CreatedAt = UpdatedAt = DateTime.UtcNow;
         }
 
         public static VoteAccount Create(OrganizationId orgId, UserId userId, long initialBalance = 0)
         {
-          if (initialBalance < 0) throw new DomainException("Initial balance cannot be negative.");
-          return new VoteAccount(VoteAccountId.Of(orgId, userId), initialBalance);
+            if (initialBalance < 0) throw new DomainException("Initial balance cannot be negative.");
+            return new VoteAccount(VoteAccountId.Of(orgId, userId), initialBalance);
         }
 
         public void ApplyReward(RedemptionToken token)
         {
-          if (token.Amount <= 0) throw new DomainException("Invalid reward amount.");
-          Balance += token.Amount;
+            if (token.Amount <= 0) throw new DomainException("Invalid reward amount.");
+            Balance += token.Amount;
 
-          _transactions.Add(
-              VoteTransaction.ForRewardCredit(
-                  token.OrgId,
-                  token.RedeemingUser,
-                  token.Amount,
-                  token.RewardItemId.ToString()
-              ));
-          }
+            _transactions.Add(
+                VoteTransaction.ForRewardCredit(
+                    token.OrgId,
+                    token.RedeemingUser,
+                    token.Amount,
+                    token.RewardItemId.ToString()
+                ));
+        }
 
 
         public SpendToken AuthorizeSpend(PlayerOptionId optionId, long amount, string spendId)
         {
-          ArgumentNullException.ThrowIfNull(optionId);
-          ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
-          if (amount <= 0) throw new DomainException("Spend amount must be positive.");
+            ArgumentNullException.ThrowIfNull(optionId);
+            ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
+            if (amount <= 0) throw new DomainException("Spend amount must be positive.");
 
 
-          if (Balance < amount)
-            throw new DomainException("Insufficient balance.");
+            if (Balance < amount)
+                throw new DomainException("Insufficient Funds.");
 
 
-          return new SpendToken(Id, OrgId, optionId, amount, spendId);
+            return new SpendToken(Id, OrgId, optionId, amount, spendId);
         }
 
         public void ApplySpend(SpendToken token)
         {
 
-          if (Balance < token.Amount)
-            throw new DomainException("Insufficient balance at finalization.");
+            if (Balance < token.Amount)
+                throw new DomainException("Insufficient balance at finalization.");
 
-          Balance -= token.Amount;
+            Balance -= token.Amount;
 
-          _transactions.Add(VoteTransaction.ForVoteSpend(OrgId, UserId, token.PlayerOptionId, token.Amount,token.SpendId));
-         }
+            _transactions.Add(VoteTransaction.ForVoteSpend(OrgId, UserId, token.PlayerOptionId, token.Amount, token.SpendId));
+        }
 
-  }
+    }
 }

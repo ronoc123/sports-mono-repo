@@ -1,10 +1,8 @@
-using Domain.ValueObjects.ConcreteTypes;
-
 namespace Application.Dto.Notification
 {
     public class NotificationDto
     {
-        public NotificationId NotificationId { get; set; }
+        public Guid NotificationId { get; set; }
         public Guid UserId { get; set; }
         public Guid OrganizationId { get; set; }
 

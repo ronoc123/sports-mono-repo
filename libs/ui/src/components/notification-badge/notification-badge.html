@@ -1,0 +1,20 @@
+<div class="notification-badge">
+  <!-- 🔔 Bell button -->
+  <button class="bell" (click)="toggleDropdown()">
+    <span class="material-icons">notifications</span>
+
+    <!-- unread dot -->
+    <span *ngIf="unreadCount() > 0" class="badge"> {{ unreadCount() }} </span>
+  </button>
+
+  <!-- ⬇ Dropdown -->
+  <div *ngIf="dropdownOpen()" class="dropdown">
+    <div *ngIf="notifications().length === 0" class="empty">
+      No notifications
+    </div>
+
+    <div *ngFor="let n of notifications()" class="notification-row">
+      <lib-notification [notification]="n" (markRead)="markRead.emit($event)" />
+    </div>
+  </div>
+</div>
