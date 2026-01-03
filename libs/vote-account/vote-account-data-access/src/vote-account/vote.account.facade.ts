@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { VoteAccountStore } from "./vote-account.store";
 import { VoteAccountApi } from "./vote-account-data-access";
 import { firstValueFrom } from "rxjs";
-import { ToastService } from "@sports-ui/notification";
+import { ToastService } from "@sports-ui/toast";
 
 @Injectable({ providedIn: "root" })
 export class VoteAccountFacade {

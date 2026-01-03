@@ -11,3 +11,5 @@ export * from "./components/navbar/navbar.component";
 export * from "./components/sidebar/sidebar.component";
 
 export * from "./components/toast/toast";
+
+export * from "./components/notification/notification";

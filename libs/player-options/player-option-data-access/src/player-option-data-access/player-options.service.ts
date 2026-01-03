@@ -4,7 +4,7 @@ import { PlayerOptionApi } from "./player-option-data-access";
 import { GetAllPlayerOptionsQuery } from "./player-option.model";
 import { firstValueFrom } from "rxjs";
 import { OrganizationStore } from "@sports-ui/organization-data-access";
-import { ToastService } from "@sports-ui/notification";
+import { ToastService } from "@sports-ui/toast";
 
 @Injectable({ providedIn: "root" })
 export class PlayerOptionFeatureService {

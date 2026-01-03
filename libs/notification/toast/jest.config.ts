@@ -1,8 +1,8 @@
 export default {
-  displayName: "notification",
+  displayName: "toast",
   preset: "../../../jest.preset.js",
   setupFilesAfterEnv: ["<rootDir>/src/test-setup.ts"],
-  coverageDirectory: "../../../coverage/libs/notification/notification",
+  coverageDirectory: "../../../coverage/libs/notification/toast",
   transform: {
     "^.+\\.(ts|mjs|js|html)$": [
       "jest-preset-angular",

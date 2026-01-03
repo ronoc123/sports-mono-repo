@@ -16,9 +16,12 @@ export class ApiService {
     });
   }
 
+  post<T>(url: string): Observable<T>;
+  post<T, D>(url: string, data: D): Observable<T>;
   post<T, D>(url: string, data?: D): Observable<T> {
-    return this.http.post<T>(`${this.api_url}${url}`, data, {
+    return this.http.post<T>(`${this.api_url}${url}`, data ?? null, {
       headers: this.headers,
+      withCredentials: false,
     });
   }
 

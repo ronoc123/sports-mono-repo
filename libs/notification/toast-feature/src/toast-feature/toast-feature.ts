@@ -1,6 +1,6 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ToastService } from "@sports-ui/notification";
+import { ToastService } from "@sports-ui/toast";
 import { Toast } from "@sports-ui/ui";
 
 @Component({

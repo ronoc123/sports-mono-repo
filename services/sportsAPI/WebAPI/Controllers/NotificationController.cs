@@ -18,7 +18,7 @@ namespace WebAPI.Controllers
             _mediator = mediator;
         }
 
-        [HttpPost("get-all")]
+        [HttpGet("get-all")]
         public async Task<ServiceResponse<PaginatedList<NotificationDto>>> Get([FromBody] GetAllNotificationsQuery query)
         {
             var res = await _mediator.Send(query);
