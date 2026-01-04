@@ -24,22 +24,12 @@ jobs:
 
       # 🔍 DEBUG: show repo root
       - name: Debug repo root
-        run: dir
+        run: Get-ChildItem
 
       # 🔍 DEBUG: show services folder
       - name: Debug services folder
-        run: dir services
+        run: Get-ChildItem services
 
-      # 🔍 DEBUG: show IdentityService recursively (THIS IS THE IMPORTANT ONE)
+      # 🔍 DEBUG: show IdentityService recursively (THIS IS THE KEY)
       - name: Debug IdentityService structure
-        run: dir services\IdentityService /s
-
-      # ⛔ TEMPORARILY COMMENTED OUT — we will fix the path after logs
-      # - name: Publish Identity API
-      #   run: dotnet publish services/IdentityService/???/???.csproj -c Release -o publish
-
-      # - name: Upload publish artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: identity-api
-      #     path: publish
+        run: Get-ChildItem services/IdentityService -Recurse
