@@ -1,0 +1,64 @@
+name: Build and deploy Sports API to Azure Web App - sportify
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/SportsAPI/**'
+      - 'services/SportifyCore/**'
+      - 'services/Messaging/**'
+      - 'services/NotificationService/**'
+      - '.github/workflows/deploy-sportify.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      # ✅ Publish the correct Web API project
+      - name: Publish Sports API Web
+        run: dotnet publish services/SportsAPI/WebAPI/WebAPI.csproj -c Release -o publish
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sports-api
+          path: publish
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sports-api
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_54E60D45F5504EB8972891B865F0B929 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_43B3188FF4EF48218B4BB2C01C86CF51 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AAB9C5D964CA4FB3B5188BB93C2FF254 }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'sportify'
+          package: .
