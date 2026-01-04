@@ -21,7 +21,11 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
+      - name: Debug repo structure
+        run: |
+          dir
+          dir SportsAPI
+          dir SportsAPI\*
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -63,3 +67,4 @@ jobs:
         with:
           app-name: 'sportify'
           package: .
+
