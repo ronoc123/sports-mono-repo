@@ -7,6 +7,7 @@ on:
     paths:
       - 'SportsAPI/**'
       - 'SportifyCore/**'
+      - 'Messaging/**'
       - 'NotificationService/**'
       - '.github/workflows/deploy-sportify.yml'
   workflow_dispatch:
@@ -26,11 +27,8 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      # 🔑 Restore the full solution so all project references resolve
-      - name: Restore solution
-        run: dotnet restore SportsSystem.sln
-
-      # 🔑 Publish ONLY the Sports API Web project (this builds it)
+      # ✅ Publish ONLY the Sports API Web project
+      # dotnet publish automatically restores + builds dependencies
       - name: Publish Sports API Web
         run: dotnet publish SportsAPI/WebAPI/WebAPI.csproj -c Release -o publish
 
