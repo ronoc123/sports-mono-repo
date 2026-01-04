@@ -14,16 +14,20 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
+      # ✅ Publish the actual IdentityService project
       - name: Publish Identity API
-        run: dotnet publish services/IdentityService/WebAPI/WebAPI.csproj -c Release -o publish
+        run: dotnet publish services/IdentityService/IdentityService/IdentityService.csproj -c Release -o publish
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
         with:
           name: identity-api
           path: publish
@@ -33,20 +37,23 @@ jobs:
     needs: build
     permissions:
       id-token: write
+      contents: read
 
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
           name: identity-api
 
-      - uses: azure/login@v2
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_596DB3DA232B4B3F85AC836A8B3FD954 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_13CE8B56B1D641AD97AD5ACC25439016 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9CFC05014D624733BDA4DAA95D3648BB }}
 
-      - uses: azure/webapps-deploy@v3
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'sportify-identity'
           package: .
-
