@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'SportsAPI/**'
-      - 'SportifyCore/**'
-      - 'Messaging/**'
-      - 'NotificationService/**'
+      - 'services/SportsAPI/**'
+      - 'services/SportifyCore/**'
+      - 'services/Messaging/**'
+      - 'services/NotificationService/**'
       - '.github/workflows/deploy-sportify.yml'
   workflow_dispatch:
 
@@ -21,20 +21,15 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Debug repo structure
-        run: |
-          dir
-          dir SportsAPI
-          dir SportsAPI\*
+
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
-      # ✅ Publish ONLY the Sports API Web project
-      # dotnet publish automatically restores + builds dependencies
+      # ✅ Publish the correct Web API project
       - name: Publish Sports API Web
-        run: dotnet publish SportsAPI/WebAPI/WebAPI.csproj -c Release -o publish
+        run: dotnet publish services/SportsAPI/WebAPI/WebAPI.csproj -c Release -o publish
 
       - name: Upload publish artifact
         uses: actions/upload-artifact@v4
@@ -67,4 +62,3 @@ jobs:
         with:
           app-name: 'sportify'
           package: .
-
