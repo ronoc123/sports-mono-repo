@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'services/sportsAPI/**'
+      - 'services/**'
       - '.github/workflows/deploy-sportify.yml'
   workflow_dispatch:
 
@@ -23,15 +23,15 @@ jobs:
         with:
           dotnet-version: '8.x'
 
-      # 🔑 BUILD THE API PROJECT EXPLICITLY
-      - name: Build Sports API
-        run: dotnet build services/sportsAPI/sportsAPI.csproj -c Release
+      # ✅ BUILD ONLY THE WEB API PROJECT
+      - name: Build Sports API Web
+        run: dotnet build SportsAPI/WebAPI/SportsAPI.WebAPI.csproj -c Release
 
-      # 🔑 PUBLISH THE API PROJECT EXPLICITLY
-      - name: Publish Sports API
-        run: dotnet publish services/sportsAPI/sportsAPI.csproj -c Release -o publish
+      # ✅ PUBLISH ONLY THE WEB API PROJECT
+      - name: Publish Sports API Web
+        run: dotnet publish SportsAPI/WebAPI/SportsAPI.WebAPI.csproj -c Release -o publish
 
-      - name: Upload artifact for deployment
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: sports-api
@@ -45,7 +45,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Download build artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: sports-api
@@ -61,5 +61,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'sportify'
-          slot-name: 'Production'
           package: .
