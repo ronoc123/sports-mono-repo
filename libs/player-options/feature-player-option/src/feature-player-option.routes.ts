@@ -1,10 +1,9 @@
-import { Routes } from '@angular/router';
-import { FeaturePlayerOption } from './index';
-
+import { Routes } from "@angular/router";
+import { FeaturePlayerOption } from "./index";
 
 export const playerOptionRoutes: Routes = [
   {
-    path: '',
+    path: "",
     component: FeaturePlayerOption,
   },
 ];

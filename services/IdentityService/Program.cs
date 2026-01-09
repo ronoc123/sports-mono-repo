@@ -1,12 +1,12 @@
+using IdentityService.Data;
+using IdentityService.Models;
+using IdentityService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using IdentityService.Data;
-using IdentityService.Models;
-using IdentityService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,19 +76,19 @@ builder.Services.AddCors(options =>
     // Restrictive policy for production
     options.AddPolicy("AllowFrontend", policy =>
     {
-      policy.WithOrigins(
-              "http://localhost:4200",   // Angular default
-              "http://localhost:3000",   // React default
-              "http://localhost:5173",   // Vite default
-              "http://localhost:8080",   // Vue default
-              "https://localhost:4200",  // HTTPS versions
-              "https://localhost:3000",
-              "https://localhost:5173",
-              "https://localhost:8080"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.WithOrigins(
+                "http://localhost:4200",   // Angular default
+                "http://localhost:3000",   // React default
+                "http://localhost:5173",   // Vite default
+                "http://localhost:8080",   // Vue default
+                "https://localhost:4200",  // HTTPS versions
+                "https://localhost:3000",
+                "https://localhost:5173",
+                "https://localhost:8080"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -163,7 +163,25 @@ app.MapControllers();
 // Add health check endpoint
 app.MapHealthChecks("/health");
 
-// Note: Database migrations should be run manually using:
-// dotnet ef database update --project src/IdentityService/IdentityService.csproj
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        var db = services.GetRequiredService<IdentityDbContext>();
+
+        logger.LogInformation("Applying Identity database migrations...");
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Identity database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "Identity database migration failed.");
+        throw; // fail fast if schema is broken
+    }
+}
+
 
 app.Run();

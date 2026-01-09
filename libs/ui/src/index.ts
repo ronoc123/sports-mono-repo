@@ -14,3 +14,4 @@ export * from "./components/toast/toast";
 
 export * from "./components/notification/notification";
 export * from "./components/notification-badge/notification-badge";
+export * from "./components/lib/input/ui-input";

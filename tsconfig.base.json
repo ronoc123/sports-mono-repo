@@ -20,6 +20,9 @@
       "@sports-ui/auth-data-access": [
         "libs/auth/auth-data-access/src/index.ts"
       ],
+      "@sports-ui/create-player-option-feature": [
+        "libs/player-options/create-player-option-feature/src/index.ts"
+      ],
       "@sports-ui/dashboard-data-access": [
         "libs/dashboard/dashboard-data-access/src/index.ts"
       ],
@@ -51,9 +54,6 @@
       "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
       "@sports-ui/feature-user": ["libs/product-domains/users/src/index.ts"],
       "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
-      "@sports-ui/toast": [
-        "libs/notification/toast/src/index.ts"
-      ],
       "@sports-ui/notification-data-access": [
         "libs/notification/notification-data-access/src/index.ts"
       ],
@@ -79,6 +79,7 @@
       "@sports-ui/roaster-data-access": [
         "libs/roaster/roaster-data-access/src/index.ts"
       ],
+      "@sports-ui/toast": ["libs/notification/toast/src/index.ts"],
       "@sports-ui/toast-feature": [
         "libs/notification/toast-feature/src/index.ts"
       ],

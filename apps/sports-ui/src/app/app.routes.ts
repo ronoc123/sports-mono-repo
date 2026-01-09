@@ -67,6 +67,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: "create-player-option",
+        loadChildren: () =>
+          import("@sports-ui/create-player-option-feature").then(
+            (m) => m.createPlayerOptionRoutes
+          ),
+      },
+      {
         path: "redeem",
         loadChildren: () =>
           import("@sports-ui/feature-redeem").then((m) => m.redeemRoutes),

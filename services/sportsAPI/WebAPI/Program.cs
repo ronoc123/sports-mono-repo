@@ -3,6 +3,7 @@ using BuildingBlocks.Messageing.MassTransit;
 using Infrastructure;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -164,6 +165,28 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
     }
 }
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        var db = services.GetRequiredService<SportsDbAppContext>();
+
+        logger.LogInformation("Applying database migrations...");
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "Database migration failed.");
+        throw; // 🚨 fail fast — app should NOT start with broken schema
+    }
+}
+
 
 app.Run();
 

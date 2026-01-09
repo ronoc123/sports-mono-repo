@@ -1,1 +1,11 @@
-<p>ui-input works!</p>
+<!-- eslint-disable @angular-eslint/template/label-has-associated-control -->
+<div class="field" [class.field-error]="showError()">
+  <label class="field-label">
+    {{ label() }}
+    <span *ngIf="required()" class="required">*</span>
+  </label>
+
+  <ng-content></ng-content>
+
+  <p *ngIf="showError()" class="error-text">{{ errorMessage() }}</p>
+</div>

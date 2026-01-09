@@ -50,3 +50,28 @@ button {
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
+
+
+input {
+  width: 100%;
+  padding: 11px 10px;
+  font-size: 14px;
+  color: #111827; /* gray-900 */
+  background-color: #ffffff;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 4px;
+  transition:
+  border-color 0.15s ease,
+  box-shadow 0.15s ease,
+  background-color 0.15s ease;
+}
+
+input::placeholder {
+  color: #9ca3af; /* gray-400 */
+}
+
+input:focus {
+  outline: none;
+  border-color: #2563eb; /* blue-600 */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+}

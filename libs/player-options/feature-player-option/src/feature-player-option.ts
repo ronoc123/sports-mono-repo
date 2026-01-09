@@ -15,6 +15,8 @@ import { PlayerOptionCardComponent } from "@sports-ui/ui";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 
+import { UiInput } from "@sports-ui/ui";
+
 @Component({
   selector: "lib-feature-player-option",
   standalone: true,
@@ -28,6 +30,7 @@ import { AuthFacade } from "@sports-ui/auth-data-access";
     MatProgressBarModule,
     MatSnackBarModule,
     PlayerOptionCardComponent,
+    UiInput,
   ],
   templateUrl: "./feature-player-option.html",
   styleUrl: "./feature-player-option.css",
