@@ -24,7 +24,7 @@ export class PlayerOptionFeatureService {
     try {
       const res = await firstValueFrom(this.api.getPlayerOptions(query));
 
-      const items = res.data?.items ?? [];
+      const items = res.data ?? [];
       this.store.setOptions(items);
     } catch (e: any) {
       this.toast.error(e?.error?.message || "Unable to load player options");

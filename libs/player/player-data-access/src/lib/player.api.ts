@@ -2,15 +2,15 @@ import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { PlayerDto } from "./models/player.model";
-import { GetAllPlayersQuery } from "./models/get-all-players.query";
+import { ServiceResponse } from "./models/get-all-players.query";
 
 @Injectable({ providedIn: "root" })
 export class PlayerApi {
   private base = "http://localhost:5000/api/player";
   private http = inject(HttpClient);
 
-  getAll(leagueId?: string): Observable<PlayerDto[]> {
-    return this.http.get<PlayerDto[]>(`${this.base}/all`, {
+  getAll(leagueId?: string): Observable<ServiceResponse<PlayerDto[]>> {
+    return this.http.get<ServiceResponse<PlayerDto[]>>(`${this.base}/all`, {
       params: leagueId ? { leagueId } : {},
     });
   }

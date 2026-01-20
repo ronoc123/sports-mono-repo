@@ -1,8 +1,5 @@
-using Application.Common.Models;
 using Application.Dto.PlayerOption;
 using Contracts.Contracts;
-using Contracts.Responses;
-using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 
 namespace Application.PlayerOptions.Queries.GetAllPlayerOptions;
@@ -17,5 +14,5 @@ public record GetAllPlayerOptionsQuery(
     bool? IsExpired = null,
     string? SortBy = "CreatedAt",
     bool SortDescending = true
-) : IRequest<ServiceResponse<PaginatedList<PlayerOptionDto>>>;
+) : IRequest<ServiceResponse<List<PlayerOptionDto>>>;
 

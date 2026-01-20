@@ -1,0 +1,17 @@
+<div class="player-card">
+  <div class="player-header">
+    <div class="player-avatar"></div>
+
+    <div class="player-info">
+      <div class="player-name">{{ player().name }}</div>
+      <div class="player-sub">{{ player().position }}</div>
+      <div class="player-team">Age: {{ player().age }}</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="votes-section">
+    <button class="vote-btn" (click)="selected.emit(player())">Create</button>
+  </div>
+</div>

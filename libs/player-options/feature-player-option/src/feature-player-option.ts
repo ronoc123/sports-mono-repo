@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatButtonModule } from "@angular/material/button";
@@ -11,7 +11,7 @@ import {
   PlayerOptionDto,
   PlayerOptionFeatureService,
 } from "@sports-ui/player-options-data-access";
-import { PlayerOptionCardComponent } from "@sports-ui/ui";
+import { PlayerOptionCardComponent, SearchbarComponent } from "@sports-ui/ui";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 
@@ -31,6 +31,7 @@ import { UiInput } from "@sports-ui/ui";
     MatSnackBarModule,
     PlayerOptionCardComponent,
     UiInput,
+    SearchbarComponent,
   ],
   templateUrl: "./feature-player-option.html",
   styleUrl: "./feature-player-option.css",
@@ -43,12 +44,22 @@ export class FeaturePlayerOption implements OnInit {
   options = this.feature.options;
   loading = this.feature.status;
   error = this.feature.error;
-
+  searchTerm = signal("");
   ngOnInit() {
     this.feature.loadPlayerOptions({
       organizationId: this.organization()?.id ?? "",
     });
   }
+
+  filteredPlayerOptions = computed(() => {
+    const t = this.searchTerm().trim().toLowerCase();
+    if (!t) return this.options();
+    return this.options().filter(
+      (p) =>
+        p.player.name?.toLowerCase().includes(t) ||
+        (p.player.position && p.player.position.toLowerCase().includes(t))
+    );
+  });
 
   onSelectOption(option: PlayerOptionDto) {
     this.selected.vote(
@@ -57,5 +68,8 @@ export class FeaturePlayerOption implements OnInit {
       1,
       this.organization()?.id ?? ""
     );
+  }
+  onSearch(term: string) {
+    this.searchTerm.set(term ?? "");
   }
 }

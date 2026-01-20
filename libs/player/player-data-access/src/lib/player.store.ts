@@ -8,6 +8,7 @@ interface PlayerState {
   error?: string;
   players: PlayerDto[];
   selectedId?: string;
+  searchTerm?: string;
 }
 
 export const PlayerStore = signalStore(
@@ -41,6 +42,12 @@ export const PlayerStore = signalStore(
         players,
         status: "success",
         error: undefined,
+      });
+    },
+
+    setSearchTerm(term: string) {
+      patchState(store, {
+        searchTerm: term ?? "",
       });
     },
 

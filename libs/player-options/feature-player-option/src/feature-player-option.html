@@ -1,12 +1,9 @@
+<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
 <div class="options-container">
-  <div *ngFor="let po of options()">
+  <div *ngFor="let po of filteredPlayerOptions()">
     <lib-player-option-card
       (selected)="onSelectOption($event)"
       [option]="po"
     ></lib-player-option-card>
   </div>
-
-  <lib-ui-input label="First Name">
-    <input type="text" formControlName="firstName" class="input" />
-  </lib-ui-input>
 </div>

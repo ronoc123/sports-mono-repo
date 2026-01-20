@@ -18,6 +18,7 @@ import { PlayerOptionStore } from "@sports-ui/player-options-data-access";
 import { OrganizationStore } from "@sports-ui/organization-data-access";
 import { VoteAccountStore } from "@sports-ui/vote-account-data-access";
 import { NotificationStore } from "@sports-ui/notification-data-access";
+import { PlayerStore } from "@sports-ui/player-data-access";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,6 +30,7 @@ export const appConfig: ApplicationConfig = {
     OrganizationStore,
     VoteAccountStore,
     NotificationStore,
+    PlayerStore,
     { provide: APP_ENVIRONMENT, useValue: environment },
     { provide: API_URL, useValue: environment.apiUrl },
     { provide: GOOGLE_CLIENT_ID, useValue: environment.googleClientId },

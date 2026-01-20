@@ -15,7 +15,7 @@ export class PlayerOptionApi {
 
   getPlayerOptions(
     query: GetAllPlayerOptionsQuery = {}
-  ): Observable<ServiceResponse<PaginatedList<PlayerOptionDto>>> {
+  ): Observable<ServiceResponse<PlayerOptionDto[]>> {
     return this.http.get(
       `${environment.sportsApi}PlayerOption/GetPlayerOptionsByOrganization`,
       this.toParams(query)

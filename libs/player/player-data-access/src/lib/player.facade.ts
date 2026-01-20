@@ -1,4 +1,4 @@
-import { inject, Injectable, computed } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { PlayerStore } from "./player.store";
 import { PlayerApi } from "./player.api";
 import { firstValueFrom } from "rxjs";
@@ -20,13 +20,13 @@ export class PlayerFacade {
   // ----------------
   // Actions
   // ----------------
-  async loadPlayers(leagueId?: string) {
+  async loadPlayers(leagueId: string) {
     this.store.setLoading();
 
     try {
-      const players = await firstValueFrom(this.api.getAll(leagueId));
+      const res = await firstValueFrom(this.api.getAll(leagueId));
 
-      this.store.setPlayers(players ?? []);
+      this.store.setPlayers(res?.data ?? []);
     } catch (e: any) {
       const message = e?.error?.message || "Unable to load players";
 
