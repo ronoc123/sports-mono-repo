@@ -11,13 +11,19 @@ import { CommonModule } from "@angular/common";
 import {
   CreatePlayerOptionCardComponent,
   SearchbarComponent,
+  UiInput,
 } from "@sports-ui/ui";
 import { PlayerDto, PlayerFacade } from "@sports-ui/player-data-access";
 import { ModalService } from "@sports-ui/modal-service";
 
 @Component({
   selector: "lib-create-player-option-feature",
-  imports: [CommonModule, SearchbarComponent, CreatePlayerOptionCardComponent],
+  imports: [
+    CommonModule,
+    SearchbarComponent,
+    CreatePlayerOptionCardComponent,
+    UiInput,
+  ],
   templateUrl: "./create-player-option-feature.html",
   styleUrl: "./create-player-option-feature.css",
 })

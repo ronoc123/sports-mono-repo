@@ -57,7 +57,7 @@
 }
 
 .primary {
-  background: #2563eb;
+  background: var(--color-tertiary);
   color: white;
   border: none;
   padding: 0.5rem 1rem;

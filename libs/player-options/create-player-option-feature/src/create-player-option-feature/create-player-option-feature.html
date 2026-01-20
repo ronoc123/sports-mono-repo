@@ -1,5 +1,5 @@
+<h1>Player Options</h1>
 <lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
-
 <div class="options-container">
   <div *ngIf="(filteredPlayers() || []).length === 0">No players found.</div>
   <div *ngFor="let p of filteredPlayers()">
@@ -17,8 +17,11 @@
     <p><strong>Position:</strong> {{ player.position ?? "Unknown" }}</p>
     <p><strong>Age:</strong> {{ player.age ?? "N/A" }}</p>
 
-    <div class="form-group">
-      <input type="text" placeholder="Enter option name" />
-    </div>
+    <lib-ui-input label="Title">
+      <input type="text" placeholder="Enter title" />
+    </lib-ui-input>
+    <lib-ui-input label="Description">
+      <input type="text" placeholder="Enter description" />
+    </lib-ui-input>
   </div>
 </ng-template>

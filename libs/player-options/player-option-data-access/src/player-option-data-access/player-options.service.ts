@@ -30,4 +30,11 @@ export class PlayerOptionFeatureService {
       this.toast.error(e?.error?.message || "Unable to load player options");
     }
   }
+
+  async createPlayerOption(payload: {
+    playerId: string;
+    organizationId: string;
+  }) {
+    this.store.setLoading();
+  }
 }
