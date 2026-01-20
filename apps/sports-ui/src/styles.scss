@@ -75,3 +75,9 @@ input:focus {
   border-color: #2563eb; /* blue-600 */
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
 }
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}

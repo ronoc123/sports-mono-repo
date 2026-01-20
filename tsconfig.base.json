@@ -63,9 +63,16 @@
       "@sports-ui/organization-data-access": [
         "libs/organization/organization-data-access/src/index.ts"
       ],
+      "@sports-ui/player-data-access": [
+        "libs/player/player-data-access/src/index.ts"
+      ],
+      "@sports-ui/player-feature": ["libs/player/player-feature/src/index.ts"],
       "@sports-ui/player-options": ["libs/player-options/src/index.ts"],
       "@sports-ui/player-options-data-access": [
         "libs/player-options/player-option-data-access/src/index.ts"
+      ],
+      "@sports-ui/player-search-feature": [
+        "libs/player/player-search-feature/src/index.ts"
       ],
       "@sports-ui/profile": ["libs/profile/src/index.ts"],
       "@sports-ui/profile-data-access": [
