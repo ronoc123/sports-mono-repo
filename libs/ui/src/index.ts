@@ -17,3 +17,4 @@ export * from "./components/notification-badge/notification-badge";
 export * from "./components/lib/input/ui-input";
 export * from "./components/searchbar/searchbar";
 export * from "./components/create-player-option-card/create-player-option-card";
+export * from "./components/modal/modal";

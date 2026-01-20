@@ -1,7 +1,24 @@
 <lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
+
 <div class="options-container">
   <div *ngIf="(filteredPlayers() || []).length === 0">No players found.</div>
   <div *ngFor="let p of filteredPlayers()">
-    <lib-create-player-option-card [player]="p"></lib-create-player-option-card>
+    <lib-create-player-option-card
+      (selected)="open($event)"
+      [player]="p"
+    ></lib-create-player-option-card>
   </div>
 </div>
+
+<ng-template #playerModal let-player="player">
+  <div class="modal-content">
+    <h3>{{ player.name }}</h3>
+
+    <p><strong>Position:</strong> {{ player.position ?? "Unknown" }}</p>
+    <p><strong>Age:</strong> {{ player.age ?? "N/A" }}</p>
+
+    <div class="form-group">
+      <input type="text" placeholder="Enter option name" />
+    </div>
+  </div>
+</ng-template>

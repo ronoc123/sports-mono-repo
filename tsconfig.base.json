@@ -54,6 +54,9 @@
       "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
       "@sports-ui/feature-user": ["libs/product-domains/users/src/index.ts"],
       "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
+      "@sports-ui/modal-service": [
+        "libs/core/services/modal-service/src/index.ts"
+      ],
       "@sports-ui/notification-data-access": [
         "libs/notification/notification-data-access/src/index.ts"
       ],

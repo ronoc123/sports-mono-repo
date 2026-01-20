@@ -30,7 +30,6 @@ import { UiInput } from "@sports-ui/ui";
     MatProgressBarModule,
     MatSnackBarModule,
     PlayerOptionCardComponent,
-    UiInput,
     SearchbarComponent,
   ],
   templateUrl: "./feature-player-option.html",

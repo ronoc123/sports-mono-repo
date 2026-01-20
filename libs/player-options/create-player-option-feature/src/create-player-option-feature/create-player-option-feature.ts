@@ -1,10 +1,19 @@
-import { Component, computed, inject, signal } from "@angular/core";
+import {
+  Component,
+  computed,
+  inject,
+  signal,
+  TemplateRef,
+  ViewChild,
+  OnInit,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   CreatePlayerOptionCardComponent,
   SearchbarComponent,
 } from "@sports-ui/ui";
-import { PlayerFacade } from "@sports-ui/player-data-access";
+import { PlayerDto, PlayerFacade } from "@sports-ui/player-data-access";
+import { ModalService } from "@sports-ui/modal-service";
 
 @Component({
   selector: "lib-create-player-option-feature",
@@ -12,10 +21,11 @@ import { PlayerFacade } from "@sports-ui/player-data-access";
   templateUrl: "./create-player-option-feature.html",
   styleUrl: "./create-player-option-feature.css",
 })
-export class CreatePlayerOptionFeature {
+export class CreatePlayerOptionFeature implements OnInit {
   private facade = inject(PlayerFacade);
-
+  private modal = inject(ModalService);
   searchTerm = signal("");
+  @ViewChild("playerModal") playerModal!: TemplateRef<{ player: PlayerDto }>;
 
   filteredPlayers = computed(() => {
     const t = this.searchTerm().trim().toLowerCase();
@@ -34,5 +44,13 @@ export class CreatePlayerOptionFeature {
 
   onSearch(term: string) {
     this.searchTerm.set(term ?? "");
+  }
+  open(player: PlayerDto) {
+    this.modal.open({
+      title: "Create Player Option",
+      width: "md",
+      content: this.playerModal,
+      context: { player },
+    });
   }
 }
