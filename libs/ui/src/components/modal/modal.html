@@ -1,4 +1,4 @@
-<div class="backdrop" *ngIf="open()" (click)="onBackdropClick()">
+<div class="backdrop" *ngIf="isOpen()" (click)="onBackdropClick()">
   <div class="modal" [ngClass]="width()" (click)="$event.stopPropagation()">
     <header *ngIf="title()" class="modal-header">
       <h2>{{ title() }}</h2>
@@ -12,10 +12,5 @@
         [ngTemplateOutletContext]="context()"
       ></ng-container>
     </section>
-
-    <footer class="modal-footer">
-      <button class="secondary" (click)="close.emit()">Cancel</button>
-      <button class="primary" (click)="confirm.emit()">Confirm</button>
-    </footer>
   </div>
 </div>

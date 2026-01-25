@@ -15,6 +15,12 @@ import {
 } from "@sports-ui/ui";
 import { PlayerDto, PlayerFacade } from "@sports-ui/player-data-access";
 import { ModalService } from "@sports-ui/modal-service";
+import {
+  CreatePlayerOptionCommand,
+  PlayerOptionFeatureService,
+} from "@sports-ui/player-options-data-access";
+import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
+import { FormsModule } from "@angular/forms";
 
 @Component({
   selector: "lib-create-player-option-feature",
@@ -23,15 +29,22 @@ import { ModalService } from "@sports-ui/modal-service";
     SearchbarComponent,
     CreatePlayerOptionCardComponent,
     UiInput,
+    FormsModule,
   ],
   templateUrl: "./create-player-option-feature.html",
   styleUrl: "./create-player-option-feature.css",
 })
 export class CreatePlayerOptionFeature implements OnInit {
   private facade = inject(PlayerFacade);
-  private modal = inject(ModalService);
+  private playerOptionFeature = inject(PlayerOptionFeatureService);
+  private organizationFacade = inject(OrganizationFeatureService);
+  protected modal = inject(ModalService);
   searchTerm = signal("");
-  @ViewChild("playerModal") playerModal!: TemplateRef<{ player: PlayerDto }>;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  @ViewChild("playerModal") playerModal!: TemplateRef<{
+    player: PlayerDto;
+    submit: (p: any) => void;
+  }>;
 
   filteredPlayers = computed(() => {
     const t = this.searchTerm().trim().toLowerCase();
@@ -56,7 +69,24 @@ export class CreatePlayerOptionFeature implements OnInit {
       title: "Create Player Option",
       width: "md",
       content: this.playerModal,
-      context: { player },
+      context: {
+        player,
+        submit: async (payload: any) => {
+          try {
+            console.log("payload", payload);
+            await this.playerOptionFeature.createPlayerOption({
+              title: payload.title,
+              description: payload.description,
+              playerId: payload.player.id,
+              organizationId:
+                this.organizationFacade.selectedOrganization()?.id || "",
+            });
+            this.modal.close();
+          } catch {
+            // already toasted
+          }
+        },
+      },
     });
   }
 }

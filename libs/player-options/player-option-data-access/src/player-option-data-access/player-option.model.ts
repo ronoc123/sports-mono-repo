@@ -27,3 +27,12 @@ export interface GetAllPlayerOptionsQuery {
   sortBy?: string | null;
   sortDescending?: boolean | null;
 }
+
+
+export interface CreatePlayerOptionCommand {
+  title: string;
+  description: string;
+  playerId: string;        // PlayerId → Guid/string
+  organizationId: string; // OrganizationId → Guid/string
+  expiresAt?: string | null; // DateTime? → optional ISO string
+}

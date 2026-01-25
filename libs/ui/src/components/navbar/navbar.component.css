@@ -77,6 +77,12 @@
   align-items: center;
   gap: 16px;
 }
+.app-info {
+  font-size: 2rem;
+  margin-left: 50px;
+  font-weight: 600;
+  color: var(--color-text);
+}
 
 /* Mobile cleanup */
 @media (max-width: 768px) {

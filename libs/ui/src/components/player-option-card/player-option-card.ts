@@ -1,19 +1,35 @@
 import { Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { PlayerOptionDto } from "@sports-ui/player-options-data-access";
+import { FormsModule } from "@angular/forms";
 
 @Component({
   selector: "lib-player-option-card",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: "./player-option-card.html",
   styleUrl: "./player-option-card.css",
 })
 export class PlayerOptionCardComponent {
   option = input.required<PlayerOptionDto>();
-  selected = output<PlayerOptionDto>();
+  vote = output<{ option: PlayerOptionDto; amount: number }>();
 
-  onClick() {
-    this.selected.emit(this.option());
+  voteAmount = 1;
+
+  increment() {
+    this.voteAmount++;
+  }
+
+  decrement() {
+    if (this.voteAmount > 1) {
+      this.voteAmount--;
+    }
+  }
+
+  applyVote() {
+    this.vote.emit({
+      option: this.option(),
+      amount: this.voteAmount,
+    });
   }
 }

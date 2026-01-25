@@ -10,7 +10,7 @@ import { CommonModule, NgTemplateOutlet } from "@angular/common";
 })
 export class UiModalComponent {
   // visibility
-  open = input<boolean>(false);
+  isOpen = input<boolean>(false);
 
   // chrome
   title = input<string | undefined>();
@@ -23,7 +23,6 @@ export class UiModalComponent {
   // outputs
   // eslint-disable-next-line @angular-eslint/no-output-native
   close = output<void>();
-  confirm = output<void>();
 
   onBackdropClick() {
     this.close.emit();

@@ -1,10 +1,11 @@
 import { Injectable, inject } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
-import { Observable, map } from "rxjs";
-import { ServiceResponse, PaginatedList } from "@sports-ui/api-types";
+import { HttpParams } from "@angular/common/http";
+import { Observable } from "rxjs";
+import { ServiceResponse } from "@sports-ui/api-types";
 import {
   PlayerOptionDto,
   GetAllPlayerOptionsQuery,
+  CreatePlayerOptionCommand,
 } from "./player-option.model"; // <- your TS interfaces file
 import { ApiService } from "@sports-ui/http-client";
 import { environment } from "@sports-ui/api-types";
@@ -20,6 +21,15 @@ export class PlayerOptionApi {
       `${environment.sportsApi}PlayerOption/GetPlayerOptionsByOrganization`,
       this.toParams(query)
     );
+  }
+
+  createPlayerOption(
+    command: CreatePlayerOptionCommand
+  ): Observable<ServiceResponse<PlayerOptionDto>> {
+    return this.http.post<
+      ServiceResponse<PlayerOptionDto>,
+      CreatePlayerOptionCommand
+    >(`${environment.sportsApi}PlayerOption/create`, command);
   }
 
   private toParams(q: GetAllPlayerOptionsQuery): HttpParams {

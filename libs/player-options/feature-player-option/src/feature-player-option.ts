@@ -14,8 +14,7 @@ import {
 import { PlayerOptionCardComponent, SearchbarComponent } from "@sports-ui/ui";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
-
-import { UiInput } from "@sports-ui/ui";
+import { AnyCatcher } from "rxjs/internal/AnyCatcher";
 
 @Component({
   selector: "lib-feature-player-option",
@@ -60,11 +59,11 @@ export class FeaturePlayerOption implements OnInit {
     );
   });
 
-  onSelectOption(option: PlayerOptionDto) {
+  onSelectOption(option: any) {
     this.selected.vote(
-      option.id,
+      option.option.id,
       this.authFacade.user()?.id ?? "",
-      1,
+      option.amount,
       this.organization()?.id ?? ""
     );
   }

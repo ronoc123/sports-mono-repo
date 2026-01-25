@@ -8,13 +8,12 @@ import { ModalService } from "../modal-service/modal-service";
   imports: [UiModalComponent],
   template: `
     <lib-ui-modal
-      [open]="modal.isOpen()"
+      [isOpen]="modal.isOpen()"
       [title]="modal.config()?.title"
       [width]="modal.config()?.width ?? 'md'"
       [content]="modal.config()?.content ?? null"
       [context]="modal.config()?.context"
       (close)="modal.close()"
-      (confirm)="modal.close()"
     />
   `,
 })

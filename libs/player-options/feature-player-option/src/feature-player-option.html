@@ -3,7 +3,7 @@
 <div class="options-container">
   <div *ngFor="let po of filteredPlayerOptions()">
     <lib-player-option-card
-      (selected)="onSelectOption($event)"
+      (vote)="onSelectOption($event)"
       [option]="po"
     ></lib-player-option-card>
   </div>

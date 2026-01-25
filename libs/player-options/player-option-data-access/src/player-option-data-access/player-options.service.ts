@@ -1,7 +1,10 @@
 import { inject, Injectable } from "@angular/core";
 import { PlayerOptionStore } from "./player-option.store";
 import { PlayerOptionApi } from "./player-option-data-access";
-import { GetAllPlayerOptionsQuery } from "./player-option.model";
+import {
+  CreatePlayerOptionCommand,
+  GetAllPlayerOptionsQuery,
+} from "./player-option.model";
 import { firstValueFrom } from "rxjs";
 import { OrganizationStore } from "@sports-ui/organization-data-access";
 import { ToastService } from "@sports-ui/toast";
@@ -31,10 +34,14 @@ export class PlayerOptionFeatureService {
     }
   }
 
-  async createPlayerOption(payload: {
-    playerId: string;
-    organizationId: string;
-  }) {
+  async createPlayerOption(payload: CreatePlayerOptionCommand) {
     this.store.setLoading();
+
+    try {
+      await firstValueFrom(this.api.createPlayerOption(payload));
+      this.toast.success("Player option created successfully");
+    } catch (e: any) {
+      this.toast.error(e?.error?.message || "Unable to create player option");
+    }
   }
 }

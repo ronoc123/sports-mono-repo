@@ -10,18 +10,30 @@
   </div>
 </div>
 
-<ng-template #playerModal let-player="player">
-  <div class="modal-content">
-    <h3>{{ player.name }}</h3>
+<ng-template #playerModal let-player="player" let-submit="submit">
+  <form
+    #f="ngForm"
+    (ngSubmit)="submit({ 
+  title: f.value.title, 
+  description: f.value.description,
+  player 
+})"
+  >
+    <div class="modal-content">
+      <h3>{{ player.name }}</h3>
 
-    <p><strong>Position:</strong> {{ player.position ?? "Unknown" }}</p>
-    <p><strong>Age:</strong> {{ player.age ?? "N/A" }}</p>
+      <lib-ui-input label="Title">
+        <input type="text" name="title" ngModel required />
+      </lib-ui-input>
 
-    <lib-ui-input label="Title">
-      <input type="text" placeholder="Enter title" />
-    </lib-ui-input>
-    <lib-ui-input label="Description">
-      <input type="text" placeholder="Enter description" />
-    </lib-ui-input>
-  </div>
+      <lib-ui-input label="Description">
+        <input type="text" name="description" ngModel />
+      </lib-ui-input>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" (click)="modal.close()">Cancel</button>
+      <button type="submit" class="primary">Confirm</button>
+    </footer>
+  </form>
 </ng-template>

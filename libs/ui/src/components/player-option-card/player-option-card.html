@@ -1,12 +1,15 @@
 <div class="player-card">
   <div class="player-header">
-    <div class="player-avatar"></div>
-
     <div class="player-info">
       <div class="player-name">{{ option().player.name }}</div>
       <div class="player-sub">{{ option().player.position }}</div>
       <div class="player-team">Age: {{ option().player.age }}</div>
     </div>
+  </div>
+
+  <div class="option-content">
+    <div class="option-title">{{ option().title }}</div>
+    <div class="option-description">{{ option().description }}</div>
   </div>
 
   <div class="divider"></div>
@@ -16,11 +19,23 @@
       <div class="votes-number">{{ option().votes }}</div>
       <div class="votes-label">votes</div>
     </div>
-    <button class="vote-btn" (click)="selected.emit(option())">Vote</button>
-  </div>
 
-  <div class="card-footer">
-    <button class="edit-btn">Edit</button>
-    <button class="remove-btn">Remove</button>
+    <div class="vote-stepper">
+      <input
+        type="number"
+        min="1"
+        class="vote-input"
+        [(ngModel)]="voteAmount"
+        placeholder="Votes"
+      />
+
+      <button
+        class="apply-btn"
+        [disabled]="!voteAmount || voteAmount < 1"
+        (click)="applyVote()"
+      >
+        Apply
+      </button>
+    </div>
   </div>
 </div>
