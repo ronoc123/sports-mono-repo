@@ -10,7 +10,7 @@
 .row {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 36px;
   margin-bottom: 12px;
 }
 
