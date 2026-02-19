@@ -18,11 +18,11 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/sports-ui/src/assets",
+            "input": "apps/assets",
             "output": "assets"
           }
         ],
-        "styles": ["apps/sports-ui/src/styles.scss"]
+        "styles": ["libs/theme/src/styles.scss"]
       },
       "configurations": {
         "production": {

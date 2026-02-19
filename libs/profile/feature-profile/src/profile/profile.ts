@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, effect, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
@@ -17,13 +17,18 @@ export class Profile {
   voteAccount = this.voteAccountFacade.account;
   transactions = this.voteAccountFacade.transactions;
   user = this.authFacade.user;
+  organization = this.organizationFacade.selectedOrganization;
 
-  ngOnInit() {
-    const user = this.user();
-    const org = this.organizationFacade.selectedOrganization();
+  constructor() {
+    effect(() => {
+      const user = this.user();
+      const org = this.organization();
 
-    if (user && org) {
+      if (!user || !org) return;
+
+      console.log("Reloading profile for:", user.id, org.id);
+
       this.voteAccountFacade.load(user.id, org.id);
-    }
+    });
   }
 }

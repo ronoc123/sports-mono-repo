@@ -41,14 +41,14 @@ export const appRoutes: Route[] = [
 
   // Main app shell with layout (protected routes)
   {
-    path: "",
+    path: ":organizationId",
     canActivate: [authGuard],
     loadComponent: () =>
       import("./shell/shell.component").then((m) => m.ShellComponent),
     children: [
       // Dashboard (default route)
       {
-        path: "",
+        path: "dashboard",
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
       },

@@ -1,48 +1,89 @@
 import { Route } from "@angular/router";
-import { authGuard, loginGuard } from "@sports-ui/feature-auth";
+import { Component } from "@angular/core";
+import { RouterModule } from "@angular/router";
+import { authGuard } from "@sports-ui/auth-data-access";
+
+// Simple error components
+@Component({
+  template: `
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Unauthorized</h1>
+      <p>You do not have permission to access this page.</p>
+      <a routerLink="/" style="color: #2196f3;">Go to Dashboard</a>
+    </div>
+  `,
+  standalone: true,
+  imports: [RouterModule],
+})
+class UnauthorizedComponent {}
+
+@Component({
+  template: `
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Page Not Found</h1>
+      <p>The page you are looking for does not exist.</p>
+      <a routerLink="/" style="color: #2196f3;">Go to Dashboard</a>
+    </div>
+  `,
+  standalone: true,
+  imports: [RouterModule],
+})
+class NotFoundComponent {}
 
 export const appRoutes: Route[] = [
-  // Login route (unauthenticated only)
+  // Login route (accessible only to unauthenticated users)
   {
     path: "login",
-    canActivate: [loginGuard],
+    canActivate: [],
     loadComponent: () =>
-      import("@sports-ui/feature-auth").then((m) => m.LoginPageComponent),
+      import("@sports-ui/feature-auth").then((m) => m.LoginComponent),
   },
 
-  // Main app shell (authenticated only)
+  // Main app shell with layout (protected routes)
   {
-    path: "",
+    path: ":organizationId",
     canActivate: [authGuard],
     loadComponent: () =>
       import("./shell/shell.component").then((m) => m.ShellComponent),
     children: [
-      // Dashboard route
+      // Dashboard (default route)
       {
-        path: "",
+        path: "dashboard",
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
       },
 
-      // Profile route
+      // Feature routes
       {
-        path: "profile",
+        path: "active-roaster",
         loadChildren: () =>
-          import("@sports-ui/profile").then((m) => m.profileRoutes),
+          import("@sports-ui/feature-roaster").then((m) => m.roasterRoutes),
       },
-
-      // Redeem route
+      {
+        path: "player-option",
+        loadChildren: () =>
+          import("@sports-ui/feature-player-option").then(
+            (m) => m.playerOptionRoutes
+          ),
+      },
+      {
+        path: "create-player-option",
+        loadChildren: () =>
+          import("@sports-ui/create-player-option-feature").then(
+            (m) => m.createPlayerOptionRoutes
+          ),
+      },
       {
         path: "redeem",
         loadChildren: () =>
           import("@sports-ui/feature-redeem").then((m) => m.redeemRoutes),
       },
 
-      // User management routes (placeholder - redirect to dashboard for now)
+      // Profile route
       {
-        path: "users",
+        path: "profile",
         loadChildren: () =>
-          import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
+          import("@sports-ui/feature-profile").then((m) => m.profileRoutes),
       },
 
       // Organization route (placeholder - redirect to dashboard for now)
@@ -51,16 +92,22 @@ export const appRoutes: Route[] = [
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
       },
-
-      // Settings route
-      {
-        path: "settings",
-        loadChildren: () =>
-          import("@sports-ui/profile").then((m) => m.profileRoutes),
-      },
     ],
   },
 
-  // Fallback route
-  { path: "**", redirectTo: "" },
+  // Simple error routes
+  {
+    path: "unauthorized",
+    component: UnauthorizedComponent,
+  },
+  {
+    path: "not-found",
+    component: NotFoundComponent,
+  },
+
+  // Wildcard route
+  {
+    path: "**",
+    redirectTo: "not-found",
+  },
 ];

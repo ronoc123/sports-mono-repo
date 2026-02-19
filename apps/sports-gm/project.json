@@ -17,10 +17,11 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/sports-gm/public"
+            "input": "apps/assets",
+            "output": "assets"
           }
         ],
-        "styles": ["apps/sports-gm/src/styles.css"]
+        "styles": ["libs/theme/src/styles.scss"]
       },
       "configurations": {
         "production": {

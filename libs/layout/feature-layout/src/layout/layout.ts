@@ -111,9 +111,11 @@ export class LayoutFeatureComponent implements OnInit {
   }
 
   onNavItemClick(item: NavItem) {
-    if (item.route) {
-      this.router.navigate([item.route]);
-    }
+    const org = this.selectedOrganization();
+
+    if (!item.route || !org) return;
+
+    this.router.navigate([org.id, item.route]);
   }
 
   onToggleTheme() {

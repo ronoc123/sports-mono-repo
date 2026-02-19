@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from "@angular/core";
+import { Component, computed, effect, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatButtonModule } from "@angular/material/button";
@@ -7,14 +7,14 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatSnackBarModule } from "@angular/material/snack-bar";
-import {
-  PlayerOptionDto,
-  PlayerOptionFeatureService,
-} from "@sports-ui/player-options-data-access";
+import { PlayerOptionFeatureService } from "@sports-ui/player-options-data-access";
 import { PlayerOptionCardComponent, SearchbarComponent } from "@sports-ui/ui";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
-import { AnyCatcher } from "rxjs/internal/AnyCatcher";
+import { map } from "rxjs";
+import { ActivatedRoute } from "@angular/router";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 
 @Component({
   selector: "lib-feature-player-option",
@@ -34,18 +34,24 @@ import { AnyCatcher } from "rxjs/internal/AnyCatcher";
   templateUrl: "./feature-player-option.html",
   styleUrl: "./feature-player-option.css",
 })
-export class FeaturePlayerOption implements OnInit {
+export class FeaturePlayerOption {
+  private orgFacade = inject(OrganizationFeatureService);
   feature = inject(PlayerOptionFeatureService);
   selected = inject(VoteAccountFacade);
   authFacade = inject(AuthFacade);
-  organization = this.feature.selectedOrganization;
   options = this.feature.options;
   loading = this.feature.status;
   error = this.feature.error;
   searchTerm = signal("");
-  ngOnInit() {
-    this.feature.loadPlayerOptions({
-      organizationId: this.organization()?.id ?? "",
+
+  organization = this.orgFacade.selectedOrganization;
+
+  constructor() {
+    effect(() => {
+      const org = this.organization();
+      if (!org) return;
+
+      this.feature.loadPlayerOptions({ organizationId: org.id });
     });
   }
 

@@ -1,163 +1,31 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
-import { MainLayoutComponent, NavItem } from "@sports-ui/ui";
+import { NavItem } from "@sports-ui/ui";
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { AuthService } from "@sports-ui/auth-data-access";
+import { LayoutFeatureComponent } from "@sports-ui/feature-layout";
 
 @Component({
   selector: "app-shell",
   standalone: true,
-  imports: [CommonModule, RouterModule, MainLayoutComponent],
-  template: `
-    <ui-main-layout
-      [navItems]="navItems"
-      [config]="layoutConfig"
-      [organizations]="organizations"
-      [selectedOrganization]="selectedOrganization"
-    ></ui-main-layout>
-  `,
-  styles: [
-    `
-      :host {
-        display: block;
-        height: 100vh;
-      }
-    `,
-  ],
+  imports: [CommonModule, RouterModule, LayoutFeatureComponent],
+  template: ` <lib-feature-layout [navItems]="navItems"></lib-feature-layout> `,
 })
 export class ShellComponent {
-  protected readonly authService = inject(AuthService);
+  readonly authService = inject(AuthService);
 
-  // Mock data for now
-  organizations: any[] = [];
-  selectedOrganization = null;
-
-  // Layout configuration for Sports Admin
-  layoutConfig = {
-    appTitle: "Sports Admin",
-    appLogo: "/assets/admin-logo.png",
-    showUserMenu: true,
-    showNotifications: true,
-    showSearch: true,
-    sidenavMode: "side" as const,
-    sidenavOpened: true,
-    showFooter: true,
-  };
-
-  // Admin-specific navigation items
+  // Sports UI navigation items with role-based permissions
   navItems: NavItem[] = [
-    { name: "Dashboard", icon: "dashboard", route: "/" },
+    { name: "Dashboard", icon: "dashboard", route: "dashboard" },
+    { name: "Player Options", icon: "how_to_vote", route: "player-option" },
+    { name: "Active Raoster", icon: "people_alt", route: "active-roaster" },
+    { name: "Redeem Codes", icon: "redeem", route: "redeem" },
+    { name: "Profile", icon: "person", route: "profile" },
     {
-      name: "User Management",
-      icon: "people",
-      children: [
-        {
-          name: "All Users",
-          icon: "people_alt",
-          route: "/users",
-        },
-        {
-          name: "User Roles",
-          icon: "admin_panel_settings",
-          route: "/users/roles",
-        },
-        {
-          name: "Permissions",
-          icon: "security",
-          route: "/users/permissions",
-        },
-      ],
+      name: "Create Player Option",
+      icon: "how_to_vote",
+      route: "create-player-option",
     },
-    {
-      name: "Organization Management",
-      icon: "business",
-      children: [
-        {
-          name: "All Organizations",
-          icon: "business_center",
-          route: "/organizations",
-        },
-        {
-          name: "Organization Settings",
-          icon: "settings_applications",
-          route: "/organizations/settings",
-        },
-        {
-          name: "League Management",
-          icon: "emoji_events",
-          route: "/organizations/leagues",
-        },
-      ],
-    },
-    {
-      name: "System Administration",
-      icon: "settings",
-      children: [
-        {
-          name: "System Settings",
-          icon: "tune",
-          route: "/system/settings",
-        },
-        {
-          name: "System Logs",
-          icon: "description",
-          route: "/system/logs",
-        },
-        {
-          name: "Database Management",
-          icon: "storage",
-          route: "/system/database",
-        },
-        {
-          name: "API Management",
-          icon: "api",
-          route: "/system/api",
-        },
-      ],
-    },
-    {
-      name: "Analytics & Reports",
-      icon: "analytics",
-      children: [
-        {
-          name: "User Analytics",
-          icon: "trending_up",
-          route: "/analytics/users",
-        },
-        {
-          name: "System Performance",
-          icon: "speed",
-          route: "/analytics/performance",
-        },
-        {
-          name: "Usage Reports",
-          icon: "assessment",
-          route: "/analytics/usage",
-        },
-      ],
-    },
-    {
-      name: "Content Management",
-      icon: "edit",
-      children: [
-        {
-          name: "Announcements",
-          icon: "campaign",
-          route: "/content/announcements",
-        },
-        {
-          name: "Help Documentation",
-          icon: "help",
-          route: "/content/help",
-        },
-        {
-          name: "Email Templates",
-          icon: "email",
-          route: "/content/email-templates",
-        },
-      ],
-    },
-    { name: "Profile", icon: "person", route: "/profile" },
-    { name: "Settings", icon: "settings", route: "/settings" },
   ];
 }

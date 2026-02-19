@@ -17,15 +17,15 @@ export class ShellComponent {
 
   // Sports UI navigation items with role-based permissions
   navItems: NavItem[] = [
-    { name: "Dashboard", icon: "dashboard", route: "/" },
-    { name: "Player Options", icon: "how_to_vote", route: "/player-option" },
-    { name: "Active Raoster", icon: "people_alt", route: "/active-roaster" },
-    { name: "Redeem Codes", icon: "redeem", route: "/redeem" },
-    { name: "Profile", icon: "person", route: "/profile" },
+    { name: "Dashboard", icon: "dashboard", route: "dashboard" },
+    { name: "Player Options", icon: "how_to_vote", route: "player-option" },
+    { name: "Active Raoster", icon: "people_alt", route: "active-roaster" },
+    { name: "Redeem Codes", icon: "redeem", route: "redeem" },
+    { name: "Profile", icon: "person", route: "profile" },
     {
       name: "Create Player Option",
       icon: "how_to_vote",
-      route: "/create-player-option",
+      route: "create-player-option",
     },
   ];
 }
