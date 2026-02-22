@@ -4,6 +4,7 @@ using IdentityService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IdentityService.Controllers;
 
@@ -17,12 +18,7 @@ public class AuthController : ControllerBase
     private readonly IGoogleAuthService _googleAuthService;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        ITokenService tokenService,
-        IGoogleAuthService googleAuthService,
-        ILogger<AuthController> logger)
+    public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ITokenService tokenService, IGoogleAuthService googleAuthService, ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -311,6 +307,43 @@ public class AuthController : ControllerBase
         {
             _logger.LogError(ex, "Error during logout");
             return StatusCode(500, new { Success = false, Message = "An error occurred during logout" });
+        }
+    }
+
+    [HttpGet("users")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        try
+        {
+            var users = await _userManager.Users
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.FirstName)
+                .ToListAsync();
+
+            var result = new List<UserInfo>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                result.Add(new UserInfo
+                {
+                    Id = user.Id,
+                    Email = user.Email!,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    FullName = user.FullName,
+                    ProfilePictureUrl = user.ProfilePictureUrl,
+                    IsGoogleUser = user.IsGoogleUser,
+                    Roles = roles.ToList(),
+                    CreatedAt = user.CreatedAt,
+                    LastLoginAt = user.LastLoginAt
+                });
+            }
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all users");
+            return StatusCode(500, new { Success = false, Message = "An error occurred while fetching users" });
         }
     }
 

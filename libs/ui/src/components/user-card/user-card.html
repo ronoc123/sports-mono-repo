@@ -1,0 +1,16 @@
+<div class="user-card">
+  <div class="user-header">
+    <div class="user-avatar">{{ initial }}</div>
+
+    <div class="user-info">
+      <div class="user-name">{{ user().fullName }}</div>
+      <div class="user-email">{{ user().email }}</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="actions">
+    <button class="vote-btn" (click)="onClick()">Send Votes</button>
+  </div>
+</div>

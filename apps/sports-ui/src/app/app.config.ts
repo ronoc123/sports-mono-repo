@@ -20,6 +20,7 @@ import { VoteAccountStore } from "@sports-ui/vote-account-data-access";
 import { NotificationStore } from "@sports-ui/notification-data-access";
 import { PlayerStore } from "@sports-ui/player-data-access";
 import { RedeemStore } from "@sports-ui/redeem-data-access";
+import { SendVotesStore } from "@sports-ui/send-votes-data-access";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -32,7 +33,7 @@ export const appConfig: ApplicationConfig = {
     VoteAccountStore,
     NotificationStore,
     PlayerStore,
-
+    SendVotesStore,
     RedeemStore,
     { provide: APP_ENVIRONMENT, useValue: environment },
     { provide: API_URL, useValue: environment.apiUrl },

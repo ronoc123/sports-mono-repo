@@ -1,0 +1,34 @@
+<h1>Send Votes</h1>
+<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
+<div class="users-container">
+  <ng-container *ngIf="(filteredUsers() || []).length === 0">
+    <div class="empty-state">No users found.</div>
+  </ng-container>
+
+  <lib-user-card
+    *ngFor="let u of filteredUsers()"
+    [user]="u"
+    (selected)="open($event)"
+  ></lib-user-card>
+</div>
+
+<ng-template #sendVotesModal let-user="user" let-submit="submit">
+  <form
+    #f="ngForm"
+    (ngSubmit)="submit({ user, amount: f.value.amount })"
+  >
+    <div class="modal-content">
+      <h3>{{ user.fullName }}</h3>
+      <p>{{ user.email }}</p>
+
+      <lib-ui-input label="Votes to Send">
+        <input type="number" name="amount" ngModel min="1" required />
+      </lib-ui-input>
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" (click)="modal.close()">Cancel</button>
+      <button type="submit" class="primary">Send</button>
+    </footer>
+  </form>
+</ng-template>

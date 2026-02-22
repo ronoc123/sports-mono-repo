@@ -78,7 +78,20 @@ export const appRoutes: Route[] = [
         loadChildren: () =>
           import("@sports-ui/feature-redeem").then((m) => m.redeemRoutes),
       },
-
+      {
+        path: "send-votes",
+        loadChildren: () =>
+          import("@sports-ui/feature-send-votes").then(
+            (m) => m.sendVotesRoutes
+          ),
+      },
+      {
+        path: "create-player-option",
+        loadChildren: () =>
+          import("@sports-ui/create-player-option-feature").then(
+            (m) => m.createPlayerOptionRoutes
+          ),
+      },
       // Profile route
       {
         path: "profile",
