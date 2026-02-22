@@ -1,0 +1,100 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2026-02-22T18:00:00Z",
+    "last_updated": "2026-02-22T19:30:00Z",
+    "completed": "2026-02-22T19:30:00Z"
+  },
+  "mode": "initial_scan",
+  "scan_level": "deep",
+  "project_root": "C:/Users/kampe/OneDrive/Desktop/sports-ui",
+  "project_knowledge": "C:/Users/kampe/OneDrive/Desktop/sports-ui/docs",
+  "completed_steps": [
+    {
+      "step": "step_1",
+      "status": "completed",
+      "timestamp": "2026-02-22T18:00:00Z",
+      "summary": "Classified as monorepo with 2 parts: frontend (Angular/Nx, web type) and backend (.NET services, backend type)"
+    },
+    {
+      "step": "step_2",
+      "status": "completed",
+      "timestamp": "2026-02-22T18:10:00Z",
+      "summary": "Found 3 existing docs: README.md (architecture overview), services/README.md (stub), services/ReadMe.txt (migration commands)"
+    },
+    {
+      "step": "step_3",
+      "status": "completed",
+      "timestamp": "2026-02-22T18:20:00Z",
+      "summary": "Frontend: Angular 20 + NgRx Signals + Nx 21. Backend: ASP.NET Core 8 + EF Core + MassTransit + RabbitMQ + SQL Server"
+    },
+    {
+      "step": "step_4",
+      "status": "completed",
+      "timestamp": "2026-02-22T18:50:00Z",
+      "summary": "Deep scan complete. 20 API endpoints documented, 10 domain entities, 8 Signal Stores, 4 shared UI components. Files: api-contracts-backend.md, data-models-backend.md, state-management-frontend.md, component-inventory-frontend.md"
+    },
+    {
+      "step": "step_5",
+      "status": "completed",
+      "timestamp": "2026-02-22T19:00:00Z",
+      "summary": "Full annotated source tree written for both frontend and backend. source-tree-analysis.md written."
+    },
+    {
+      "step": "step_6",
+      "status": "completed",
+      "timestamp": "2026-02-22T19:10:00Z",
+      "summary": "Development guide written: frontend yarn commands, backend Docker + dotnet commands, migration CLI, env config. development-guide.md written."
+    },
+    {
+      "step": "step_8",
+      "status": "completed",
+      "timestamp": "2026-02-22T19:20:00Z",
+      "summary": "Architecture document written covering both parts: route structure, clean arch layers, CQRS/MediatR, security, testing strategy. architecture.md written."
+    },
+    {
+      "step": "step_9",
+      "status": "completed",
+      "timestamp": "2026-02-22T19:25:00Z",
+      "summary": "Integration architecture written: frontend-backend REST, service-to-service HTTP + RabbitMQ, data flow diagrams. integration-architecture.md written."
+    },
+    {
+      "step": "step_10",
+      "status": "completed",
+      "timestamp": "2026-02-22T19:30:00Z",
+      "summary": "Master index written with quick reference, navigation table, getting started, and AI-assistance guide. index.md written."
+    }
+  ],
+  "current_step": "completed",
+  "project_types": [
+    {
+      "part_id": "frontend",
+      "project_type_id": "web",
+      "display_name": "Angular Nx Frontend"
+    },
+    {
+      "part_id": "backend",
+      "project_type_id": "backend",
+      "display_name": ".NET Services Backend"
+    }
+  ],
+  "findings": {
+    "project_classification": {
+      "repository_type": "monorepo",
+      "parts_count": 2,
+      "primary_tech": "TypeScript + C#"
+    }
+  },
+  "outputs_generated": [
+    "project-scan-report.json",
+    "api-contracts-backend.md",
+    "data-models-backend.md",
+    "state-management-frontend.md",
+    "component-inventory-frontend.md",
+    "source-tree-analysis.md",
+    "architecture.md",
+    "integration-architecture.md",
+    "development-guide.md",
+    "index.md"
+  ]
+}
