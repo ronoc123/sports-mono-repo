@@ -37,6 +37,15 @@ public sealed class RewardItemConfiguration : IEntityTypeConfiguration<RewardIte
         .HasColumnType("nvarchar(max)")
         .IsRequired();
 
+    // PromoCode (string, optional, indexed for lookup performance)
+    builder.Property(x => x.PromoCode)
+        .HasColumnType("nvarchar(100)")
+        .IsRequired(false);
+
+    builder.HasIndex(x => x.PromoCode)
+        .IsUnique()
+        .HasFilter("[PromoCode] IS NOT NULL");
+
     builder.Property(p => p.RedeemedBy)
     .HasConversion(
         v => v == null ? (Guid?)null : v.Value,

@@ -4,23 +4,27 @@ type Status = "idle" | "loading" | "error" | "success";
 
 interface RedeemState {
   status: Status;
-  error?: string;
+  error: string;
   lastVotedId?: string;
 }
 
 export const RedeemStore = signalStore(
   withState<RedeemState>({
     status: "idle",
-    error: undefined,
+    error: "",
   }),
 
   withMethods((store) => ({
     setLoading() {
-      patchState(store, { status: "loading", error: undefined });
+      patchState(store, { status: "loading", error: "" });
     },
 
     setError(msg: string) {
       patchState(store, { status: "error", error: msg });
+    },
+
+    setSuccess() {
+      patchState(store, { status: "success", error: undefined });
     },
   }))
 );

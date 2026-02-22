@@ -37,10 +37,10 @@ namespace WebAPI.Controllers
         }
 
         // POST api/<VoteAccount>
-        [HttpPost("redeem-vote/{userId}/reward/{rewardItemId}")]
-        public async Task<ServiceResponse<VoteAccountDto>> Redeem(Guid userId, Guid rewardItemId)
+        [HttpPost("redeem-vote/{userId}/reward/{promoCode}")]
+        public async Task<ServiceResponse<VoteAccountDto>> Redeem(Guid userId, string promoCode)
         {
-            var query = new RedeemRewardCommand(UserId.Of(userId), RewardItemId.Of(rewardItemId));
+            var query = new RedeemRewardCommand(UserId.Of(userId), promoCode);
 
             var result = await _mediator.Send(query);
             return result;

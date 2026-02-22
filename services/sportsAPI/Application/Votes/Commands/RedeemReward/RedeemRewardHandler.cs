@@ -4,9 +4,9 @@ using Contracts.Contracts;
 using Domain.DomainServices.RewardService;
 using Domain.Repositories;
 using Domain.Rewards;
-using Domain.ValueObjects.ConcreteTypes;
 using Domain.VoteAccount;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.Votes.Commands.RedeemReward
@@ -28,10 +28,12 @@ namespace Application.Votes.Commands.RedeemReward
         {
             var userId = request.UserId;
 
-            var reward = await _repo.GetByIdAsync<RewardItem, RewardItemId>(request.RewardItemId, ct);
+            var reward = await _repo.Find<RewardItem>()
+                .Where(r => r.PromoCode == request.PromoCode)
+                .FirstOrDefaultAsync(ct);
 
             if (reward is null)
-                throw new ValidationException($"Reward '{request.RewardItemId}' not found.");
+                throw new ValidationException($"Reward with code '{request.PromoCode}' not found.");
 
             var account = await _repo.GetByIdAsync<VoteAccount>(ct, reward.OrganizationId, userId);
 
