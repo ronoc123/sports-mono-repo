@@ -25,6 +25,7 @@
     <Folder Include="Events\Player\" />
     <Folder Include="Events\Organization\" />
     <Folder Include="Mappers\Notifications\" />
+    <Folder Include="Purchase\Queries\" />
   </ItemGroup>
 
 </Project>

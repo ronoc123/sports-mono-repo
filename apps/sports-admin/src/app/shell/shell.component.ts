@@ -27,5 +27,10 @@ export class ShellComponent {
       icon: "how_to_vote",
       route: "create-player-option",
     },
+    {
+      name: "Send votes",
+      icon: "how_to_vote",
+      route: "send-votes",
+    },
   ];
 }

@@ -1,13 +1,15 @@
 <h1>Player Options</h1>
 <lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
 <div class="options-container">
-  <div *ngIf="(filteredPlayers() || []).length === 0">No players found.</div>
-  <div *ngFor="let p of filteredPlayers()">
-    <lib-create-player-option-card
-      (selected)="open($event)"
-      [player]="p"
-    ></lib-create-player-option-card>
-  </div>
+  <ng-container *ngIf="(filteredPlayers() || []).length === 0">
+    <div class="empty-state">No players found.</div>
+  </ng-container>
+
+  <lib-create-player-option-card
+    *ngFor="let p of filteredPlayers()"
+    (selected)="open($event)"
+    [player]="p"
+  ></lib-create-player-option-card>
 </div>
 
 <ng-template #playerModal let-player="player" let-submit="submit">

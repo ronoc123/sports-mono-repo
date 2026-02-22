@@ -22,10 +22,5 @@ export class ShellComponent {
     { name: "Active Raoster", icon: "people_alt", route: "active-roaster" },
     { name: "Redeem Codes", icon: "redeem", route: "redeem" },
     { name: "Profile", icon: "person", route: "profile" },
-    {
-      name: "Create Player Option",
-      icon: "how_to_vote",
-      route: "create-player-option",
-    },
   ];
 }
