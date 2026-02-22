@@ -1,6 +1,7 @@
 using Application.Players.Commands.DeletePlayer;
 using Application.Players.Commands.UpdatePlayer;
 using Application.Players.Queries.GetAllPlayers;
+using Application.Players.Queries.GetRosterByOrganization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +24,13 @@ namespace sportsAPI.Controllers
             var request = new GetAllPlayersQuery(leagueId);
 
             var result = await _mediator.Send(request);
+            return Ok(result);
+        }
+
+        [HttpGet("roster")]
+        public async Task<IActionResult> GetRosterByOrganization([FromQuery] Guid organizationId)
+        {
+            var result = await _mediator.Send(new GetRosterByOrganizationQuery(organizationId));
             return Ok(result);
         }
 

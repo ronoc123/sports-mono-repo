@@ -1,40 +1,11 @@
-.layout {
+.roster-container {
   display: flex;
-  flex-direction: column;
-  grid-template-rows: 0.25fr 0.25fr;
-  gap: 50px;
-  height: 82vh;
-  background-image: url("/assets/field-bg.png"); /* adjust path */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 6px;
-}
-.field {
-  position: relative;
-  border-radius: 12px;
-  padding: 22px;
-  height: 80%;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 0;
 }
 
-.offense-badge {
-  background-color: var(--color-tertiary);
-  color: white;
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 6px 38px;
-  border-radius: 0 0 12px 0px;
-}
-.defense-badge {
-  background-color: var(--color-tertiary);
-  color: white;
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding: 6px 38px;
-  border-radius: 12px 0px 0px 0px;
+.empty-state {
+  color: #888;
+  padding: 2rem;
 }

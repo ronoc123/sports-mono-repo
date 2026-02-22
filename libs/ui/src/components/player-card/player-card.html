@@ -1,5 +1,19 @@
-<div class="player-card" *ngIf="player()">
-  <div class="player-img">{{ player().position }}</div>
-  <div class="label">{{ player().name }}</div>
-  <div class="team">{{ player().teamName || 'Team' }}</div>
+<div class="player-card">
+  <div class="player-header">
+    <div class="player-avatar">{{ player().position }}</div>
+
+    <div class="player-info">
+      <div class="player-name">{{ player().name }}</div>
+      <div class="player-position">{{ player().position }}</div>
+      <div class="player-age" *ngIf="player().age">Age: {{ player().age }}</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="player-badges">
+    <span class="badge veteran" *ngIf="player().isVeteran">Veteran</span>
+    <span class="badge young" *ngIf="player().isYoungPlayer">Young</span>
+    <span class="badge active" *ngIf="player().isActive">Active</span>
+  </div>
 </div>

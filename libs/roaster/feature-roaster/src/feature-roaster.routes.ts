@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { FeatureRoaster } from './index';
+import { FeatureRoaster } from './feature-roaster';
 
 
 export const roasterRoutes: Routes = [

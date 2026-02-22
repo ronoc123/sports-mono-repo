@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Player } from '@sports-ui/api-types';
+import { RosterPlayer } from '@sports-ui/roaster-data-access';
 import { PlayerCardComponent} from '@sports-ui/ui';
 
 @Component({
@@ -10,9 +10,9 @@ import { PlayerCardComponent} from '@sports-ui/ui';
   styleUrl: './offensive-lineup.css',
 })
 export class OffensiveLineup {
-  players = input.required<Player[]>();
+  players = input.required<RosterPlayer[]>();
 
-  getPlayer(position: string, index = 0): Player | undefined {
+  getPlayer(position: string, index = 0): RosterPlayer | undefined {
     return this.players().filter(p => p.position === position)[index];
   }
 }

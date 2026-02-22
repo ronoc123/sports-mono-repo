@@ -1,11 +1,17 @@
-<div class="layout">
-  <div class="field">
-    <div class="offense-badge"><mat-icon>home</mat-icon>Offense</div>
-    <lib-offensive-lineup [players]="offense()" />
-  </div>
+<h1>Active Roster</h1>
+<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
 
-  <div class="field">
-    <div class="defense-badge"><mat-icon>home</mat-icon> Defense</div>
-    <lib-defensive-lineup [players]="defense()" />
-  </div>
+<div class="roster-container">
+  <ng-container *ngIf="loading()">
+    <div class="empty-state">Loading roster...</div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading() && (filteredPlayers() || []).length === 0">
+    <div class="empty-state">No players found.</div>
+  </ng-container>
+
+  <lib-player-card
+    *ngFor="let p of filteredPlayers()"
+    [player]="p"
+  ></lib-player-card>
 </div>

@@ -1,6 +1,6 @@
 import { Component, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { Player } from "@sports-ui/api-types";
+import { RosterPlayer } from "@sports-ui/roaster-data-access";
 
 @Component({
   selector: "lib-player-card",
@@ -10,5 +10,5 @@ import { Player } from "@sports-ui/api-types";
   styleUrl: "./player-card.css",
 })
 export class PlayerCardComponent {
-  player = input.required<Player>();
+  player = input.required<RosterPlayer>();
 }

@@ -1,65 +1,88 @@
 .player-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 220px;
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.player-header {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px;
-  text-align: center;
-  z-index: 5;
+  gap: 0.75rem;
 }
 
-.player-img {
-  height: 100px;
-  width: 100px;
-  font-size: 2.5rem;
-  display: grid;
-  place-items: center;
+.player-avatar {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 2px solid #ccc;
-  background: white;
+  background: var(--primary-color, #2196f3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.player-info {
+  overflow: hidden;
+}
+
+.player-name {
   font-weight: 600;
-  z-index: 5;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.label {
-  font-weight: bold;
-  font-size: 0.85rem;
-  z-index: 5;
+.player-position {
+  font-size: 0.8rem;
+  color: #555;
 }
 
-.team {
-  font-size: 0.85rem;
-  z-index: 5;
+.player-age {
+  font-size: 0.78rem;
+  color: #888;
 }
 
-@media screen and (max-width: 1800px) {
-  .player-img {
-    height: 160px;
-    width: 160px;
-    font-size: 2.5rem;
-  }
+.divider {
+  border-top: 1px solid var(--border-color, #e0e0e0);
 }
 
-@media screen and (max-width: 1500px) {
-  .player-img {
-    height: 120px;
-    width: 120px;
-    font-size: 2rem;
-  }
+.player-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-height: 1.5rem;
 }
 
-@media screen and (max-width: 1200px) {
-  .player-img {
-    height: 100px;
-    width: 100px;
-    font-size: 1.5rem;
-  }
+.badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-@media screen and (max-width: 900px) {
-  .player-img {
-    height: 80px;
-    width: 80px;
-    font-size: 1.3rem;
-  }
+.badge.active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge.veteran {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.badge.young {
+  background: #e3f2fd;
+  color: #1565c0;
 }

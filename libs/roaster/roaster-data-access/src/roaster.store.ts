@@ -1,33 +1,33 @@
-import {
-  signalStore,
-  withState,
-  withMethods,
-  patchState,
-} from '@ngrx/signals';
-import { DEFENSE_PLAYERS, OFFENSE_PLAYERS, Player } from '@sports-ui/api-types';
+import { patchState, signalStore, withMethods, withState } from "@ngrx/signals";
+import { RosterPlayer } from "./roaster.model";
 
+type Status = "idle" | "loading" | "error" | "success";
 
-export interface RoasterState {
-  offense: Player[];
-  defense: Player[];
+interface RoasterState {
+  status: Status;
+  error: string;
+  players: RosterPlayer[];
 }
 
-const initialRosterState: RoasterState = {
-  offense: OFFENSE_PLAYERS,
-  defense: DEFENSE_PLAYERS,
-};
-
 export const RoasterStore = signalStore(
-  { providedIn: 'root' },
-  withState<RoasterState>(initialRosterState),
+  { providedIn: "root" },
+  withState<RoasterState>({
+    status: "idle",
+    error: "",
+    players: [],
+  }),
 
   withMethods((store) => ({
-    setRoster: (offense: Player[], defense: Player[]) => {
+    setLoading() {
+      patchState(store, { status: "loading", error: "" });
+    },
 
-      patchState(store, {
-        offense,
-        defense,
-      });
+    setError(msg: string) {
+      patchState(store, { status: "error", error: msg });
+    },
+
+    setPlayers(players: RosterPlayer[]) {
+      patchState(store, { status: "success", players, error: "" });
     },
   }))
 );
