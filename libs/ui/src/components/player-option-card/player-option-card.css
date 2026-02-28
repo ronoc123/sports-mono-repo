@@ -1,224 +1,221 @@
 /* Main Card */
 .player-card {
-  width: 100%;
-  max-width: 380px;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  transition: box-shadow 0.3s ease, transform 0.25s ease;
-  color: var(--color-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .player-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
-  color: var(--color-text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Option content section */
-.option-content {
-  padding: 0 16px 12px 16px;
+/* ── Header ── */
+.card-header {
+  padding: 20px;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.position-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-badge.trending {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.status-badge.popular {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.player-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.player-meta {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ── Content ── */
+.card-content {
+  padding: 20px;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
-/* Option title */
-.option-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-/* Option description */
 .option-description {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--color-text);
-  opacity: 0.85;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.6;
+  flex: 1;
+  margin: 0 0 20px 0;
 
-  /* Clamp to 2 lines */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Header */
-.player-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-}
-
-.player-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  border: 2px solid var(--color-border);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
-}
-
-/* Player text */
-.player-info {
+/* ── Bottom votes + stepper ── */
+.bottom-section {
   display: flex;
   flex-direction: column;
+  gap: 14px;
 }
 
-.player-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.player-sub {
-  font-size: 0.9rem;
-  color: var(--color-text);
-}
-
-.player-team {
-  font-size: 0.75rem;
-  color: var(--color-text);
-}
-
-/* Divider */
-.divider {
-  border-top: 1px solid var(--color-border);
-}
-
-/* Vote section */
-.votes-section {
+.votes-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-}
-
-.votes-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.votes-number {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--color-text);
+  font-size: 0.875rem;
 }
 
 .votes-label {
-  color: var(--color-text);
-  font-size: 0.9rem;
+  color: #6b7280;
 }
 
-/* Vote Button */
-.vote-btn {
-  background: var(--color-tertiary);
-  color: white;
-  padding: 10px 18px;
+.votes-count {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ── Vote control container ── */
+.vote-control {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
   border-radius: 10px;
-  border: none;
-  font-weight: bold;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.vote-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
-}
-
-/* Footer buttons */
-.card-footer {
+  padding: 12px;
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Stepper row: − | value | + */
+.stepper-row {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--color-secondary);
-  border-top: 1px solid var(--color-border);
+  gap: 10px;
 }
 
-.edit-btn,
-.remove-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: color 0.2s ease;
-}
-
-.edit-btn {
-  color: var(--color-tertiary);
-}
-
-.edit-btn:hover {
-  color: #74c0ff;
-}
-
-.remove-btn {
-  color: #ff6b6b;
-}
-
-.remove-btn:hover {
-  color: #ff8787;
-}
-
-.vote-stepper {
+.stepper-btn {
+  width: 32px;
+  height: 32px;
   display: flex;
-  align-items: stretch;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  background: var(--color-card);
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
 }
 
-/* Input side */
-.vote-input {
-  width: 70px;
-  padding: 8px 10px;
-  border: none;
-  outline: none;
+.stepper-btn:hover {
+  color: var(--color-tertiary);
+  border-color: #bfdbfe;
+}
 
-  background: transparent;
-  color: var(--color-text);
-  font-weight: 600;
+.stepper-input {
+  flex: 1;
   text-align: center;
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.95rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 4px 6px;
+  min-width: 0;
+  outline: none;
+  transition: border-color 0.15s ease;
 }
 
-/* Remove number arrows (optional, cleaner look) */
-.vote-input::-webkit-outer-spin-button,
-.vote-input::-webkit-inner-spin-button {
+.stepper-input:focus {
+  border-color: var(--color-tertiary);
+}
+
+/* Hide browser number spinners */
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-.vote-input {
+.stepper-input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Button side */
-.apply-btn {
-  padding: 0 16px;
-  border: none;
+/* Cast Votes button */
+.cast-btn {
+  width: 100%;
+  height: 36px;
   background: var(--color-tertiary);
-  color: white;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, opacity 0.2s ease;
+  transition: background 0.15s ease;
+  text-align: center;
 }
 
-/* Disabled state */
-.apply-btn:disabled {
-  background: var(--color-border);
-  color: var(--color-text);
-  opacity: 0.6;
+.cast-btn:hover:not(:disabled) {
+  background: var(--color-tertiary);
+}
+
+.cast-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
   cursor: not-allowed;
-}
-
-/* Hover only when enabled */
-.apply-btn:not(:disabled):hover {
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
 }

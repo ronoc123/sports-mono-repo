@@ -5,7 +5,14 @@
       "Bash(cd /c/Users/kampe/OneDrive/Desktop/sports-ui && npx bmad-method@latest install --help 2>&1)",
       "Bash(cd /c/Users/kampe/OneDrive/Desktop/sports-ui && npx bmad-method@latest install --modules bmm --tools claude-code --action update -y 2>&1)",
       "Bash(cd /c/Users/kampe/OneDrive/Desktop/sports-ui && echo \"\" | npx bmad-method@latest install --modules bmm --tools claude-code --action update --directory . -y 2>&1)",
-      "Bash(echo === $f ===:*)"
+      "Bash(echo === $f ===:*)",
+      "WebSearch",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "mcp__figma__get_metadata",
+      "mcp__figma__get_design_context"
     ]
   }
 }

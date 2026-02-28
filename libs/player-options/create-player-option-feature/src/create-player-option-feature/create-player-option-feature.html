@@ -1,41 +1,141 @@
-<h1>Player Options</h1>
-<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
-<div class="options-container">
-  <ng-container *ngIf="(filteredPlayers() || []).length === 0">
-    <div class="empty-state">No players found.</div>
-  </ng-container>
+<div class="create-page">
 
-  <lib-create-player-option-card
-    *ngFor="let p of filteredPlayers()"
-    (selected)="open($event)"
-    [player]="p"
-  ></lib-create-player-option-card>
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Create Player Option</h1>
+      <p class="page-subtitle">Propose a new roster decision for community voting.</p>
+    </div>
+  </div>
+
+  <!-- 2-col grid -->
+  <div class="create-grid">
+
+    <!-- LEFT: Player search -->
+    <div class="main-col">
+      <div class="section-card">
+        <div class="section-head section-head--blue">
+          <div class="section-icon section-icon--blue">
+            <span class="material-icons">person</span>
+          </div>
+          <div>
+            <div class="section-title">Select Player</div>
+            <div class="section-subtitle">Search and select a player from your roster</div>
+          </div>
+        </div>
+
+        <div class="section-body">
+          <div class="search-wrap">
+            <span class="material-icons search-prefix-icon">search</span>
+            <input
+              class="search-input"
+              type="text"
+              placeholder="Search by name or position..."
+              [value]="searchTerm()"
+              (input)="onSearch($any($event.target).value)"
+            />
+          </div>
+
+          <div class="player-list" *ngIf="filteredPlayers().length > 0; else emptyPlayers">
+            <lib-create-player-option-card
+              *ngFor="let p of filteredPlayers()"
+              [player]="p"
+              (selected)="open($event)"
+            ></lib-create-player-option-card>
+          </div>
+
+          <ng-template #emptyPlayers>
+            <div class="empty-state">
+              <span class="material-icons empty-icon">group</span>
+              <p>No players found</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Tips panel -->
+    <div class="side-col">
+      <div class="tips-card">
+        <div class="tips-head">
+          <span class="material-icons tips-icon">tips_and_updates</span>
+          <span class="tips-title">Quick Tips</span>
+        </div>
+        <ul class="tips-list">
+          <li>Be specific in your description to help users make informed decisions</li>
+          <li>Include relevant stats, contract details, or trade value</li>
+          <li>Longer voting periods allow more community participation</li>
+          <li>Options cannot be edited after creation</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
 </div>
 
+<!-- ── Modal: Create Option Form ── -->
 <ng-template #playerModal let-player="player" let-submit="submit">
-  <form
-    #f="ngForm"
-    (ngSubmit)="submit({ 
-  title: f.value.title, 
-  description: f.value.description,
-  player 
-})"
-  >
-    <div class="modal-content">
-      <h3>{{ player.name }}</h3>
+  <form #f="ngForm" (ngSubmit)="submit({ title: f.value.title, description: f.value.description, optionType: selectedOptionType(), player })">
 
-      <lib-ui-input label="Title">
-        <input type="text" name="title" ngModel required />
-      </lib-ui-input>
+    <!-- Player banner -->
+    <div class="modal-player-banner">
+      <div class="modal-player-avatar">{{ player.position?.[0] || '?' }}</div>
+      <div class="modal-player-info">
+        <div class="modal-player-name">{{ player.name }}</div>
+        <div class="modal-player-meta">{{ player.position || '—' }} · Age {{ player.age || '—' }}</div>
+      </div>
+    </div>
 
-      <lib-ui-input label="Description">
-        <input type="text" name="description" ngModel />
-      </lib-ui-input>
+    <div class="modal-body">
+
+      <!-- Option Type -->
+      <div class="form-section">
+        <div class="form-section-head">
+          <span class="material-icons form-section-icon" style="color:#7c3aed">track_changes</span>
+          <span class="form-section-title">Option Type</span>
+        </div>
+        <div class="option-type-group">
+          <button type="button" class="option-type-btn"
+            [class.option-type-btn--active]="selectedOptionType() === 'Trade'"
+            (click)="selectedOptionType.set('Trade')">
+            <span class="material-icons ot-icon ot-icon--amber">work</span>
+            <span>Trade</span>
+          </button>
+          <button type="button" class="option-type-btn"
+            [class.option-type-btn--active]="selectedOptionType() === 'Extend Contract'"
+            (click)="selectedOptionType.set('Extend Contract')">
+            <span class="material-icons ot-icon ot-icon--green">autorenew</span>
+            <span>Extend Contract</span>
+          </button>
+          <button type="button" class="option-type-btn"
+            [class.option-type-btn--active]="selectedOptionType() === 'Release'"
+            (click)="selectedOptionType.set('Release')">
+            <span class="material-icons ot-icon ot-icon--red">remove_circle_outline</span>
+            <span>Release</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="form-field">
+        <label class="form-label">Option Title <span class="form-required">*</span></label>
+        <input class="form-input" type="text" name="title" ngModel required placeholder="e.g., Propose a 3-year extension" />
+      </div>
+
+      <!-- Description -->
+      <div class="form-field">
+        <label class="form-label">Description <span class="form-required">*</span></label>
+        <textarea class="form-textarea" name="description" ngModel rows="4" placeholder="Provide detailed information about this roster decision..."></textarea>
+      </div>
+
     </div>
 
     <footer class="modal-footer">
-      <button type="button" (click)="modal.close()">Cancel</button>
-      <button type="submit" class="primary">Confirm</button>
+      <button type="button" class="btn-cancel" (click)="modal.close()">Cancel</button>
+      <button type="submit" class="btn-create">
+        <span class="material-icons">save</span>
+        Create Option
+      </button>
     </footer>
   </form>
 </ng-template>

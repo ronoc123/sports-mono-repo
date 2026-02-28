@@ -1,97 +1,155 @@
-/* Navbar container */
 .navbar {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
-  background: var(--color-primary);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  justify-content: space-between;
+  padding: 0 24px;
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 100;
 }
 
-/* Left section icons */
-.menu-button {
-  color: var(--color-text);
+/* ── Brand ── */
+.brand {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-tertiary);
+  letter-spacing: -0.03em;
 }
 
-/* User section container */
-.user-section {
-  display: flex;
-  align-items: center;
-}
-
-/* User button pill */
-.user-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 24px;
-  background-color: var(--color-border);
-  color: var(--color-text);
-  text-transform: none;
-  font-weight: 500;
-  background-color: var(--color-surface);
-}
-.user-button:hover {
-  background-color: var(--color-secondary);
-}
-.theme-text {
-  color: var(--color-text);
-}
-
-/* Avatar */
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: var(--color-tertiary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* User dropdown menu */
-.user-menu {
-  background: var(--color-tertiary) !important;
-  color: var(--color-text);
-  min-width: 200px;
-}
-
-/* Logout button styling */
-.logout-item {
-  color: #ff6b6b !important;
-}
-.logout-item mat-icon {
-  color: #ff6b6b !important;
-}
-
+/* ── Right cluster ── */
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
-.app-info {
-  font-size: 2rem;
-  margin-left: 40px;
+
+/* ── User avatar button ── */
+.user-avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-tertiary);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s, box-shadow 0.15s;
+  box-shadow: 0 0 0 2px transparent, 0 0 0 4px transparent;
+}
+
+.user-avatar-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #e5e7eb;
+}
+
+/* ── User dropdown ── */
+.user-menu-wrap {
+  position: relative;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+}
+
+.dropdown-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dropdown-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dropdown-name {
+  font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: #111827;
 }
 
-/* Mobile cleanup */
-@media (max-width: 768px) {
-  .navbar {
-    padding: 0 8px;
-  }
+.dropdown-email {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .user-button {
-    padding: 8px;
-    border-radius: 50%;
-  }
+.user-dropdown-divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.dropdown-item:hover {
+  background: #f9fafb;
+}
+
+.dropdown-item .material-icons {
+  font-size: 17px !important;
+  color: #9ca3af;
+}
+
+.dropdown-item--danger {
+  color: #dc2626;
+}
+
+.dropdown-item--danger .material-icons {
+  color: #dc2626;
+}
+
+/* ── Overlay for click-outside close ── */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
 }

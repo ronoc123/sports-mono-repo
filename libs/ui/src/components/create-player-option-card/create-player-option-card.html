@@ -1,17 +1,24 @@
-<div class="player-card">
-  <div class="player-header">
-    <div class="player-avatar"></div>
+<div class="player-row">
+  <div class="player-pos-avatar">{{ player().position?.[0] || '?' }}</div>
 
-    <div class="player-info">
-      <div class="player-name">{{ player().name }}</div>
-      <div class="player-sub">{{ player().position }}</div>
-      <div class="player-team">Age: {{ player().age }}</div>
+  <div class="player-body">
+    <div class="player-name-row">
+      <span class="player-name">{{ player().name }}</span>
+      <span class="pos-badge">{{ player().position || '—' }}</span>
+      <span class="status-pill" [class.status-pill--active]="player().isActive" [class.status-pill--inactive]="!player().isActive">
+        {{ player().isActive ? 'Active' : 'Inactive' }}
+      </span>
+    </div>
+    <div class="player-meta">
+      <span *ngIf="player().age">Age {{ player().age }}</span>
+      <span *ngIf="player().age && (player().isVeteran || player().isYoungPlayer)">·</span>
+      <span *ngIf="player().isVeteran" class="tag-pill tag-pill--vet">Veteran</span>
+      <span *ngIf="player().isYoungPlayer" class="tag-pill tag-pill--young">Young</span>
     </div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="votes-section">
-    <button class="vote-btn" (click)="selected.emit(player())">Create</button>
-  </div>
+  <button class="select-btn" type="button" (click)="onClick()">
+    <span class="material-icons">add_circle_outline</span>
+    Select
+  </button>
 </div>

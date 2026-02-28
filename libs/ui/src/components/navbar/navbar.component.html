@@ -1,44 +1,53 @@
-<mat-toolbar class="navbar">
+<header class="navbar">
+
+  <!-- Left: brand -->
   <div class="navbar-left">
-    <div class="sidebar-footer">
-      <div class="app-info">Sportify</div>
-    </div>
+    <div class="brand">Sportify</div>
   </div>
+
+  <!-- Right: actions -->
   <div class="navbar-right">
-    <mat-slide-toggle
-      (change)="toggleTheme.emit()"
-      class="theme-toggle"
-    ></mat-slide-toggle>
+
+    <!-- Notifications -->
     <lib-notification-badge
       [notifications]="notifications()"
       (markRead)="markRead.emit($event)"
     ></lib-notification-badge>
-    <!-- User Menu -->
-    <div class="user-section" *ngIf="user()">
-      <button mat-button class="user-button">
-        <div class="user-info-section">
-          <div class="user-avatar">
-            {{ (user()?.firstName || "U").substring(0, 1).toUpperCase() }}
+
+    <!-- User avatar + dropdown -->
+    <div class="user-menu-wrap" *ngIf="user()">
+      <button class="user-avatar-btn" (click)="toggleUserMenu()">
+        {{ userInitial }}
+      </button>
+
+      <!-- Dropdown -->
+      <div class="user-dropdown" *ngIf="userMenuOpen()">
+        <div class="user-dropdown-header">
+          <div class="dropdown-avatar">{{ userInitial }}</div>
+          <div class="dropdown-user-info">
+            <span class="dropdown-name">{{ user()?.firstName || 'User' }}</span>
+            <span class="dropdown-email">{{ user()?.email }}</span>
           </div>
         </div>
-        <mat-icon>arrow_drop_down</mat-icon>
-      </button>
-      <mat-menu #userMenu="matMenu" class="user-menu">
-        <mat-divider></mat-divider>
-        <button mat-menu-item (click)="openProfile.emit()">
-          <mat-icon>person</mat-icon>
-          <span>Profile</span>
+        <div class="user-dropdown-divider"></div>
+        <button class="dropdown-item" (click)="openProfile.emit(); closeUserMenu()">
+          <span class="material-icons">person</span>
+          Profile
         </button>
-        <button mat-menu-item (click)="openSettings.emit()">
-          <mat-icon>settings</mat-icon>
-          <span>Settings</span>
+        <button class="dropdown-item" (click)="openSettings.emit(); closeUserMenu()">
+          <span class="material-icons">settings</span>
+          Settings
         </button>
-        <mat-divider></mat-divider>
-        <button mat-menu-item (click)="logout.emit()" class="logout-item">
-          <mat-icon>logout</mat-icon>
-          <span>Logout</span>
+        <div class="user-dropdown-divider"></div>
+        <button class="dropdown-item dropdown-item--danger" (click)="logout.emit(); closeUserMenu()">
+          <span class="material-icons">logout</span>
+          Logout
         </button>
-      </mat-menu>
+      </div>
     </div>
+
   </div>
-</mat-toolbar>
+</header>
+
+<!-- Click-outside overlay -->
+<div class="menu-overlay" *ngIf="userMenuOpen()" (click)="closeUserMenu()"></div>

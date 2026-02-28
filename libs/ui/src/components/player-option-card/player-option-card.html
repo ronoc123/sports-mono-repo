@@ -1,41 +1,42 @@
 <div class="player-card">
-  <div class="player-header">
-    <div class="player-info">
-      <div class="player-name">{{ option().player.name }}</div>
-      <div class="player-sub">{{ option().player.position }}</div>
-      <div class="player-team">Age: {{ option().player.age }}</div>
+  <!-- Header -->
+  <div class="card-header">
+    <div class="header-top-row">
+      <div class="position-avatar">{{ option().player.position }}</div>
+      <span class="status-badge trending" *ngIf="option().isTrending">Trending</span>
+      <span class="status-badge popular" *ngIf="!option().isTrending && option().isPopular">Popular</span>
     </div>
+    <h3 class="player-name">{{ option().player.name }}</h3>
+    <p class="player-meta">{{ option().player.position }} · {{ option().player.age }} years old</p>
   </div>
 
-  <div class="option-content">
-    <div class="option-title">{{ option().title }}</div>
-    <div class="option-description">{{ option().description }}</div>
-  </div>
+  <!-- Content -->
+  <div class="card-content">
+    <p class="option-description">{{ option().description }}</p>
 
-  <div class="divider"></div>
+    <div class="bottom-section">
+      <div class="votes-row">
+        <span class="votes-label">Current Votes</span>
+        <span class="votes-count">{{ option().votes }}</span>
+      </div>
 
-  <div class="votes-section">
-    <div class="votes-left">
-      <div class="votes-number">{{ option().votes }}</div>
-      <div class="votes-label">votes</div>
-    </div>
-
-    <div class="vote-stepper">
-      <input
-        type="number"
-        min="1"
-        class="vote-input"
-        [(ngModel)]="voteAmount"
-        placeholder="Votes"
-      />
-
-      <button
-        class="apply-btn"
-        [disabled]="!voteAmount || voteAmount < 1"
-        (click)="applyVote()"
-      >
-        Apply
-      </button>
+      <div class="vote-control">
+        <div class="stepper-row">
+          <button class="stepper-btn" (click)="decrement()">−</button>
+          <input
+            class="stepper-input"
+            type="number"
+            min="1"
+            inputmode="numeric"
+            [(ngModel)]="voteAmount"
+            (change)="onAmountChange()"
+          />
+          <button class="stepper-btn" (click)="increment()">+</button>
+        </div>
+        <button class="cast-btn" [disabled]="!voteAmount || voteAmount < 1" (click)="applyVote()">
+          Cast Votes
+        </button>
+      </div>
     </div>
   </div>
 </div>

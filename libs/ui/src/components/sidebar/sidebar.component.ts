@@ -1,16 +1,6 @@
-import { Component, effect, input, output } from "@angular/core";
+import { Component, effect, input, output, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { OrganizationBadgeComponent } from "../organization-badge/organization-badge";
-import { MatIcon } from "@angular/material/icon";
-import {
-  MatNestedTreeNode,
-  MatTree,
-  MatTreeModule,
-  MatTreeNestedDataSource,
-  MatTreeNode,
-} from "@angular/material/tree";
-import { MatDivider } from "@angular/material/divider";
-import { NestedTreeControl } from "@angular/cdk/tree";
 
 export interface LayoutConfig {
   appTitle: string;
@@ -35,44 +25,38 @@ export interface NavItem {
 
 @Component({
   selector: "lib-ui-sidebar",
-  imports: [
-    CommonModule,
-    OrganizationBadgeComponent,
-    MatIcon,
-    MatNestedTreeNode,
-    MatTree,
-    MatTreeNode,
-    MatDivider,
-    MatTreeModule,
-  ],
+  imports: [CommonModule, OrganizationBadgeComponent],
   standalone: true,
   templateUrl: "./sidebar.component.html",
   styleUrls: ["./sidebar.component.css"],
 })
 export class SidebarComponent {
-  readonly navItems = input.required<NavItem[]>();
+  readonly navItems    = input.required<NavItem[]>();
   readonly currentRoute = input<string>("");
   readonly organizations = input<any[]>([]);
   readonly selectedOrganization = input<any>(null);
   readonly user = input<any>(null);
 
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
-  readonly onOrgSelected = output<any>();
+  readonly onOrgSelected  = output<any>();
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
-  readonly onNavSelected = output<NavItem>();
+  readonly onNavSelected  = output<NavItem>();
 
-  treeControl = new NestedTreeControl<NavItem>((node) => node.children);
-  dataSource = new MatTreeNestedDataSource<NavItem>();
+  expandedItems = signal<string[]>([]);
 
-  hasChild = (_: number, node: NavItem) =>
-    !!node.children && node.children.length > 0;
+  isExpanded(name: string): boolean {
+    return this.expandedItems().includes(name);
+  }
 
-  isLeaf = (_: number, node: NavItem) =>
-    !node.children || node.children.length === 0;
+  toggleExpand(name: string) {
+    this.expandedItems.update((items) =>
+      items.includes(name) ? items.filter((i) => i !== name) : [...items, name]
+    );
+  }
 
-  constructor() {
-    effect(() => {
-      this.dataSource.data = this.navItems();
-    });
+  isActive(node: NavItem): boolean {
+    if (!node.route) return false;
+    return this.currentRoute().endsWith("/" + node.route) ||
+           this.currentRoute() === node.route;
   }
 }

@@ -1,16 +1,44 @@
 <div class="user-card">
-  <div class="user-header">
-    <div class="user-avatar">{{ initial }}</div>
 
-    <div class="user-info">
+  <!-- Card header -->
+  <div class="card-header">
+    <div class="user-avatar">{{ initials }}</div>
+    <div class="user-header-info">
       <div class="user-name">{{ user().fullName }}</div>
-      <div class="user-email">{{ user().email }}</div>
+      <div class="user-role-badge">Member</div>
     </div>
   </div>
 
-  <div class="divider"></div>
+  <div class="card-divider"></div>
 
-  <div class="actions">
-    <button class="vote-btn" (click)="onClick()">Send Votes</button>
+  <!-- Details -->
+  <div class="user-details">
+    <div class="detail-item">
+      <span class="detail-label">Email</span>
+      <span class="detail-value detail-value--email">
+        <span class="material-icons detail-icon">mail</span>
+        {{ user().email }}
+      </span>
+    </div>
+    <div class="detail-item" *ngIf="user().firstName">
+      <span class="detail-label">First Name</span>
+      <span class="detail-value">{{ user().firstName }}</span>
+    </div>
+    <div class="detail-item" *ngIf="user().lastName">
+      <span class="detail-label">Last Name</span>
+      <span class="detail-value">{{ user().lastName }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">User ID</span>
+      <span class="detail-value detail-value--mono">{{ user().id }}</span>
+    </div>
   </div>
+
+  <div class="card-footer">
+    <button class="send-btn" type="button" (click)="onClick()">
+      <span class="material-icons">send</span>
+      Send Votes
+    </button>
+  </div>
+
 </div>

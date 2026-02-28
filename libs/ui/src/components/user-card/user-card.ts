@@ -17,8 +17,11 @@ export class UserCardComponent {
     this.selected.emit(this.user());
   }
 
-  get initial(): string {
-    const name = this.user().fullName || this.user().email;
-    return name.charAt(0).toUpperCase();
+  get initials(): string {
+    const u = this.user();
+    const name = u.fullName || `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
   }
 }

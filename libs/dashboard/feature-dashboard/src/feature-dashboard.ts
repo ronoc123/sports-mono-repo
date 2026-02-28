@@ -1,10 +1,5 @@
 import { Component, computed, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { MatCardModule } from "@angular/material/card";
-import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
-import { MatChipsModule } from "@angular/material/chips";
-import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { Router } from "@angular/router";
 import { AuthStore } from "@sports-ui/auth-data-access";
 
@@ -36,14 +31,7 @@ interface RecentActivity {
 
 @Component({
   selector: "lib-feature-dashboard",
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressBarModule,
-  ],
+  imports: [CommonModule],
   templateUrl: "./feature-dashboard.html",
   styleUrl: "./feature-dashboard.css",
 })

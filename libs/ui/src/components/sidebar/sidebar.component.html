@@ -1,84 +1,70 @@
-<!-- Sidebar Wrapper -->
 <div class="sidebar-container">
-  <!-- Organization Selector -->
-  <lib-organization-badge
-    [organizations]="organizations()"
-    [selectedOrg]="selectedOrganization()"
-    (selectOrganization)="onOrgSelected.emit($event)"
-  >
-  </lib-organization-badge>
 
-  <!-- User Info Section (UI only, no service access) -->
-  <div class="user-info-section" *ngIf="user()">
-    <div class="user-avatar">
-      {{ (user()?.firstName || "U").substring(0, 1).toUpperCase() }}
-    </div>
-    <div class="user-details">
-      <span class="user-email">{{ user()?.email }}</span>
-    </div>
-  </div>
+  <!-- Org Selector -->
+  <div class="sidebar-top">
+    <lib-organization-badge
+      [organizations]="organizations()"
+      [selectedOrg]="selectedOrganization()"
+      (selectOrganization)="onOrgSelected.emit($event)"
+    ></lib-organization-badge>
 
-  <mat-divider></mat-divider>
-
-  <!-- Navigation Menu -->
-  <div class="navigation-menu">
-    <mat-tree
-      [dataSource]="dataSource"
-      [treeControl]="treeControl"
-      class="nav-tree"
-    >
-      <!-- Leaf node -->
-      <mat-tree-node
-        *matTreeNodeDef="let node; when: isLeaf"
-        matTreeNodePadding
-      >
-        <button
-          mat-button
-          (click)="onNavSelected.emit(node)"
-          [class.active-route]="currentRoute() === node.route"
-          class="nav-item"
-        >
-          <mat-icon class="nav-icon">{{ node.icon }}</mat-icon>
-          <span class="nav-text">{{ node.name }}</span>
-        </button>
-      </mat-tree-node>
-      <!-- Expandable node -->
-      <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-        <div class="expandable-node">
-          <button mat-icon-button matTreeNodeToggle class="toggle-button">
-            <mat-icon class="toggle-icon">
-              {{
-                treeControl.isExpanded(node) ? "expand_more" : "chevron_right"
-              }}
-            </mat-icon>
-          </button>
-          <button
-            mat-button
-            (click)="onNavSelected.emit(node)"
-            [class.active-route]="currentRoute() === node.route"
-            class="nav-item expandable"
-          >
-            <mat-icon *ngIf="node.icon" class="nav-icon">
-              {{ node.icon }}
-            </mat-icon>
-            <span class="nav-text">{{ node.name }}</span>
-          </button>
-        </div>
-
-        <!-- Children -->
-        <div class="child-container">
-          <ng-container matTreeNodeOutlet></ng-container>
-        </div>
-      </mat-nested-tree-node>
-    </mat-tree>
-  </div>
-
-  <!-- Footer -->
-  <div class="sidebar-footer">
-    <div class="app-info">
-      <div class="app-details">
-        <span class="app-name">Sportify</span>
+    <!-- User snippet -->
+    <div class="user-snippet" *ngIf="user()">
+      <div class="user-avatar">
+        {{ (user()?.firstName || user()?.email || 'U').substring(0, 1).toUpperCase() }}
+      </div>
+      <div class="user-detail">
+        <span class="user-email">{{ user()?.email }}</span>
       </div>
     </div>
   </div>
+
+  <!-- Navigation -->
+  <nav class="nav-list">
+    <ng-container *ngFor="let item of navItems()">
+
+      <!-- Leaf item -->
+      <button
+        *ngIf="!item.children?.length"
+        class="nav-item"
+        [class.nav-item--active]="isActive(item)"
+        (click)="onNavSelected.emit(item)"
+      >
+        <span class="material-icons nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.name }}</span>
+      </button>
+
+      <!-- Expandable item -->
+      <div *ngIf="item.children?.length" class="nav-group">
+        <button
+          class="nav-item nav-item--expandable"
+          (click)="toggleExpand(item.name)"
+        >
+          <span class="material-icons nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.name }}</span>
+          <span class="material-icons expand-arrow" [class.expand-arrow--open]="isExpanded(item.name)">
+            expand_more
+          </span>
+        </button>
+        <div class="nav-children" *ngIf="isExpanded(item.name)">
+          <button
+            *ngFor="let child of item.children"
+            class="nav-item nav-item--child"
+            [class.nav-item--active]="isActive(child)"
+            (click)="onNavSelected.emit(child)"
+          >
+            <span class="material-icons nav-icon">{{ child.icon }}</span>
+            <span class="nav-label">{{ child.name }}</span>
+          </button>
+        </div>
+      </div>
+
+    </ng-container>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <span class="footer-brand">Sportify</span>
+  </div>
+
 </div>

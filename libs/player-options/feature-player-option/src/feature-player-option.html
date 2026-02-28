@@ -1,5 +1,13 @@
-<h1 class="">Player Options</h1>
-<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
+<div class="page-header">
+  <div class="page-title-block">
+    <h1 class="page-title">Player Options</h1>
+    <p class="page-subtitle">Vote on potential roster moves for the upcoming season.</p>
+  </div>
+  <div class="page-actions">
+    <lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
+  </div>
+</div>
+
 <div class="options-container">
   <div *ngFor="let po of filteredPlayerOptions()">
     <lib-player-option-card

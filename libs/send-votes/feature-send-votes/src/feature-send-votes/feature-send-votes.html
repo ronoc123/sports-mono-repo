@@ -1,34 +1,123 @@
-<h1>Send Votes</h1>
-<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
-<div class="users-container">
-  <ng-container *ngIf="(filteredUsers() || []).length === 0">
-    <div class="empty-state">No users found.</div>
-  </ng-container>
+<div class="send-votes-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Send Votes</h1>
+      <p class="page-subtitle">
+        Distribute votes to members of your organization.
+      </p>
+    </div>
+  </div>
 
-  <lib-user-card
-    *ngFor="let u of filteredUsers()"
-    [user]="u"
-    (selected)="open($event)"
-  ></lib-user-card>
+  <!-- 2-col grid -->
+  <div class="send-grid">
+    <!-- LEFT: User search + list -->
+    <div class="main-col">
+      <div class="section-card">
+        <div class="section-head">
+          <div class="section-icon">
+            <span class="material-icons">group</span>
+          </div>
+          <div>
+            <div class="section-title">Organization Members</div>
+            <div class="section-subtitle">Select a member to send votes</div>
+          </div>
+        </div>
+
+        <div class="section-body">
+          <div class="search-wrap">
+            <span class="material-icons search-prefix-icon">search</span>
+            <input
+              class="search-input"
+              type="text"
+              placeholder="Search by name or email..."
+              [value]="searchTerm()"
+              (input)="onSearch($any($event.target).value)"
+            />
+          </div>
+
+          <div
+            class="users-grid"
+            *ngIf="filteredUsers().length > 0; else emptyState"
+          >
+            <lib-user-card
+              *ngFor="let u of filteredUsers()"
+              [user]="u"
+              (selected)="open($event)"
+            ></lib-user-card>
+          </div>
+
+          <ng-template #emptyState>
+            <div class="empty-state">
+              <span class="material-icons empty-icon">person_search</span>
+              <p>No members found</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Info panel -->
+    <div class="side-col">
+      <div class="info-card">
+        <div class="info-head">
+          <span class="material-icons info-icon">how_to_vote</span>
+          <span class="info-title">About Sending Votes</span>
+        </div>
+        <ul class="info-list">
+          <li>Recipients can use votes on any active player option</li>
+          <li>Transactions are logged and visible in each user's profile</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- ── Modal: Send Votes Form ── -->
 <ng-template #sendVotesModal let-user="user" let-submit="submit">
-  <form
-    #f="ngForm"
-    (ngSubmit)="submit({ user, amount: f.value.amount })"
-  >
-    <div class="modal-content">
-      <h3>{{ user.fullName }}</h3>
-      <p>{{ user.email }}</p>
+  <form #f="ngForm" (ngSubmit)="submit({ user, amount: f.value.amount })">
+    <!-- User banner -->
+    <div class="modal-user-banner">
+      <div class="modal-user-avatar">
+        {{ user.fullName?.charAt(0) || user.email?.charAt(0) | uppercase }}
+      </div>
+      <div class="modal-user-info">
+        <div class="modal-user-name">{{ user.fullName }}</div>
+        <div class="modal-user-email">
+          <span class="material-icons modal-mail-icon">mail</span>
+          {{ user.email }}
+        </div>
+      </div>
+    </div>
 
-      <lib-ui-input label="Votes to Send">
-        <input type="number" name="amount" ngModel min="1" required />
-      </lib-ui-input>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label"
+          >Votes to Send <span class="form-required">*</span></label
+        >
+        <input
+          class="form-input"
+          type="number"
+          name="amount"
+          ngModel
+          min="1"
+          required
+          placeholder="e.g. 100"
+        />
+        <p class="form-hint">
+          Enter the number of votes you want to transfer to this member.
+        </p>
+      </div>
     </div>
 
     <footer class="modal-footer">
-      <button type="button" (click)="modal.close()">Cancel</button>
-      <button type="submit" class="primary">Send</button>
+      <button type="button" class="btn-cancel" (click)="modal.close()">
+        Cancel
+      </button>
+      <button type="submit" class="btn-send">
+        <span class="material-icons">send</span>
+        Send Votes
+      </button>
     </footer>
   </form>
 </ng-template>

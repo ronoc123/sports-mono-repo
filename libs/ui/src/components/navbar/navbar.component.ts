@@ -1,42 +1,40 @@
-import { Component, input, OnInit, output } from "@angular/core";
+import { Component, input, output, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { MatSidenav } from "@angular/material/sidenav";
-import { MatDivider } from "@angular/material/divider";
-import { MatIcon } from "@angular/material/icon";
-import { MatMenu } from "@angular/material/menu";
-import { MatToolbar } from "@angular/material/toolbar";
 import { LayoutConfig } from "../sidebar/sidebar.component";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
 import { NotificationDto } from "@sports-ui/notification-data-access";
 import { NotificationBadgeComponent } from "../notification-badge/notification-badge";
 
 @Component({
   selector: "lib-ui-navbar",
-  imports: [
-    CommonModule,
-    MatDivider,
-    MatIcon,
-    MatMenu,
-    MatToolbar,
-    MatSlideToggleModule,
-    MatButtonToggleModule,
-    NotificationBadgeComponent,
-  ],
+  imports: [CommonModule, NotificationBadgeComponent],
   standalone: true,
   templateUrl: "./navbar.component.html",
   styleUrls: ["./navbar.component.css"],
 })
 export class NavbarComponent {
-  readonly config = input<LayoutConfig>();
-  readonly drawer = input<MatSidenav>();
-  readonly user = input<any>();
+  readonly config        = input<LayoutConfig>();
+  readonly user          = input<any>();
   readonly notifications = input<NotificationDto[]>([]);
 
-  readonly toggleNavBar = output<void>();
-  readonly logout = output<void>();
-  readonly openProfile = output<void>();
-  readonly openSettings = output<void>();
-  readonly toggleTheme = output<void>();
-  readonly markRead = output<string>();
+  readonly toggleNavBar  = output<void>();
+  readonly logout        = output<void>();
+  readonly openProfile   = output<void>();
+  readonly openSettings  = output<void>();
+  readonly toggleTheme   = output<void>();
+  readonly markRead      = output<string>();
+
+  userMenuOpen = signal(false);
+
+  toggleUserMenu() {
+    this.userMenuOpen.update((v) => !v);
+  }
+
+  closeUserMenu() {
+    this.userMenuOpen.set(false);
+  }
+
+  get userInitial(): string {
+    const u = this.user();
+    return (u?.firstName || u?.email || "U").substring(0, 1).toUpperCase();
+  }
 }
