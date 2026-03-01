@@ -1,0 +1,66 @@
+<div class="page-header">
+  <div class="page-title-block">
+    <h1 class="page-title">Vote Store</h1>
+    <p class="page-subtitle">
+      Purchase vote bundles to support your organization.
+    </p>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="status() === 'loading'" class="loading-state">
+  <div class="spinner"></div>
+  <p>Loading bundles...</p>
+</div>
+
+<!-- Empty state -->
+<div
+  *ngIf="status() === 'success' && bundles().length === 0"
+  class="empty-state"
+>
+  <p class="empty-title">No vote bundles available</p>
+  <p class="empty-subtitle">Check back later for new vote packages.</p>
+</div>
+
+<!-- Bundle grid -->
+<div
+  *ngIf="status() === 'success' && bundles().length > 0"
+  class="bundles-grid"
+>
+  <div *ngFor="let bundle of bundles()" class="bundle-card">
+    <div class="card-header">
+      <span class="vote-quantity">{{ bundle.quantity }}</span>
+      <span class="vote-label">votes</span>
+    </div>
+
+    <div class="card-body">
+      <h3 class="bundle-name">{{ bundle.name }}</h3>
+      <p class="bundle-description">{{ bundle.description }}</p>
+    </div>
+
+    <div class="card-footer">
+      <span class="bundle-price"
+        >{{ formatPrice(bundle.priceAmount, bundle.priceCurrency) }}</span
+      >
+      <button
+        class="buy-btn"
+        (click)="onBuy(bundle.id)"
+        [disabled]="checkoutStatus() === 'initiating'"
+      >
+        <span *ngIf="checkoutStatus() !== 'initiating'">Buy</span>
+        <span
+          *ngIf="checkoutStatus() === 'initiating'"
+          class="btn-spinner"
+        ></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout modal — active for any non-idle checkout state -->
+<app-checkout-modal
+  *ngIf="checkoutStatus() !== 'idle'"
+  (closed)="onCheckoutClosed()"
+  (retryRequested)="onRetryCheckout()"
+  [clientSecret]="storeService.clientSecret()"
+/>

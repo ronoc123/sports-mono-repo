@@ -92,6 +92,13 @@ export const appRoutes: Route[] = [
             (m) => m.createPlayerOptionRoutes
           ),
       },
+      // Store route
+      {
+        path: "store",
+        loadChildren: () =>
+          import("@sports-ui/feature-store").then((m) => m.storeRoutes),
+      },
+
       // Profile route
       {
         path: "profile",

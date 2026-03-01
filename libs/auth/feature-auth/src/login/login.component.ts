@@ -1,21 +1,10 @@
 import { Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from "@angular/forms";
 import { Router } from "@angular/router";
-import { MatCardModule } from "@angular/material/card";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
-import { MatDividerModule } from "@angular/material/divider";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 
@@ -24,16 +13,10 @@ import { AuthFacade } from "@sports-ui/auth-data-access";
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatDividerModule,
     GoogleSignInComponent,
   ],
   templateUrl: "./login.component.html",
@@ -43,6 +26,8 @@ export class LoginComponent {
   facade = inject(AuthFacade);
   private snack = inject(MatSnackBar);
   private router = inject(Router);
+
+  mode = signal<"login" | "register">("login");
 
   async onGoogleCredential(jwt: string) {
     try {

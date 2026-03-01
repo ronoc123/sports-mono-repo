@@ -1,139 +1,135 @@
-/* Main Card */
-.player-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  transition: box-shadow 0.3s ease, transform 0.25s ease;
-  color: var(--color-text);
-  min-height: 200px;
-}
-
-.player-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
-  color: var(--color-text);
-}
-
-/* Header */
-.player-header {
+.player-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px;
-  min-height: 150px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  transition: background 0.1s, border-color 0.1s;
 }
 
-.player-avatar {
-  width: 64px;
-  height: 64px;
+.player-row:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* Position avatar circle */
+.player-pos-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--color-primary);
-  border: 2px solid var(--color-border);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
 }
 
-/* Player text */
-.player-info {
+/* Body */
+.player-body {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 4px;
+}
+
+.player-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .player-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
 }
 
-.player-sub {
-  font-size: 0.9rem;
-  color: var(--color-text);
+.pos-badge {
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
 }
 
-.player-team {
+.status-pill {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status-pill--active {
+  background: #dcfce7;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.status-pill--inactive {
+  background: #fef9c3;
+  color: #ca8a04;
+  border-color: #fef08a;
+}
+
+/* Meta row */
+.player-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.75rem;
-  color: var(--color-text);
+  color: #9ca3af;
 }
 
-/* Divider */
-.divider {
-  border-top: 1px solid var(--color-border);
+.tag-pill {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
-/* Vote section */
-.votes-section {
+.tag-pill--vet {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.tag-pill--young {
+  background: #fef9c3;
+  color: #d97706;
+}
+
+/* Select button */
+.select-btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-}
-
-.votes-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.votes-number {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--color-text);
-}
-
-.votes-label {
-  color: var(--color-text);
-  font-size: 0.9rem;
-}
-
-/* Vote Button */
-.vote-btn {
+  gap: 5px;
+  padding: 7px 14px;
   background: var(--color-tertiary);
-  color: white;
-  padding: 10px 18px;
-  border-radius: 10px;
+  color: #ffffff;
   border: none;
-  font-weight: bold;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+  transition: background 0.12s;
 }
 
-.vote-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+.select-btn:hover {
+  background: var(--color-tertiary);
 }
 
-/* Footer buttons */
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--color-secondary);
-  border-top: 1px solid var(--color-border);
-}
-
-.edit-btn,
-.remove-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: color 0.2s ease;
-}
-
-.edit-btn {
-  color: var(--color-tertiary);
-}
-
-.edit-btn:hover {
-  color: #74c0ff;
-}
-
-.remove-btn {
-  color: #ff6b6b;
-}
-
-.remove-btn:hover {
-  color: #ff8787;
+.select-btn .material-icons {
+  font-size: 16px !important;
 }

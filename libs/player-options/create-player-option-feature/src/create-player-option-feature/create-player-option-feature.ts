@@ -8,11 +8,7 @@ import {
   OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-  CreatePlayerOptionCardComponent,
-  SearchbarComponent,
-  UiInput,
-} from "@sports-ui/ui";
+import { CreatePlayerOptionCardComponent, UiInput } from "@sports-ui/ui";
 import { PlayerDto, PlayerFacade } from "@sports-ui/player-data-access";
 import { ModalService } from "@sports-ui/modal-service";
 import {
@@ -26,7 +22,6 @@ import { FormsModule } from "@angular/forms";
   selector: "lib-create-player-option-feature",
   imports: [
     CommonModule,
-    SearchbarComponent,
     CreatePlayerOptionCardComponent,
     UiInput,
     FormsModule,
@@ -40,6 +35,7 @@ export class CreatePlayerOptionFeature implements OnInit {
   private organizationFacade = inject(OrganizationFeatureService);
   protected modal = inject(ModalService);
   searchTerm = signal("");
+  selectedOptionType = signal<string>("Trade");
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   @ViewChild("playerModal") playerModal!: TemplateRef<{
     player: PlayerDto;
@@ -58,7 +54,7 @@ export class CreatePlayerOptionFeature implements OnInit {
   });
 
   ngOnInit(): void {
-    this.facade.loadPlayers("38ED02D7-CAE6-4A8E-9232-52373BF16338");
+    this.facade.loadPlayers("CDE9103E-1FD4-40B1-9504-7C8971274317");
   }
 
   onSearch(term: string) {

@@ -21,6 +21,7 @@ import { NotificationStore } from "@sports-ui/notification-data-access";
 import { PlayerStore } from "@sports-ui/player-data-access";
 import { RedeemStore } from "@sports-ui/redeem-data-access";
 import { SendVotesStore } from "@sports-ui/send-votes-data-access";
+import { BundleCatalogStore } from "@sports-ui/store-data-access";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -35,6 +36,7 @@ export const appConfig: ApplicationConfig = {
     PlayerStore,
     SendVotesStore,
     RedeemStore,
+    BundleCatalogStore,
     { provide: APP_ENVIRONMENT, useValue: environment },
     { provide: API_URL, useValue: environment.apiUrl },
     { provide: GOOGLE_CLIENT_ID, useValue: environment.googleClientId },

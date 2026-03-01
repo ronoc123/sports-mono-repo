@@ -6,6 +6,8 @@ using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Player;
 using Domain.PlayerOption;
+using Domain.Product;
+using Domain.Purchase;
 using Domain.Rewards;
 using Domain.Shared_kernel;
 using Domain.VoteAccount;
@@ -29,6 +31,9 @@ namespace Infrastructure.Data
         public DbSet<RewardItem> RewardItems => Set<RewardItem>();
 
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<Product> Products => Set<Product>();
+        public DbSet<Purchase> Purchases => Set<Purchase>();
+        public DbSet<ProcessedWebhookEvent> ProcessedWebhookEvents => Set<ProcessedWebhookEvent>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -21,11 +21,11 @@
         *ngFor="let org of organizations()"
         (click)="chooseOrg(org)"
       >
-        <img
+        <!-- <img
           class="org-logo-option"
           [src]="'assets/' + org.logoUrl"
           [alt]="'logo'"
-        />
+        /> -->
         <div class="org-info">
           <span class="org-name">{{ org.name }}</span>
           <span class="org-details">{{ org.sport }} • {{ org.location }}</span>

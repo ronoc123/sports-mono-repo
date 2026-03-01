@@ -11,6 +11,7 @@ using Infrastructure.Events;
 using Infrastructure.Integrations.Identity;
 using Infrastructure.Repositories;
 using Infrastructure.Rewards;
+using Infrastructure.Store;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,9 @@ namespace Infrastructure
               cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyMarker).Assembly));
 
             services.AddScoped<IRepository, Repository>();
+
+            services.Configure<StripeOptions>(configuration.GetSection(StripeOptions.SectionName));
+            services.AddScoped<IPaymentProvider, StripePaymentProvider>();
 
             return services;
         }

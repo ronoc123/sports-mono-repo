@@ -1,106 +1,132 @@
-<div class="profile-container" *ngIf="user() as u">
-  <!-- PROFILE CARD (1/3) -->
-  <div class="profile-card profile">
-    <div class="profile-header">
-      <div class="profile-avatar">
-        <img
-          [src]="'https://lh3.googleusercontent.com/a/ACg8ocIs9hLXQVqPj5gQknzFlG5IIVzONuILo7FE2f_XTRx4y1b9Ow=s96-c'"
-          alt="Profile picture"
-        />
-      </div>
-
-      <div class="profile-info">
-        <div class="profile-name">{{ u.fullName }}</div>
-        <div class="profile-sub">{{ u.email }}</div>
-        <div class="profile-role">Role: {{ u.roles }}</div>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="profile-details">
-      <div class="detail-row">
-        <span class="detail-label">Account Created:</span>
-        <span class="detail-value">{{ u.createdAt | date }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Last Login:</span>
-        <span class="detail-value">{{ u.lastLoginAt | date:'medium' }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Google User:</span>
-        <span class="detail-value">{{ u.isGoogleUser ? 'Yes' : 'No' }}</span>
-      </div>
-    </div>
-
-    <div class="card-footer">
-      <button class="edit-btn">Edit Profile</button>
-      <button class="remove-btn">Log Out</button>
-    </div>
+<div class="profile-page" *ngIf="user() as u">
+  <div class="page-header">
+    <h1 class="page-title">Profile</h1>
+    <p class="page-subtitle">Manage your account details and vote balance</p>
   </div>
 
-  <!-- VOTE ACCOUNT SUMMARY (2/3) -->
-  <div class="profile-card vote-summary-card">
-    <div class="vote-header">
-      <div class="vote-title">Vote Account</div>
-      <div class="vote-balance">{{ voteAccount()?.balance || "0" }}</div>
+  <div class="top-grid">
+    <!-- Profile Card (col-span-2) -->
+    <div class="card profile-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="profile-avatar">{{ initials() }}</div>
+          <div class="profile-info">
+            <div class="profile-name">
+              {{ u.fullName || u.firstName + ' ' + u.lastName }}
+            </div>
+            <div class="profile-email">
+              <span class="material-icons email-icon">mail</span>
+              {{ u.email }}
+            </div>
+            <div class="role-badge" *ngIf="u.roles?.length">{{ u.roles }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-divider"></div>
+
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="detail-label">Account Created</span>
+          <span class="detail-value"
+            >{{ u.createdAt | date:'mediumDate' }}</span
+          >
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Last Login</span>
+          <span class="detail-value"
+            >{{ u.lastLoginAt | date:'mediumDate' }}</span
+          >
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Google User</span>
+          <span class="detail-value">{{ u.isGoogleUser ? 'Yes' : 'No' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Account ID</span>
+          <span class="detail-value detail-value--mono">{{ u.id }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-edit">
+          <span class="material-icons">edit</span>
+          Edit Profile
+        </button>
+        <button class="btn-logout" (click)="logout()">
+          <span class="material-icons">logout</span>
+          Log Out
+        </button>
+      </div>
     </div>
 
-    <div class="divider"></div>
-
-    <div class="vote-details">
-      <div class="detail-row">
-        <span class="detail-label">Version:</span>
-        <span class="detail-value">{{ voteAccount()?.version || 1 }}</span>
+    <!-- Vote Account Card -->
+    <div class="card vote-card">
+      <div class="vote-card-header">
+        <span class="vote-card-title">Vote Account</span>
+        <span class="material-icons vote-icon">confirmation_number</span>
       </div>
 
-      <div class="detail-row">
-        <span class="detail-label">Created:</span>
-        <span class="detail-value">{{ voteAccount()?.createdAt | date }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="detail-label">Updated:</span>
-        <span class="detail-value"
-          >{{ voteAccount()?.updatedAt | date:'medium' }}</span
+      <div class="vote-balance-block">
+        <span class="vote-balance-number"
+          >{{ voteAccount()?.balance ?? 0 }}</span
         >
+        <span class="vote-balance-label">Available Votes</span>
+      </div>
+
+      <div class="card-divider"></div>
+
+      <div class="vote-meta">
+        <div class="vote-meta-row">
+          <span class="vote-meta-label">Version</span>
+          <span class="vote-meta-value">{{ voteAccount()?.version ?? 1 }}</span>
+        </div>
+        <div class="vote-meta-row">
+          <span class="vote-meta-label">Created</span>
+          <span class="vote-meta-value"
+            >{{ voteAccount()?.createdAt | date:'mediumDate' }}</span
+          >
+        </div>
+        <div class="vote-meta-row">
+          <span class="vote-meta-label">Updated</span>
+          <span class="vote-meta-value"
+            >{{ voteAccount()?.updatedAt | date:'mediumDate' }}</span
+          >
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- FULL WIDTH TRANSACTIONS (3/3) -->
-  <div class="profile-card vote-transactions-card">
+  <!-- Transactions Card (full width) -->
+  <div class="card transactions-card">
     <div class="transactions-header">
-      <div class="transactions-title">Recent Transactions</div>
+      <span class="material-icons transactions-icon">history</span>
+      <span class="transactions-title">Recent Transactions</span>
     </div>
 
-    <div class="divider"></div>
+    <div class="card-divider"></div>
 
-    <div class="transaction-list">
-      <div class="transaction-item" *ngFor="let t of transactions()">
+    <div class="transaction-empty" *ngIf="!transactions()?.length">
+      <span class="material-icons empty-icon">receipt_long</span>
+      <p>No transactions yet</p>
+    </div>
+
+    <div class="transaction-list" *ngIf="transactions()?.length">
+      <div class="transaction-row" *ngFor="let t of transactions()">
         <div
-          class="transaction-amount"
-          [class.positive]="t.amount > 0"
-          [class.negative]="t.amount < 0"
+          class="tx-amount"
+          [class.tx-amount--positive]="t.amount > 0"
+          [class.tx-amount--negative]="t.amount < 0"
         >
           {{ t.amount > 0 ? '+' : '' }}{{ t.amount }}
         </div>
-
-        <div class="transaction-info">
-          <div class="transaction-reason">{{ t.reason }}</div>
-          <div class="transaction-date">{{ t.createdAt | date:'short' }}</div>
-
-          <div class="transaction-meta" *ngIf="t.refId">
-            Ref ID: {{ t.refId }}
-          </div>
-          <div class="transaction-meta" *ngIf="t.spendId">
-            Spend ID: {{ t.spendId }}
-          </div>
-          <div class="transaction-meta" *ngIf="t.playerOptionId">
-            Player Option: {{ t.playerOptionId }}
-          </div>
+        <div class="tx-body">
+          <div class="tx-reason">{{ t.reason | uppercase }}</div>
+          <div class="tx-date">{{ t.createdAt | date:'medium' }}</div>
+        </div>
+        <div class="tx-ref" *ngIf="getRefId(t)">
+          <span class="tx-ref-label">REF</span>
+          <span class="tx-ref-id">{{ getRefId(t) }}</span>
         </div>
       </div>
     </div>

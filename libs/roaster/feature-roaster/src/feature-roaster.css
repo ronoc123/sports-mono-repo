@@ -1,11 +1,363 @@
-.roster-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1rem 0;
+/* ── Header Stats ── */
+.header-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
+.stat-tile {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.stat-tile-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin: 0 0 4px 0;
+}
+
+.stat-tile-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+  line-height: 1;
+}
+
+.stat-tile-suffix {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+.stat-tile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-tile-icon .material-icons {
+  font-size: 20px;
+}
+
+.stat-tile--blue .stat-tile-icon {
+  background: #eff6ff;
+  color: var(--color-tertiary);
+}
+.stat-tile--green .stat-tile-icon {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.stat-tile--purple .stat-tile-icon {
+  background: #faf5ff;
+  color: #7c3aed;
+}
+.stat-tile--red .stat-tile-icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ── Main Panel ── */
+.roster-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Controls Bar ── */
+.controls-bar {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Tab switcher pill */
+.tab-group {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+
+.tab-btn--active {
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-btn:hover:not(.tab-btn--active) {
+  color: #111827;
+}
+
+.tab-icon {
+  font-size: 14px !important;
+}
+
+/* Search */
+.controls-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 16px !important;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  height: 36px;
+  width: 220px;
+  padding: 0 12px 0 34px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #111827;
+  background: #ffffff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* ── Table ── */
+.table-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.roster-table thead {
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.roster-table th {
+  padding: 10px 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.roster-row {
+  transition: background 0.1s;
+}
+
+.roster-row:hover {
+  background: #f9fafb;
+}
+
+.roster-row:hover .action-dot-btn {
+  opacity: 1;
+}
+
+.roster-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+  color: #374151;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.roster-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Player cell */
+.cell-player {
+  min-width: 200px;
+}
+
+.player-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.player-num-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px #ffffff, 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.player-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.875rem;
+}
+
+.player-group {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+
+/* Position badge */
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+/* Status pill */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.status--active {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+.status--practice {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fef08a;
+}
+
+/* Age cell */
+.cell-age {
+  color: #6b7280;
+}
+
+.cell-empty {
+  color: #d1d5db;
+}
+
+/* Actions cell */
+.cell-actions {
+  width: 40px;
+  text-align: right;
+}
+
+.action-dot-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 4px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.action-dot-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.action-dot-btn .material-icons {
+  font-size: 18px;
+}
+
+/* ── Empty / Loading State ── */
 .empty-state {
-  color: #888;
-  padding: 2rem;
+  padding: 56px 24px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.empty-icon {
+  font-size: 48px !important;
+  color: #d1d5db;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.empty-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.empty-sub {
+  font-size: 0.875rem;
+  margin: 0;
 }

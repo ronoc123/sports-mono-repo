@@ -78,6 +78,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
 });
 
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -119,6 +120,12 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddHttpClient();
 
 
+builder.Services.AddHttpClient<SportsDbImporter>(c =>
+{
+    c.BaseAddress = new Uri("https://www.thesportsdb.com/api/v1/json/123/");
+});
+
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Configure the HTTP request pipeline.
@@ -138,7 +145,11 @@ else
 }
 
 
-app.UseHttpsRedirection();
+// Exclude the Stripe webhook endpoint from HTTPS redirect —
+// the Stripe CLI forwards over HTTP and does not follow 307 redirects.
+app.UseWhen(
+    ctx => !ctx.Request.Path.StartsWithSegments("/api/store/webhook"),
+    a => a.UseHttpsRedirection());
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -152,11 +163,14 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        var context = services.GetRequiredService<SportsDbAppContext>();
+        var context = scope.ServiceProvider.GetRequiredService<SportsDbAppContext>();
+        var importer = scope.ServiceProvider.GetRequiredService<SportsDbImporter>();
+
         var logger = services.GetRequiredService<ILogger<Program>>();
 
         logger.LogInformation("Starting database seeding...");
-        await SeedData.SeedAsync(context);
+        //await SeedData.SeedAsync(context);
+        await SeedData.SeedAsync(context, importer);
         logger.LogInformation("Database seeding completed successfully.");
     }
     catch (Exception ex)

@@ -26,6 +26,11 @@ export class PlayerOptionCardComponent {
     }
   }
 
+  onAmountChange() {
+    const v = Math.floor(Number(this.voteAmount));
+    this.voteAmount = isNaN(v) || v < 1 ? 1 : v;
+  }
+
   applyVote() {
     this.vote.emit({
       option: this.option(),

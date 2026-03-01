@@ -9,14 +9,14 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { SearchbarComponent, UiInput, UserCardComponent } from "@sports-ui/ui";
+import { UiInput, UserCardComponent } from "@sports-ui/ui";
 import { SendVotesFacade, SendVotesUserInfo } from "@sports-ui/send-votes-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 import { ModalService } from "@sports-ui/modal-service";
 
 @Component({
   selector: "lib-feature-send-votes",
-  imports: [CommonModule, FormsModule, SearchbarComponent, UiInput, UserCardComponent],
+  imports: [CommonModule, FormsModule, UiInput, UserCardComponent],
   templateUrl: "./feature-send-votes.html",
   styleUrl: "./feature-send-votes.css",
 })

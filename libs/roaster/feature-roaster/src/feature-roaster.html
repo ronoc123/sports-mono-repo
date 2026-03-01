@@ -1,17 +1,112 @@
-<h1>Active Roster</h1>
-<lib-ui-searchbar (search)="onSearch($event)"></lib-ui-searchbar>
+<!-- Header Stats -->
+<div class="header-stats">
+  <div class="stat-tile" *ngFor="let stat of headerStats" [class]="'stat-tile stat-tile--' + stat.color">
+    <div class="stat-tile-text">
+      <p class="stat-tile-label">{{ stat.label }}</p>
+      <p class="stat-tile-value">
+        {{ stat.value }}<span class="stat-tile-suffix" *ngIf="stat.suffix">{{ stat.suffix }}</span>
+      </p>
+    </div>
+    <div class="stat-tile-icon">
+      <span class="material-icons">{{ stat.icon }}</span>
+    </div>
+  </div>
+</div>
 
-<div class="roster-container">
-  <ng-container *ngIf="loading()">
-    <div class="empty-state">Loading roster...</div>
-  </ng-container>
+<!-- Main Panel -->
+<div class="roster-panel">
 
-  <ng-container *ngIf="!loading() && (filteredPlayers() || []).length === 0">
-    <div class="empty-state">No players found.</div>
-  </ng-container>
+  <!-- Controls -->
+  <div class="controls-bar">
+    <div class="tab-group">
+      <button
+        *ngFor="let tab of tabs"
+        class="tab-btn"
+        [class.tab-btn--active]="activeTab() === tab"
+        (click)="setTab(tab)"
+      >
+        <span class="material-icons tab-icon" *ngIf="getGroupIcon(tab)">{{ getGroupIcon(tab) }}</span>
+        {{ tab }}
+      </button>
+    </div>
 
-  <lib-player-card
-    *ngFor="let p of filteredPlayers()"
-    [player]="p"
-  ></lib-player-card>
+    <div class="controls-right">
+      <div class="search-wrap">
+        <span class="material-icons search-icon">search</span>
+        <input
+          type="text"
+          placeholder="Search roster..."
+          (input)="onSearch($event)"
+          class="search-input"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-scroll">
+    <table class="roster-table" *ngIf="!loading()">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Position</th>
+          <th>Status</th>
+          <th>Age</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filteredPlayers()" class="roster-row">
+
+          <!-- Player cell -->
+          <td class="cell-player">
+            <div class="player-identity">
+              <div class="player-num-avatar">{{ p.position }}</div>
+              <div>
+                <div class="player-name">{{ p.name }}</div>
+                <div class="player-group">{{ getGroup(p) }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Position -->
+          <td>
+            <span class="pos-badge">{{ p.position }}</span>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <span class="status-pill" [class]="getStatusClass(p)">{{ getStatus(p) }}</span>
+          </td>
+
+          <!-- Age -->
+          <td class="cell-age">
+            <span *ngIf="p.age">{{ p.age }} yrs</span>
+            <span *ngIf="!p.age" class="cell-empty">—</span>
+          </td>
+
+          <!-- Actions -->
+          <td class="cell-actions">
+            <button class="action-dot-btn">
+              <span class="material-icons">more_horiz</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Loading -->
+    <div class="empty-state" *ngIf="loading()">
+      <span class="material-icons empty-icon">sync</span>
+      <p>Loading roster…</p>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty-state" *ngIf="!loading() && filteredPlayers().length === 0">
+      <span class="material-icons empty-icon">group_off</span>
+      <h3 class="empty-heading">No players found</h3>
+      <p class="empty-sub">Try adjusting your search or filter.</p>
+    </div>
+  </div>
+
 </div>

@@ -1,22 +1,123 @@
 <div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header class="login-header">
-      <div class="logo-section">
-        <h1>Sportify</h1>
-      </div>
-      <mat-card-title>Welcome Back</mat-card-title>
-      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
-    </mat-card-header>
+  <!-- Background dot pattern -->
+  <div class="bg-pattern"></div>
 
-    <mat-card-content>
-      <div class="google-signin-section">
-        <lib-google-signin
-          [signingIn]="facade.authenticating()"
-          (credential)="onGoogleCredential($event)"
-          (error)="onGoogleError($event)"
-        >
-        </lib-google-signin>
+  <div class="login-wrapper">
+    <!-- Logo / Brand Header -->
+    <div class="brand-header">
+      <div class="logo-box">
+        <span class="logo-letter">S</span>
       </div>
-    </mat-card-content>
-  </mat-card>
+      <h1 class="brand-title">Sportify</h1>
+      <p class="brand-subtitle">Sports Management Platform</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="login-card">
+      <!-- Tab Switcher -->
+      <div class="tab-switcher">
+        <button
+          class="tab-btn"
+          [class.active]="mode() === 'login'"
+          (click)="mode.set('login')"
+        >Sign In</button>
+        <button
+          class="tab-btn"
+          [class.active]="mode() === 'register'"
+          (click)="mode.set('register')"
+        >Sign Up</button>
+      </div>
+
+      <div class="card-body">
+        <!-- Google Sign-In -->
+        <div class="google-signin-wrapper">
+          <lib-google-signin
+            [signingIn]="facade.authenticating()"
+            (credential)="onGoogleCredential($event)"
+            (error)="onGoogleError($event)"
+          ></lib-google-signin>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+          <div class="divider-line"></div>
+          <span class="divider-text">Or continue with email</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Name Field (Register Only) -->
+        @if (mode() === 'register') {
+          <div class="field-group">
+            <label class="field-label">Full Name</label>
+            <input type="text" placeholder="John Doe" class="field-input" />
+          </div>
+        }
+
+        <!-- Email Field -->
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <input type="email" placeholder="you@example.com" class="field-input" />
+        </div>
+
+        <!-- Password Field -->
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input type="password" placeholder="••••••••" class="field-input" />
+        </div>
+
+        <!-- Confirm Password (Register Only) -->
+        @if (mode() === 'register') {
+          <div class="field-group">
+            <label class="field-label">Confirm Password</label>
+            <input type="password" placeholder="••••••••" class="field-input" />
+          </div>
+        }
+
+        <!-- Forgot Password (Login Only) -->
+        @if (mode() === 'login') {
+          <div class="forgot-row">
+            <button type="button" class="forgot-btn">Forgot password?</button>
+          </div>
+        }
+
+        <!-- Submit Button -->
+        <button class="submit-btn">
+          {{ mode() === 'login' ? 'Sign In' : 'Create Account' }}
+          <mat-icon class="submit-icon">arrow_forward</mat-icon>
+        </button>
+
+        <!-- Terms (Register Only) -->
+        @if (mode() === 'register') {
+          <p class="terms-text">
+            By creating an account, you agree to our
+            <a href="#" class="terms-link">Terms of Service</a>
+            and
+            <a href="#" class="terms-link">Privacy Policy</a>
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Features Row -->
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon-box">
+          <mat-icon>shield</mat-icon>
+        </div>
+        <p class="feature-label">Secure</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-box">
+          <mat-icon>bolt</mat-icon>
+        </div>
+        <p class="feature-label">Fast</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-box">
+          <mat-icon>group</mat-icon>
+        </div>
+        <p class="feature-label">Community</p>
+      </div>
+    </div>
+  </div>
 </div>

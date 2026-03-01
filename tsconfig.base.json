@@ -107,6 +107,12 @@
       ],
       "@sports-ui/send-votes-data-access": [
         "libs/send-votes/send-votes-data-access/src/index.ts"
+      ],
+      "@sports-ui/store-data-access": [
+        "libs/store/store-data-access/src/index.ts"
+      ],
+      "@sports-ui/feature-store": [
+        "libs/store/feature-store/src/index.ts"
       ]
     }
   },

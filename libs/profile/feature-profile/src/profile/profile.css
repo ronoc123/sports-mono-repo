@@ -1,201 +1,305 @@
-/***********************
-  GRID LAYOUT
-************************/
+/* ── Page wrapper ── */
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
 
-.profile-container {
+/* ── Page header ── */
+.page-header {
+  margin-bottom: 4px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ── Top 3-col grid ── */
+.top-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-  padding: 20px;
 }
 
-/* Desktop layout */
-@media (min-width: 900px) {
-  .profile-container {
+@media (min-width: 860px) {
+  .top-grid {
     grid-template-columns: 2fr 1fr;
-    grid-template-areas:
-      "profile votesummary"
-      "transactions transactions";
-  }
-
-  .profile-card.profile {
-    grid-area: profile;
-  }
-
-  .profile-card.vote-summary-card {
-    grid-area: votesummary;
-  }
-
-  .profile-card.vote-transactions-card {
-    grid-area: transactions;
   }
 }
 
-/***********************
-  CARD BASE STYLES
-************************/
-
-.profile-card {
-  width: 100%;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
+/* ── Card base ── */
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  color: var(--color-text);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-.profile-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+.card-divider {
+  height: 1px;
+  background: #f3f4f6;
 }
 
-/***********************
-  PROFILE HEADER
-************************/
+/* ── Profile card header ── */
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px;
+}
 
-.profile-header {
+.card-header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 20px;
+  gap: 16px;
 }
 
 .profile-avatar {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--color-border);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  background: var(--color-tertiary);
+  color: #ffffff;
+  font-size: 1.35rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-}
-
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
 }
 
 .profile-info {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .profile-name {
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 700;
+  color: #111827;
 }
 
-.profile-sub {
-  font-size: 0.95rem;
-  opacity: 0.8;
-}
-
-.profile-role {
-  font-size: 0.85rem;
-  color: var(--color-tertiary);
-  margin-top: 4px;
-}
-
-/***********************
-  DETAILS
-************************/
-
-.divider {
-  border-top: 1px solid var(--color-border);
-}
-
-.profile-details {
-  padding: 18px;
-}
-
-.detail-row {
+.profile-email {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.email-icon {
+  font-size: 15px !important;
+  color: #9ca3af;
+}
+
+.role-badge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: var(--color-tertiary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: fit-content;
+}
+
+/* ── Details grid ── */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 8px 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 24px;
 }
 
 .detail-label {
-  opacity: 0.8;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .detail-value {
+  font-size: 0.875rem;
   font-weight: 600;
+  color: #111827;
 }
 
-/***********************
-  FOOTER
-************************/
+.detail-value--mono {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
 
+/* ── Profile card footer ── */
 .card-footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  background: var(--color-secondary);
-  border-top: 1px solid var(--color-border);
+  padding: 14px 24px;
+  background: #f9fafb;
+  border-top: 1px solid #f3f4f6;
 }
 
-.edit-btn,
-.remove-btn {
+.btn-edit,
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: none;
   border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.12s;
 }
 
-.edit-btn {
+.btn-edit {
   color: var(--color-tertiary);
 }
 
-.edit-btn:hover {
-  color: #74c0ff;
+.btn-edit:hover {
+  background: #eff6ff;
 }
 
-.remove-btn {
-  color: #ff6b6b;
+.btn-edit .material-icons,
+.btn-logout .material-icons {
+  font-size: 16px !important;
 }
 
-.remove-btn:hover {
-  color: #ff8787;
+.btn-logout {
+  color: #dc2626;
 }
 
-/***********************
-  VOTE SUMMARY CARD
-************************/
+.btn-logout:hover {
+  background: #fef2f2;
+}
 
-.vote-header {
+/* ── Vote account card ── */
+.vote-card-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 20px 20px 16px;
 }
 
-.vote-title {
-  font-size: 1.2rem;
+.vote-card-title {
+  font-size: 1rem;
   font-weight: 700;
+  color: #111827;
 }
 
-.vote-balance {
-  font-size: 2rem;
+.vote-icon {
+  font-size: 20px !important;
+  color: #9ca3af;
+}
+
+.vote-balance-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px;
+  gap: 6px;
+}
+
+.vote-balance-number {
+  font-size: 3.5rem;
   font-weight: 800;
   color: var(--color-tertiary);
+  line-height: 1;
 }
 
-.vote-details {
-  padding: 16px;
+.vote-balance-label {
+  font-size: 0.825rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-/***********************
-  TRANSACTIONS CARD
-************************/
+.vote-meta {
+  padding: 12px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vote-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vote-meta-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.vote-meta-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ── Transactions card ── */
+.transactions-card {
+  width: 100%;
+}
 
 .transactions-header {
-  padding: 16px;
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 24px 18px;
+}
+
+.transactions-icon {
+  font-size: 20px !important;
+  color: #9ca3af;
+}
+
+.transactions-title {
+  font-size: 1rem;
   font-weight: 700;
+  color: #111827;
+}
+
+.transaction-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.empty-icon {
+  font-size: 32px !important;
 }
 
 .transaction-list {
@@ -203,46 +307,75 @@
   flex-direction: column;
 }
 
-.transaction-item {
+.transaction-row {
   display: flex;
-  gap: 14px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s;
 }
 
-.transaction-item:last-child {
+.transaction-row:last-child {
   border-bottom: none;
 }
 
-.transaction-amount {
-  width: 60px;
-  font-size: 1.3rem;
+.transaction-row:hover {
+  background: #f9fafb;
+}
+
+.tx-amount {
+  min-width: 56px;
+  font-size: 1.1rem;
   font-weight: 700;
+  text-align: right;
 }
 
-.transaction-amount.positive {
-  color: #2ecc71;
+.tx-amount--positive {
+  color: #16a34a;
 }
 
-.transaction-amount.negative {
-  color: #e74c3c;
+.tx-amount--negative {
+  color: #374151;
 }
 
-.transaction-info {
+.tx-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.transaction-reason {
+.tx-reason {
+  font-size: 0.8rem;
   font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.04em;
 }
 
-.transaction-date {
-  font-size: 0.85rem;
-  opacity: 0.8;
+.tx-date {
+  font-size: 0.78rem;
+  color: #9ca3af;
 }
 
-.transaction-meta {
+.tx-ref {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tx-ref-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.06em;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tx-ref-id {
   font-size: 0.75rem;
-  opacity: 0.6;
+  font-family: "Courier New", Courier, monospace;
+  color: #6b7280;
 }

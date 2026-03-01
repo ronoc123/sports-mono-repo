@@ -3,6 +3,9 @@ using MediatR;
 
 namespace Application.Purchase.Commands.HandleStripeWebhookCommand
 {
-    public sealed record HandleStripeWebhookCommand(string EventId, string EventType, string Payload) : IRequest<ServiceResponse<Guid>>;
-
+    public sealed record HandleStripeWebhookCommand(
+        string EventId,
+        string EventType,
+        string? PurchaseId,
+        string? PaymentIntentId) : IRequest<ServiceResponse<Guid>>;
 }
