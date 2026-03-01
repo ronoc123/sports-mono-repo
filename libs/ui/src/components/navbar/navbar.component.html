@@ -8,10 +8,17 @@
   <!-- Right: actions -->
   <div class="navbar-right">
 
-    <!-- Buy Votes CTA -->
+    <!-- Balance chip -->
+    <div class="balance-chip" *ngIf="user()">
+      <span class="material-icons balance-chip-icon">toll</span>
+      <span class="balance-chip-value">{{ balance() | number }}</span>
+      <span class="balance-chip-label">{{ currencyName() }}</span>
+    </div>
+
+    <!-- Buy Points CTA -->
     <button class="buy-votes-btn" (click)="buyVotes.emit()">
       <span class="material-icons">shopping_cart</span>
-      Buy Votes
+      Get {{ currencyName() }}
     </button>
 
     <!-- Notifications -->

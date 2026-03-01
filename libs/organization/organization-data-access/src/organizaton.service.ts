@@ -33,7 +33,7 @@ export class OrganizationFeatureService {
       const items = res.data?.items ?? [];
 
       this.store.setOrganizations(items);
-      if (this.store.selectedOrganization() == null && items.length > 0) {
+      if (items.length > 0) {
         this.store.setSelectedOrg(items[0]);
       }
     } catch (e: any) {

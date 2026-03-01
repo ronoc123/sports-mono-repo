@@ -22,7 +22,8 @@
       "mcp__figma__get_figjam",
       "mcp__figma__get_screenshot",
       "Bash(npm show:*)",
-      "Bash(dotnet:*)"
+      "Bash(dotnet:*)",
+      "Bash(cat:*)"
     ]
   }
 }

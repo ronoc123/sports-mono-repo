@@ -20,6 +20,7 @@
       "@sports-ui/auth-data-access": [
         "libs/auth/auth-data-access/src/index.ts"
       ],
+      "@sports-ui/cards-data-access": ["libs/cards/data-access/src/index.ts"],
       "@sports-ui/create-player-option-feature": [
         "libs/player-options/create-player-option-feature/src/index.ts"
       ],
@@ -30,11 +31,19 @@
       "@sports-ui/error-handler": ["libs/core/error-handler/src/index.ts"],
       "@sports-ui/feature-admin": ["libs/admin/src/index.ts"],
       "@sports-ui/feature-auth": ["libs/auth/feature-auth/src/index.ts"],
+      "@sports-ui/feature-cards": ["libs/cards/feature-cards/src/index.ts"],
+      "@sports-ui/feature-collection": [
+        "libs/cards/feature-collection/src/index.ts"
+      ],
       "@sports-ui/feature-dashboard": [
         "libs/dashboard/feature-dashboard/src/index.ts"
       ],
       "@sports-ui/feature-error": ["libs/error/src/index.ts"],
+      "@sports-ui/feature-h2h": ["libs/h2h/feature-h2h/src/index.ts"],
       "@sports-ui/feature-layout": ["libs/layout/feature-layout/src/index.ts"],
+      "@sports-ui/feature-marketplace": [
+        "libs/marketplace/feature-marketplace/src/index.ts"
+      ],
       "@sports-ui/feature-organization": [
         "libs/organization/feature-organization/src/index.ts"
       ],
@@ -51,9 +60,19 @@
       "@sports-ui/feature-roaster": [
         "libs/roaster/feature-roaster/src/index.ts"
       ],
+      "@sports-ui/feature-send-votes": [
+        "libs/send-votes/feature-send-votes/src/index.ts"
+      ],
       "@sports-ui/feature-settings": ["libs/settings/src/index.ts"],
+      "@sports-ui/feature-store": ["libs/store/feature-store/src/index.ts"],
       "@sports-ui/feature-user": ["libs/product-domains/users/src/index.ts"],
+      "@sports-ui/h2h-data-access": ["libs/h2h/data-access/src/index.ts"],
       "@sports-ui/http-client": ["libs/core/http-client/src/index.ts"],
+      "@sports-ui/league-data-access": ["libs/league/data-access/src/index.ts"],
+      "@sports-ui/league-feature": ["libs/league/league-feature/src/index.ts"],
+      "@sports-ui/marketplace-data-access": [
+        "libs/marketplace/data-access/src/index.ts"
+      ],
       "@sports-ui/modal-service": [
         "libs/core/services/modal-service/src/index.ts"
       ],
@@ -89,30 +108,27 @@
       "@sports-ui/roaster-data-access": [
         "libs/roaster/roaster-data-access/src/index.ts"
       ],
-      "@sports-ui/toast": ["libs/notification/toast/src/index.ts"],
-      "@sports-ui/toast-feature": [
-        "libs/notification/toast-feature/src/index.ts"
-      ],
-      "@sports-ui/ui": ["libs/ui/src/index.ts"],
-      "@sports-ui/ui-feature-theme": ["libs/theme/feature-theme/src/index.ts"],
-      "@sports-ui/ui-theme": ["libs/theme/feature-theme/src/index.ts"],
-      "@sports-ui/ui-theme-data-access": [
-        "libs/theme/theme-data-access/src/index.ts"
-      ],
-      "@sports-ui/vote-account-data-access": [
-        "libs/vote-account/vote-account-data-access/src/index.ts"
-      ],
-      "@sports-ui/feature-send-votes": [
-        "libs/send-votes/feature-send-votes/src/index.ts"
-      ],
       "@sports-ui/send-votes-data-access": [
         "libs/send-votes/send-votes-data-access/src/index.ts"
       ],
       "@sports-ui/store-data-access": [
         "libs/store/store-data-access/src/index.ts"
       ],
-      "@sports-ui/feature-store": [
-        "libs/store/feature-store/src/index.ts"
+      "@sports-ui/toast": ["libs/notification/toast/src/index.ts"],
+      "@sports-ui/toast-feature": [
+        "libs/notification/toast-feature/src/index.ts"
+      ],
+      "@sports-ui/ui": ["libs/ui/src/index.ts"],
+      "@sports-ui/ui-feature-theme": ["libs/theme/feature-theme/src/index.ts"],
+      "@sports-ui/ui-marketplace": [
+        "libs/marketplace/ui-marketplace/src/index.ts"
+      ],
+      "@sports-ui/ui-theme": ["libs/theme/feature-theme/src/index.ts"],
+      "@sports-ui/ui-theme-data-access": [
+        "libs/theme/theme-data-access/src/index.ts"
+      ],
+      "@sports-ui/vote-account-data-access": [
+        "libs/vote-account/vote-account-data-access/src/index.ts"
       ]
     }
   },

@@ -1,4 +1,7 @@
+using Domain.Cards;
+using Domain.H2H;
 using Domain.Leagues;
+using Domain.Marketplace;
 using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Player;
@@ -19,5 +22,23 @@ public interface IApplicationDbContext
     DbSet<PlayerOption> PlayerOptions { get; }
     DbSet<Theme> Themes { get; }
     DbSet<VoteAccount> VoteAccounts { get; }
+
+    // Fan Economy — Cards
+    DbSet<RarityTierConfig> RarityTierConfigs { get; }
+    DbSet<PackConfig> PackConfigs { get; }
+    DbSet<CardPlayer> CardPlayers { get; }
+    DbSet<CardOwner> CardOwners { get; }
+    DbSet<CardPack> CardPacks { get; }
+    DbSet<UserCard> UserCards { get; }
+
+    // Fan Economy — Marketplace
+    DbSet<AuctionListing> AuctionListings { get; }
+    DbSet<Bid> Bids { get; }
+    DbSet<PointsEscrow> PointsEscrows { get; }
+
+    // Fan Economy — H2H
+    DbSet<H2HMatch> H2HMatches { get; }
+    DbSet<H2HSquadCard> H2HSquadCards { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

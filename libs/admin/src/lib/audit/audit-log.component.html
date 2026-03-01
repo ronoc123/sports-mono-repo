@@ -1,0 +1,103 @@
+<div class="audit-log">
+  <div class="page-header">
+    <h2 class="page-title">Transaction Audit Log</h2>
+    <a class="btn btn-outline btn-sm" [href]="getExportUrl()" download>
+      Export CSV
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label class="filter-label">User ID</label>
+      <input
+        class="input-field"
+        type="text"
+        placeholder="Filter by user ID…"
+        [ngModel]="filterUserId()"
+        (ngModelChange)="onUserIdChange($event)"
+      />
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Transaction Type</label>
+      <select
+        class="input-field select-field"
+        [ngModel]="filterReason()"
+        (ngModelChange)="onReasonChange($event)"
+      >
+        <option value="">All types</option>
+        @for (reason of reasonOptions; track reason) {
+          <option [value]="reason">{{ reason }}</option>
+        }
+      </select>
+    </div>
+    <button class="btn btn-primary" [disabled]="isLoading()" (click)="applyFilters()">
+      {{ isLoading() ? 'Loading…' : 'Apply' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  <!-- Results summary -->
+  <div class="results-summary">
+    {{ totalCount() | number }} transaction(s) found
+    @if (totalPages() > 1) {
+      — Page {{ page() }} of {{ totalPages() }}
+    }
+  </div>
+
+  <!-- Table -->
+  @if (isLoading()) {
+    <div class="loading-row">Loading transactions…</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>User ID</th>
+            <th>Type</th>
+            <th class="amount-col">Amount</th>
+            <th>Ref ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tx of transactions(); track trackById($index, tx)) {
+            <tr>
+              <td class="date-cell">{{ tx.createdAt | date: 'MMM d, yyyy HH:mm' }}</td>
+              <td class="id-cell" [title]="tx.userId">{{ tx.userId | slice: 0:8 }}…</td>
+              <td>
+                <span class="reason-badge reason-{{ tx.reason }}">{{ tx.reason }}</span>
+              </td>
+              <td class="amount-col" [class]="amountClass(tx.amount)">
+                {{ formatAmount(tx.amount) }}
+              </td>
+              <td class="id-cell" [title]="tx.refId ?? ''">
+                {{ tx.refId ? (tx.refId | slice: 0:8) + '…' : '—' }}
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-row">No transactions found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn btn-sm btn-outline" [disabled]="!hasPrev()" (click)="goToPage(page() - 1)">
+          ‹ Prev
+        </button>
+        <span class="page-indicator">{{ page() }} / {{ totalPages() }}</span>
+        <button class="btn btn-sm btn-outline" [disabled]="!hasNext()" (click)="goToPage(page() + 1)">
+          Next ›
+        </button>
+      </div>
+    }
+  }
+</div>

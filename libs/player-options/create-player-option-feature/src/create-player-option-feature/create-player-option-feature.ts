@@ -17,6 +17,7 @@ import {
 } from "@sports-ui/player-options-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 import { FormsModule } from "@angular/forms";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 
 @Component({
   selector: "lib-create-player-option-feature",
@@ -31,6 +32,7 @@ import { FormsModule } from "@angular/forms";
 })
 export class CreatePlayerOptionFeature implements OnInit {
   private facade = inject(PlayerFacade);
+  private leagueFacade = inject(LeaguesFacade);
   private playerOptionFeature = inject(PlayerOptionFeatureService);
   private organizationFacade = inject(OrganizationFeatureService);
   protected modal = inject(ModalService);
@@ -54,7 +56,8 @@ export class CreatePlayerOptionFeature implements OnInit {
   });
 
   ngOnInit(): void {
-    this.facade.loadPlayers("698200CB-7255-4C57-8475-52D5385860D7");
+    const leagueId = this.leagueFacade.selectedLeagueId() || "";
+    this.facade.loadPlayers(leagueId || "698200CB-7255-4C57-8475-52D5385860D7");
   }
 
   onSearch(term: string) {

@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
 import { AuthFacade } from "@sports-ui/auth-data-access";
+import { ToastService } from "@sports-ui/toast";
 
 @Component({
   selector: "lib-login",
@@ -25,6 +26,7 @@ import { AuthFacade } from "@sports-ui/auth-data-access";
 export class LoginComponent {
   facade = inject(AuthFacade);
   private snack = inject(MatSnackBar);
+  private readonly toastService = inject(ToastService);
   private router = inject(Router);
 
   mode = signal<"login" | "register">("login");
@@ -32,16 +34,14 @@ export class LoginComponent {
   async onGoogleCredential(jwt: string) {
     try {
       await this.facade.signInWithGoogle(jwt);
-      this.snack.open("Logged in!", "Close", { duration: 2000 });
-      await this.router.navigateByUrl("/");
-    } catch {
-      this.snack.open(this.facade.error() ?? "Login failed", "Close", {
-        duration: 4000,
-      });
+      this.toastService.success("Logged in successfully!");
+      await this.router.navigateByUrl("/league");
+    } catch (error: any) {
+      this.toastService.error(error?.message ?? "Login failed");
     }
   }
 
   onGoogleError(msg: any) {
-    this.snack.open(msg, "Close", { duration: 4000 });
+    this.toastService.error(msg ?? "Login failed");
   }
 }

@@ -1,13 +1,12 @@
 using Application.Dto.League;
 using Contracts.Contracts;
-using Contracts.Responses;
 using Domain.Leagues;
 using Domain.Repositories;
 using MediatR;
 
 namespace Application.Leagues.Queries.GetAllLeagues;
 
-public sealed class GetAllLeaguesQueryHandler : IRequestHandler<GetAllLeaguesQuery, ServiceResponse<PaginatedList<LeagueDto>>>
+public sealed class GetAllLeaguesQueryHandler : IRequestHandler<GetAllLeaguesQuery, ServiceResponse<List<LeagueDto>>>
 {
     private readonly IRepository _repo;
 
@@ -16,7 +15,7 @@ public sealed class GetAllLeaguesQueryHandler : IRequestHandler<GetAllLeaguesQue
         _repo = repo;
     }
 
-    public async Task<ServiceResponse<PaginatedList<LeagueDto>>> Handle(GetAllLeaguesQuery request, CancellationToken cancellationToken)
+    public async Task<ServiceResponse<List<LeagueDto>>> Handle(GetAllLeaguesQuery request, CancellationToken cancellationToken)
     {
         var leagues = _repo.Query<League>();
 
@@ -47,7 +46,7 @@ public sealed class GetAllLeaguesQueryHandler : IRequestHandler<GetAllLeaguesQue
             request.PageNumber,
             request.PageSize);
 
-        return ServiceResponse.Ok(paginatedList, string.Empty);
+        return ServiceResponse.Ok(dtoQuery.ToList(), string.Empty);
 
     }
 }

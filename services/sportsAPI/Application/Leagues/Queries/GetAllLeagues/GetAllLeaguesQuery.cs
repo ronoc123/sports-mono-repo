@@ -1,7 +1,5 @@
-using Application.Common.Models;
 using Application.Dto.League;
 using Contracts.Contracts;
-using Contracts.Responses;
 using MediatR;
 
 namespace Application.Leagues.Queries.GetAllLeagues;
@@ -12,4 +10,4 @@ public record GetAllLeaguesQuery(
     string? SearchTerm = null,
     string? SortBy = "Name",
     bool SortDescending = false
-) : IRequest<ServiceResponse<PaginatedList<LeagueDto>>>;
+) : IRequest<ServiceResponse<List<LeagueDto>>>;

@@ -1,6 +1,9 @@
 using Application.Common.Interfaces;
 using Domain.Abstractions;
+using Domain.Cards;
+using Domain.H2H;
 using Domain.Leagues;
+using Domain.Marketplace;
 using Domain.Notification;
 using Domain.Organizations;
 using Domain.Organizations.Entities;
@@ -34,6 +37,23 @@ namespace Infrastructure.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Purchase> Purchases => Set<Purchase>();
         public DbSet<ProcessedWebhookEvent> ProcessedWebhookEvents => Set<ProcessedWebhookEvent>();
+
+        // Fan Economy — Cards
+        public DbSet<RarityTierConfig> RarityTierConfigs => Set<RarityTierConfig>();
+        public DbSet<PackConfig> PackConfigs => Set<PackConfig>();
+        public DbSet<CardPlayer> CardPlayers => Set<CardPlayer>();
+        public DbSet<CardOwner> CardOwners => Set<CardOwner>();
+        public DbSet<CardPack> CardPacks => Set<CardPack>();
+        public DbSet<UserCard> UserCards => Set<UserCard>();
+
+        // Fan Economy — Marketplace
+        public DbSet<AuctionListing> AuctionListings => Set<AuctionListing>();
+        public DbSet<Bid> Bids => Set<Bid>();
+        public DbSet<PointsEscrow> PointsEscrows => Set<PointsEscrow>();
+
+        // Fan Economy — H2H
+        public DbSet<H2HMatch> H2HMatches => Set<H2HMatch>();
+        public DbSet<H2HSquadCard> H2HSquadCards => Set<H2HSquadCard>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

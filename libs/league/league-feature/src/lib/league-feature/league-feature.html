@@ -1,0 +1,47 @@
+<div class="league-page">
+  <div class="league-container">
+    <!-- Header -->
+    <div class="league-header">
+      <h1 class="league-title">Choose Your League</h1>
+      <p class="league-subtitle">
+        Select the sports league you want to manage.
+      </p>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading()" class="league-loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- League Grid -->
+    <div *ngIf="!isLoading()" class="league-grid">
+      <div
+        *ngFor="let league of leagues()"
+        (click)="selectLeague(league.id)"
+        class="league-card"
+        [class.selected]="selectedLeagueId() === league.id"
+      >
+        <!-- Header -->
+        <div class="league-card-header">
+          <h2 class="league-card-title">{{ league.name }}</h2>
+        </div>
+
+        <!-- Content -->
+        <div class="league-card-body">
+          <p class="league-created">Created: {{ league.createdAt | date }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue Button -->
+    <div class="league-actions">
+      <button
+        class="league-button"
+        [disabled]="!selectedLeagueId()"
+        (click)="continue()"
+      >
+        Continue to Dashboard
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,3 +1,4 @@
+using Application.Cards.Services;
 using Application.Common.Behaviours;
 using Application.Profiles;
 using FluentValidation;
@@ -19,6 +20,8 @@ public static class DependencyInjection
         services.AddAutoMapper(typeof(PlayerOptionMappingProfile).Assembly);
         services.AddAutoMapper(typeof(PlayerMappingProfile).Assembly);
         services.AddAutoMapper(typeof(LeagueMappingProfile).Assembly);
+        services.AddScoped<RarityAssignmentService>();
+        services.AddScoped<RarityEngine>();
         return services;
     }
 }

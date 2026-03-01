@@ -79,6 +79,13 @@ export const appRoutes: Route[] = [
           import("@sports-ui/feature-redeem").then((m) => m.redeemRoutes),
       },
 
+      // Card Catalog (GM admin)
+      {
+        path: "card-catalog",
+        loadChildren: () =>
+          import("@sports-ui/feature-cards").then((m) => m.cardCatalogRoutes),
+      },
+
       // Profile route
       {
         path: "profile",

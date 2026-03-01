@@ -1,0 +1,283 @@
+<div class="h2h-page">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="h2h-header">
+    <span class="material-icons header-icon">sports_score</span>
+    <div>
+      <h1 class="h2h-title">Head-to-Head</h1>
+      <p class="h2h-subtitle">Build your squad and compete for points</p>
+    </div>
+    <div class="view-tabs">
+      <button class="tab-btn" [class.active]="activeView() === 'builder'" (click)="switchView('builder')">
+        Squad Builder
+      </button>
+      <button class="tab-btn" [class.active]="activeView() === 'history'" (click)="switchView('history')">
+        Match History
+        @if (totalHistoryCount() > 0) {
+          <span class="tab-count">{{ totalHistoryCount() }}</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Error banner ─────────────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ══════════ BUILDER VIEW ══════════ -->
+  @if (activeView() === 'builder') {
+
+    <!-- ── Match result screen ──────────────────────────────────────────── -->
+    @if (matchStatus() === 'success' && matchResult()) {
+      <div class="result-screen" [class.win]="matchResult()!.outcome === 'win'" [class.loss]="matchResult()!.outcome === 'loss'">
+        <div class="result-icon material-icons">
+          {{ matchResult()!.outcome === 'win' ? 'emoji_events' : 'sentiment_dissatisfied' }}
+        </div>
+        <h2 class="result-headline">
+          {{ matchResult()!.outcome === 'win' ? 'Victory!' : 'Defeat' }}
+        </h2>
+        <p class="result-delta" [class.positive]="pointsDelta() > 0" [class.negative]="pointsDelta() < 0">
+          {{ pointsDelta() > 0 ? '+' : '' }}{{ pointsDelta() | number }} pts
+        </p>
+
+        <div class="result-comparison">
+          <div class="team-block">
+            <div class="team-label">Your Team</div>
+            <div class="team-ovr">{{ matchResult()!.fanTeamOverall }}</div>
+          </div>
+          <div class="vs-divider">vs</div>
+          <div class="team-block">
+            <div class="team-label">Bot Team</div>
+            <div class="team-ovr">{{ matchResult()!.botTeamOverall }}</div>
+          </div>
+        </div>
+
+        @if (parsedBotSquad().length > 0) {
+          <div class="bot-squad">
+            <h3>Bot Squad</h3>
+            <div class="bot-cards">
+              @for (card of parsedBotSquad(); track card.name) {
+                <div class="bot-card">
+                  <div class="bot-card-rarity" [style.background]="getRarityColor(card.rarityTier)">
+                    {{ card.rarityTier }}
+                  </div>
+                  <div class="bot-card-ovr">{{ card.overallRating }}</div>
+                  <div class="bot-card-name">{{ card.name }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="result-balance">Updated balance: {{ matchResult()!.updatedBalance | number }} pts</div>
+
+        <button class="btn-play-again" (click)="playAgain()">
+          <span class="material-icons">refresh</span>
+          Play Again
+        </button>
+      </div>
+    }
+
+    <!-- ── Loading state ─────────────────────────────────────────────────── -->
+    @if (matchStatus() === 'loading') {
+      <div class="match-loading">
+        <div class="spinner"></div>
+        <p>Calculating match outcome…</p>
+      </div>
+    }
+
+    <!-- ── Squad builder ─────────────────────────────────────────────────── -->
+    @if (matchStatus() !== 'success' && matchStatus() !== 'loading') {
+      <div class="builder-layout">
+
+        <!-- ── Collection grid ──────────────────────────────────────────── -->
+        <div class="collection-panel">
+          <h2 class="panel-title">Select Your Squad <span class="slot-count">{{ selectedCardIds().length }}/5</span></h2>
+
+          @if (isLoadingCollection()) {
+            <div class="card-grid">
+              @for (_ of [1,2,3,4,5,6]; track $index) {
+                <div class="card-item card-skeleton"></div>
+              }
+            </div>
+          } @else if (collection().length === 0) {
+            <div class="empty-state">
+              <span class="material-icons">style</span>
+              <p>No cards in your collection yet. Open some packs!</p>
+            </div>
+          } @else {
+            <div class="card-grid">
+              @for (card of collection(); track card.id) {
+                <div
+                  class="card-item"
+                  [class.selected]="isSelected(card.id)"
+                  [class.listed]="card.isListed"
+                  [class.disabled]="!isSelected(card.id) && (card.isListed || isSquadFull())"
+                  (click)="toggleCard(card)"
+                >
+                  <div class="card-rarity-badge" [style.background]="getRarityColor(card.rarityTier)">
+                    {{ card.rarityTier }}
+                  </div>
+                  @if (isSelected(card.id)) {
+                    <div class="card-selected-badge material-icons">check_circle</div>
+                  }
+                  <div class="card-ovr">{{ card.overallRating }}</div>
+                  <div class="card-name">{{ card.name }}</div>
+                  <div class="card-position">{{ card.position }}</div>
+                  @if (card.isListed) {
+                    <div class="card-listed-note">
+                      <span class="material-icons">storefront</span> Listed
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- ── Squad panel ───────────────────────────────────────────────── -->
+        <div class="squad-panel">
+          <h2 class="panel-title">Squad Summary</h2>
+
+          <div class="squad-overall">
+            <div class="squad-ovr-label">Team Overall</div>
+            <div class="squad-ovr-value">{{ squadOverall() > 0 ? squadOverall() : '—' }}</div>
+          </div>
+
+          <div class="squad-slots">
+            @for (i of [0,1,2,3,4]; track i) {
+              <div class="squad-slot" [class.filled]="selectedCards()[i]">
+                @if (selectedCards()[i]) {
+                  <div class="slot-card">
+                    <div class="slot-rarity-dot" [style.background]="getRarityColor(selectedCards()[i].rarityTier)"></div>
+                    <span class="slot-name">{{ selectedCards()[i].name }}</span>
+                    <span class="slot-ovr">{{ selectedCards()[i].overallRating }}</span>
+                  </div>
+                } @else {
+                  <div class="slot-empty">Slot {{ i + 1 }}</div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="wager-section">
+            <label class="wager-label">Wager Amount (pts)</label>
+            <input
+              class="wager-input"
+              type="number"
+              min="1"
+              placeholder="e.g. 50"
+              [value]="wagerAmount() ?? ''"
+              (input)="onWagerInput($any($event.target).value)"
+            />
+          </div>
+
+          @if (matchError()) {
+            <div class="match-error">
+              <span class="material-icons">error</span>
+              {{ matchError() }}
+            </div>
+          }
+
+          @if (selectedCardIds().length === 0) {
+            <p class="squad-hint">Select 1–5 cards to form your squad.</p>
+          }
+
+          <button
+            class="btn-play"
+            [disabled]="!canPlayMatch()"
+            (click)="openConfirm()"
+          >
+            <span class="material-icons">play_arrow</span>
+            Play Match
+          </button>
+
+          <p class="difficulty-note">
+            <span class="material-icons">info</span>
+            Bot difficulty scales with your squad rating
+          </p>
+        </div>
+
+      </div>
+    }
+
+  }
+
+  <!-- ══════════ HISTORY VIEW ══════════ -->
+  @if (activeView() === 'history') {
+    <div class="history-panel">
+      <h2 class="panel-title">Match History</h2>
+
+      @if (isLoadingHistory()) {
+        <div class="history-skeleton">
+          @for (_ of [1,2,3]; track $index) {
+            <div class="history-row-skeleton"></div>
+          }
+        </div>
+      } @else if (matchHistory().length === 0) {
+        <div class="empty-state">
+          <span class="material-icons">history</span>
+          <p>No matches played yet. Start competing!</p>
+        </div>
+      } @else {
+        <div class="history-list">
+          @for (match of matchHistory(); track trackByMatchId($index, match)) {
+            <div class="history-row" [class.win]="match.outcome === 'win'" [class.loss]="match.outcome === 'loss'">
+              <div class="history-outcome-badge">
+                {{ match.outcome === 'win' ? 'WIN' : match.outcome === 'loss' ? 'LOSS' : '—' }}
+              </div>
+              <div class="history-details">
+                <div class="history-ovr">
+                  Your {{ match.fanTeamOverall }} vs Bot {{ match.botTeamOverall }}
+                </div>
+                <div class="history-wager">
+                  Wager: {{ match.wagerAmount | number }} pts
+                </div>
+              </div>
+              <div class="history-date">{{ match.createdAt | date:'shortDate' }}</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ── Confirm dialog ──────────────────────────────────────────────────────── -->
+@if (showConfirmDialog()) {
+  <div class="modal-overlay" (click)="cancelConfirm()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Confirm Match</h2>
+
+      <div class="confirm-detail">
+        <div class="confirm-row">
+          <span>Squad size:</span>
+          <strong>{{ selectedCardIds().length }} card{{ selectedCardIds().length !== 1 ? 's' : '' }}</strong>
+        </div>
+        <div class="confirm-row">
+          <span>Team overall:</span>
+          <strong>{{ squadOverall() }}</strong>
+        </div>
+        <div class="confirm-row">
+          <span>Wager amount:</span>
+          <strong>{{ wagerAmount() | number }} pts</strong>
+        </div>
+      </div>
+
+      <p class="confirm-note">
+        <span class="material-icons">lightbulb</span>
+        Bot difficulty scales with your squad rating
+      </p>
+
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="cancelConfirm()">Cancel</button>
+        <button class="btn-confirm" (click)="confirmPlay()">Play Match</button>
+      </div>
+    </div>
+  </div>
+}

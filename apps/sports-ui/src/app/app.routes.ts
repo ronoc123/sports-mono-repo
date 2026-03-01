@@ -39,6 +39,13 @@ export const appRoutes: Route[] = [
       import("@sports-ui/feature-auth").then((m) => m.LoginComponent),
   },
 
+  {
+    path: "league",
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import("@sports-ui/league-feature").then((m) => m.LeagueFeature),
+  },
+
   // Main app shell with layout (protected routes)
   {
     path: ":organizationId",
@@ -92,6 +99,45 @@ export const appRoutes: Route[] = [
             (m) => m.createPlayerOptionRoutes
           ),
       },
+      // Card Packs route
+      {
+        path: "card-packs",
+        loadChildren: () =>
+          import("@sports-ui/feature-cards").then((m) => m.packOpenRoutes),
+      },
+
+      // Card Collection route
+      {
+        path: "collection",
+        loadChildren: () =>
+          import("@sports-ui/feature-collection").then(
+            (m) => m.collectionRoutes
+          ),
+      },
+
+      // H2H route
+      {
+        path: "h2h",
+        loadChildren: () =>
+          import("@sports-ui/feature-h2h").then((m) => m.h2hRoutes),
+      },
+
+      // Admin routes
+      {
+        path: "admin",
+        loadChildren: () =>
+          import("@sports-ui/feature-admin").then((m) => m.adminRoutes),
+      },
+
+      // Marketplace route
+      {
+        path: "marketplace",
+        loadChildren: () =>
+          import("@sports-ui/feature-marketplace").then(
+            (m) => m.marketplaceRoutes
+          ),
+      },
+
       // Store route
       {
         path: "store",

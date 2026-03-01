@@ -80,5 +80,76 @@ namespace Domain.VoteAccount
             _transactions.Add(VoteTransaction.ForVoteSpend(OrgId, UserId, token.PlayerOptionId, token.Amount, token.SpendId));
         }
 
+        // ── Fan Economy balance operations ───────────────────────────────────
+        // Each method validates server-side before writing any transaction record,
+        // satisfying FR4 (no partial writes on failure) and FR3 (full audit trail).
+
+        /// <summary>Deduct points when a fan purchases a card pack.</summary>
+        public void DeductForPackPurchase(long amount, string packId)
+        {
+            if (amount <= 0) throw new DomainException("Pack purchase amount must be positive.");
+            if (Balance < amount) throw new DomainException("Insufficient balance.");
+            Balance -= amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForPackPurchase(OrgId, UserId, amount, packId));
+        }
+
+        /// <summary>Deduct and escrow points when a fan places a bid.</summary>
+        public void DeductForBidEscrow(long amount, string listingId)
+        {
+            if (amount <= 0) throw new DomainException("Bid amount must be positive.");
+            if (Balance < amount) throw new DomainException("Insufficient balance.");
+            Balance -= amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForBidEscrow(OrgId, UserId, amount, listingId));
+        }
+
+        /// <summary>Restore escrowed points to the balance when a fan is outbid.</summary>
+        public void CreditBidRelease(long amount, string listingId)
+        {
+            if (amount <= 0) throw new DomainException("Release amount must be positive.");
+            Balance += amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForBidRelease(OrgId, UserId, amount, listingId));
+        }
+
+        /// <summary>Credit points to seller when auction settles or buy now is triggered.</summary>
+        public void CreditAuctionSale(long amount, string listingId)
+        {
+            if (amount <= 0) throw new DomainException("Sale credit amount must be positive.");
+            Balance += amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForAuctionSaleCredit(OrgId, UserId, amount, listingId));
+        }
+
+        /// <summary>Deduct points when buyer completes a buy now purchase.</summary>
+        public void DeductForBuyNow(long amount, string listingId)
+        {
+            if (amount <= 0) throw new DomainException("Buy now amount must be positive.");
+            if (Balance < amount) throw new DomainException("Insufficient balance.");
+            Balance -= amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForBuyNowDebit(OrgId, UserId, amount, listingId));
+        }
+
+        /// <summary>Deduct wager points at the start of an H2H match.</summary>
+        public void DeductForH2HWager(long amount, string matchId)
+        {
+            if (amount <= 0) throw new DomainException("Wager amount must be positive.");
+            if (Balance < amount) throw new DomainException("Insufficient balance.");
+            Balance -= amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForH2HWager(OrgId, UserId, amount, matchId));
+        }
+
+        /// <summary>Credit wager × 2 to the winner when an H2H match resolves.</summary>
+        public void CreditH2HWinnings(long amount, string matchId)
+        {
+            if (amount <= 0) throw new DomainException("Winnings amount must be positive.");
+            Balance += amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForH2HWin(OrgId, UserId, amount, matchId));
+        }
+
     }
 }

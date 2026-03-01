@@ -1,3 +1,4 @@
+using Domain.Cards;
 using Domain.Enums;
 using Domain.Leagues;
 using Domain.Organizations;
@@ -90,15 +91,44 @@ namespace Infrastructure.Data
     {
         public static async Task SeedAsync(SportsDbAppContext context, SportsDbImporter importer)
         {
-            await SeedVoteBundles(context);
 
             if (await context.Organizations.AnyAsync())
                 return;
 
+            await SeedVoteBundles(context);
             var leagues = await SeedLeagues(context);
             var orgs = await SeedOrganizations(context, leagues, importer);
+            await SeedRarityTierConfigs(context, orgs);
             var players = await SeedPlayers(context, orgs, importer);
             await SeedPlayerOptions(context, players);
+
+            var nflLeague = leagues.First(l => l.Name == "NFL");
+            var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "player_ratings_2015_2025.csv");
+            await SeedCardPlayersFromCsv(context, nflLeague.Id.Value, filePath);
+        }
+
+        /// <summary>
+        /// Seeds 4 rarity tiers for every org. Pull weights sum to 10,000 bps (100%).
+        /// Thresholds: Common 60-74 (50%), Rare 75-84 (30%), Epic 85-94 (15%), Legendary 95-99 (5%).
+        /// </summary>
+        private static async Task SeedRarityTierConfigs(SportsDbAppContext context, List<Organization> orgs)
+        {
+            var configs = new List<RarityTierConfig>();
+
+            foreach (var org in orgs)
+            {
+                var orgGuid = org.Id.Value;
+                configs.AddRange(new[]
+                {
+                    RarityTierConfig.Create(orgGuid, "Common",    60, 74, 5000),
+                    RarityTierConfig.Create(orgGuid, "Rare",      75, 84, 3000),
+                    RarityTierConfig.Create(orgGuid, "Epic",      85, 94, 1500),
+                    RarityTierConfig.Create(orgGuid, "Legendary", 95, 99,  500),
+                });
+            }
+
+            context.RarityTierConfigs.AddRange(configs);
+            await context.SaveChangesAsync();
         }
 
         private static async Task<List<League>> SeedLeagues(SportsDbAppContext context)
@@ -281,6 +311,64 @@ namespace Infrastructure.Data
 
             context.Products.AddRange(bundles);
             await context.SaveChangesAsync();
+        }
+
+        private static async Task SeedCardPlayersFromCsv(SportsDbAppContext context, Guid leagueId, string filePath)
+        {
+            if (!File.Exists(filePath))
+                throw new Exception($"Card seed file not found: {filePath}");
+
+            var lines = await File.ReadAllLinesAsync(filePath);
+
+            if (lines.Length <= 1)
+                return;
+
+            var cards = new List<CardPlayer>();
+
+            // Skip header
+            foreach (var line in lines.Skip(1))
+            {
+                var parts = line.Split(',');
+
+                if (parts.Length < 3)
+                    continue;
+
+                var name = parts[0].Trim();
+                var position = parts[1].Trim();
+
+                if (!int.TryParse(parts[2], out var rating))
+                    continue;
+
+                var rarity = DetermineRarity(rating);
+
+                try
+                {
+                    var card = CardPlayer.Create(
+                        leagueId,
+                        name,
+                        position,
+                        rating,
+                        rarity
+                    );
+
+                    cards.Add(card);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Failed to create card {name}: {ex.Message}");
+                }
+            }
+
+            context.CardPlayers.AddRange(cards);
+            await context.SaveChangesAsync();
+        }
+
+        private static string DetermineRarity(int rating)
+        {
+            if (rating >= 95) return "Legendary";
+            if (rating >= 85) return "Epic";
+            if (rating >= 75) return "Rare";
+            return "Common";
         }
     }
 }

@@ -1,0 +1,107 @@
+<div class="pack-page">
+  <!-- ── Header ─────────────────────────────── -->
+  <div class="pack-header">
+    <span class="pack-header-icon material-icons">style</span>
+    <div>
+      <h1 class="pack-title">Card Packs</h1>
+      <p class="pack-subtitle">
+        Open a pack to add 5 new players to your collection
+      </p>
+    </div>
+  </div>
+
+  <!-- ── League selector ────────────────────── -->
+
+  <!-- ── Pack card ───────────────────────────── -->
+  @if (packStatus() !== 'success') {
+  <div class="pack-card">
+    <div class="pack-card-glow"></div>
+    <div class="pack-card-body">
+      <span class="pack-card-icon material-icons">auto_awesome</span>
+      <h2 class="pack-card-name">Standard Pack</h2>
+      <p class="pack-card-desc">
+        Contains exactly 5 player cards drawn by rarity weight
+      </p>
+      <div class="pack-cost-row">
+        <span class="material-icons cost-icon">toll</span>
+        <span class="cost-value">{{ packCost | number }}</span>
+        <span class="cost-label">Points</span>
+      </div>
+
+      @if (packError()) {
+      <div class="pack-error">
+        <span class="material-icons error-icon">error_outline</span>
+        {{ packError() }}
+      </div>
+      }
+
+      <button
+        class="open-btn"
+        (click)="onOpenPack()"
+        [disabled]="!canPurchase()"
+      >
+        @if (isPurchasing()) {
+        <span class="spinner-sm"></span>
+        <span>Processing…</span>
+        } @else if (balance() < packCost) {
+        <span
+          >Insufficient Points ({{ balance() | number }} /
+          {{ packCost | number }})</span
+        >
+        } @else {
+        <span class="material-icons">lock_open</span>
+        <span>Open Pack</span>
+        }
+      </button>
+
+      <p class="pack-note">Rarity pull rates are not disclosed.</p>
+    </div>
+  </div>
+  }
+
+  <!-- ── Card reveal ─────────────────────────── -->
+  @if (packStatus() === 'success') {
+  <div class="reveal-section">
+    <div class="reveal-header">
+      <h2 class="reveal-title">
+        @if (revealComplete()) { Your 5 Cards! } @else { Revealing… }
+      </h2>
+      @if (!revealComplete()) {
+      <div class="reveal-progress">{{ revealedCards().length }} / 5</div>
+      }
+    </div>
+
+    <div class="cards-grid">
+      @for (card of revealedCards(); track card.id) {
+      <div class="card-reveal" [ngStyle]="rarityStyle(card.rarityTier)">
+        <div class="card-rarity-badge" [ngStyle]="rarityStyle(card.rarityTier)">
+          {{ card.rarityTier }}
+        </div>
+        <div class="card-ovr">{{ card.overallRating }}</div>
+        <div class="card-name">{{ card.name }}</div>
+        <div class="card-position">{{ card.position }}</div>
+      </div>
+      }
+
+      <!-- Placeholder slots for unrevealed cards -->
+      @for (_ of [].constructor(5 - revealedCards().length); track $index) {
+      <div class="card-reveal card-placeholder">
+        <span class="material-icons placeholder-icon">style</span>
+      </div>
+      }
+    </div>
+
+    @if (revealComplete()) {
+    <div class="reveal-footer">
+      <p class="balance-updated">
+        <span class="material-icons">toll</span>
+        Balance updated: {{ balance() | number }} Points
+      </p>
+      <button class="btn-open-another" (click)="onOpenAnother()">
+        Open Another Pack
+      </button>
+    </div>
+    }
+  </div>
+  }
+</div>

@@ -32,4 +32,7 @@ export const environment = {
   enableAdvancedFeatures: true,
   enableSystemLogs: true,
   enableUserImpersonation: true, // Only in development
+
+  googleClientId:
+    "437642911171-5qq4jsh5qvhkh17ua79srdrr16i0p0c4.apps.googleusercontent.com",
 };

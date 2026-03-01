@@ -22,6 +22,8 @@ import {
   SidebarComponent,
 } from "@sports-ui/ui";
 import { NotificationFacade } from "@sports-ui/notification-data-access";
+import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 
 @Component({
   selector: "lib-feature-layout",
@@ -36,9 +38,12 @@ export class LayoutFeatureComponent implements OnInit {
   private orgFacade = inject(OrganizationFeatureService);
   private theme = inject(ThemeService);
   private notificationFacade = inject(NotificationFacade);
+  private voteAccountFacade = inject(VoteAccountFacade);
+  private leagueFacade = inject(LeaguesFacade);
   user = this.authFacade.user;
   organizations = this.orgFacade.organizations;
   selectedOrganization = this.orgFacade.selectedOrganization;
+  readonly pointsBalance = this.voteAccountFacade.balance;
   @ViewChild("drawer") drawer!: MatSidenav;
   readonly navItems = input.required<NavItem[]>();
   mode = signal<"light" | "dark">("light");
@@ -83,10 +88,21 @@ export class LayoutFeatureComponent implements OnInit {
         pageSize: 50,
       });
     });
+
+    // 💰 Points balance effect — load whenever user + org are both available
+    effect(() => {
+      const user = this.user();
+      const org = this.selectedOrganization();
+      if (!user || !org) return;
+      this.voteAccountFacade.load(user.id, org.id);
+    });
   }
 
   ngOnInit() {
-    this.orgFacade.loadOrganizations();
+    const leagueId = this.leagueFacade.selectedLeagueId() || "";
+    this.orgFacade.loadOrganizations({
+      leagueId: leagueId || "698200CB-7255-4C57-8475-52D5385860D7",
+    });
   }
 
   // Event handlers from UI
@@ -115,7 +131,7 @@ export class LayoutFeatureComponent implements OnInit {
 
     if (!item.route || !org) return;
 
-    this.router.navigate([org.id, item.route]);
+    this.router.navigate([org.id, ...item.route.split('/')]);
   }
 
   onToggleTheme() {

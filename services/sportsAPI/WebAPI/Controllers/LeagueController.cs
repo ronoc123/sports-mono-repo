@@ -5,7 +5,6 @@ using Application.Leagues.Commands.DeleteLeague;
 using Application.Leagues.Commands.UpdateLeague;
 using Application.Leagues.Queries.GetAllLeagues;
 using Contracts.Contracts;
-using Contracts.Responses;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +30,7 @@ namespace sportsAPI.Controllers
 
         // Get all Leagues with pagination
         [HttpGet("all")]
-        public async Task<ServiceResponse<PaginatedList<LeagueDto>>> GetAllLeagues(
+        public async Task<ServiceResponse<List<LeagueDto>>> GetAllLeagues(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? searchTerm = null,

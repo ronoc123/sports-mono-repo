@@ -9,6 +9,10 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Web;
 using Web.Web;
+using Application.Marketplace.Services;
+using Infrastructure.Marketplace.Services;
+using sportsAPI.Hubs;
+using sportsAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,10 +66,22 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"], // Should match Identity Service issuer
-        ValidAudience = builder.Configuration["Jwt:Audience"], // Should match Identity Service audience
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
         ClockSkew = TimeSpan.Zero
+    };
+    // Allow SignalR to receive JWT via ?access_token= query string
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                context.Token = accessToken;
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -116,6 +132,15 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
+// SignalR (real-time auction hub)
+builder.Services.AddSignalR();
+
+// Auction real-time notification service (injected into command handlers)
+builder.Services.AddScoped<IAuctionSignalRService, AuctionSignalRService>();
+
+// Auction expiry background service (Story 3.3)
+builder.Services.AddHostedService<AuctionExpiryService>();
+
 // Register additional services
 builder.Services.AddHttpClient();
 
@@ -155,6 +180,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auction");
 
 // Database seeding
 using (var scope = app.Services.CreateScope())

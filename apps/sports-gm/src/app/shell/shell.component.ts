@@ -18,6 +18,7 @@ export class ShellComponent {
   // Sports UI navigation items with role-based permissions
   navItems: NavItem[] = [
     { name: "Dashboard", icon: "dashboard", route: "dashboard" },
+    { name: "Card Catalog", icon: "style", route: "card-catalog" },
     { name: "Player Options", icon: "how_to_vote", route: "player-option" },
     { name: "Active Raoster", icon: "people_alt", route: "active-roaster" },
     { name: "Redeem Codes", icon: "redeem", route: "redeem" },

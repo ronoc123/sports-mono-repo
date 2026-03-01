@@ -1,0 +1,165 @@
+<div class="catalog-page">
+
+  <!-- ── Header ─────────────────────────────────────── -->
+  <div class="catalog-header">
+    <h1 class="catalog-title">Card Catalog</h1>
+    <p class="catalog-subtitle">Manage card players for your league</p>
+  </div>
+
+  <!-- ── League Selector ───────────────────────────── -->
+  <div class="league-bar">
+    <div class="league-input-group">
+      <label class="league-label">League ID</label>
+      <input
+        class="league-input"
+        type="text"
+        placeholder="Enter league ID (GUID)"
+        [value]="leagueId()"
+        (input)="leagueId.set($any($event.target).value)"
+      />
+      <button class="btn btn-secondary" (click)="onLoadLeague()" [disabled]="!leagueId().trim()">
+        Load Cards
+      </button>
+    </div>
+    <button class="btn btn-primary" (click)="openAddForm()" [disabled]="!leagueId().trim()">
+      <span class="btn-icon">add</span>
+      Add Card Player
+    </button>
+  </div>
+
+  <!-- ── Inline Form (Add / Edit) ──────────────────── -->
+  @if (showForm()) {
+    <div class="form-panel">
+      <div class="form-panel-header">
+        <h2 class="form-panel-title">{{ formTitle() }}</h2>
+        <button class="btn-icon-only" (click)="cancelForm()" aria-label="Close form">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      @if (saveError()) {
+        <div class="alert alert-error">{{ saveError() }}</div>
+      }
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Name <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="e.g. Patrick Mahomes"
+            [value]="form().name"
+            (input)="updateFormField('name', $any($event.target).value)"
+            maxlength="200"
+          />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Position <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="e.g. QB"
+            [value]="form().position"
+            (input)="updateFormField('position', $any($event.target).value)"
+            maxlength="100"
+          />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Overall Rating <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="0 – 99"
+            min="0"
+            max="99"
+            [value]="form().overallRating ?? ''"
+            (input)="updateFormField('overallRating', +$any($event.target).value)"
+          />
+          <span class="form-hint">Rarity tier is assigned automatically from this rating.</span>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">League ID <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="text"
+            placeholder="League GUID"
+            [value]="form().leagueId"
+            (input)="updateFormField('leagueId', $any($event.target).value)"
+            [attr.readonly]="isEditing() ? true : null"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" (click)="cancelForm()">Cancel</button>
+        <button
+          class="btn btn-primary"
+          (click)="submitForm()"
+          [disabled]="isSaving() || !form().name || !form().position || form().overallRating === null"
+        >
+          @if (isSaving()) {
+            <span>Saving…</span>
+          } @else {
+            <span>{{ isEditing() ? 'Save Changes' : 'Create Card Player' }}</span>
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Card Player Table ──────────────────────────── -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading card players…</p>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  } @else if (cardPlayers().length === 0 && leagueId().trim()) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">style</span>
+      <p>No card players yet. Click <strong>Add Card Player</strong> to create the first one.</p>
+    </div>
+  } @else if (cardPlayers().length > 0) {
+    <div class="table-container">
+      <table class="card-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>OVR</th>
+            <th>Rarity</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (card of cardPlayers(); track card.id) {
+            <tr class="card-row">
+              <td class="card-name">{{ card.name }}</td>
+              <td><span class="position-badge">{{ card.position }}</span></td>
+              <td><span class="ovr-badge">{{ card.overallRating }}</span></td>
+              <td>
+                <span
+                  class="rarity-badge"
+                  [style.background]="rarityColor(card.rarityTier) + '22'"
+                  [style.color]="rarityColor(card.rarityTier)"
+                  [style.border-color]="rarityColor(card.rarityTier) + '55'"
+                >
+                  {{ card.rarityTier }}
+                </span>
+              </td>
+              <td class="date-cell">{{ card.createdAt | date:'mediumDate' }}</td>
+              <td class="actions-cell">
+                <button class="btn-text" (click)="openEditForm(card)">Edit</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

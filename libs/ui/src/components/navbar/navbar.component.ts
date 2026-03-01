@@ -15,6 +15,8 @@ export class NavbarComponent {
   readonly config        = input<LayoutConfig>();
   readonly user          = input<any>();
   readonly notifications = input<NotificationDto[]>([]);
+  readonly balance       = input<number>(0);
+  readonly currencyName  = input<string>('Points');
 
   readonly toggleNavBar  = output<void>();
   readonly logout        = output<void>();

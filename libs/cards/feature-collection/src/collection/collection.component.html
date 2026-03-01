@@ -1,0 +1,187 @@
+<div class="collection-page">
+
+  <!-- ── Header ─────────────────────────────── -->
+  <div class="collection-header">
+    <span class="collection-header-icon material-icons">collections_bookmark</span>
+    <div>
+      <h1 class="collection-title">My Collection</h1>
+      <p class="collection-subtitle">
+        @if (isLoading()) {
+          Loading your cards…
+        } @else {
+          {{ totalCount() }} card{{ totalCount() !== 1 ? 's' : '' }} in your collection
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Error ──────────────────────────────── -->
+  @if (error()) {
+    <div class="error-banner">
+      <span class="material-icons">error_outline</span>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── Filters ────────────────────────────── -->
+  @if (!isLoading() && totalCount() > 0) {
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <span class="material-icons search-icon">search</span>
+        <input
+          class="search-input"
+          type="text"
+          placeholder="Search by name or position…"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+        />
+        @if (searchQuery()) {
+          <button class="search-clear" (click)="searchQuery.set('')">
+            <span class="material-icons">close</span>
+          </button>
+        }
+      </div>
+
+      <div class="rarity-filters">
+        @for (tier of rarityFilters; track tier) {
+          <button
+            class="rarity-btn"
+            [class.active]="rarityFilter() === tier"
+            (click)="rarityFilter.set(tier)"
+          >
+            {{ tier }}
+            <span class="rarity-count">{{ rarityCount(tier) }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Loading skeleton ───────────────────── -->
+  @if (isLoading()) {
+    <div class="cards-grid">
+      @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
+        <div class="card-item card-skeleton"></div>
+      }
+    </div>
+  }
+
+  <!-- ── Empty state ────────────────────────── -->
+  @if (!isLoading() && totalCount() === 0) {
+    <div class="empty-state">
+      <span class="material-icons empty-icon">style</span>
+      <h2 class="empty-title">No cards yet</h2>
+      <p class="empty-desc">Open a pack to start building your collection!</p>
+      <a class="empty-link" routerLink="../card-packs">
+        <span class="material-icons">add_circle_outline</span>
+        Open a Pack
+      </a>
+    </div>
+  }
+
+  <!-- ── Cards grid ─────────────────────────── -->
+  @if (!isLoading() && totalCount() > 0) {
+    @if (filteredCollection().length === 0) {
+      <div class="no-results">
+        <span class="material-icons">search_off</span>
+        <p>No cards match your filters.</p>
+        <button class="btn-clear-filters" (click)="rarityFilter.set('All'); searchQuery.set('')">
+          Clear filters
+        </button>
+      </div>
+    } @else {
+      <div class="result-summary">
+        Showing {{ filteredCount() }} of {{ totalCount() }} cards
+      </div>
+
+      <div class="cards-grid">
+        @for (card of filteredCollection(); track trackByCard($index, card)) {
+          <div class="card-item" [ngStyle]="rarityStyle(card.rarityTier)">
+            <div class="card-rarity-badge" [ngStyle]="rarityStyle(card.rarityTier)">
+              {{ card.rarityTier }}
+            </div>
+            <div class="card-ovr">{{ card.overallRating }}</div>
+            <div class="card-name">{{ card.name }}</div>
+            <div class="card-position">{{ card.position }}</div>
+            @if (card.isListed) {
+              <div class="card-listed-badge">
+                <span class="material-icons">storefront</span>
+                Listed
+              </div>
+            } @else {
+              <button class="btn-list-auction" (click)="$event.stopPropagation(); openListingForm(card)">
+                <span class="material-icons">gavel</span>
+                List for Auction
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>
+
+<!-- ── List for Auction Modal ───────────────────────────────────────────── -->
+@if (listingCard()) {
+  <div class="modal-overlay" (click)="closeListingForm()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>List for Auction</h2>
+        <button class="modal-close" (click)="closeListingForm()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <p class="modal-card-name">{{ listingCard()!.name }} — {{ listingCard()!.rarityTier }}</p>
+
+      @if (listError()) {
+        <div class="modal-error">{{ listError() }}</div>
+      }
+      @if (listStatus() === 'success') {
+        <div class="modal-success">Listed successfully!</div>
+      }
+
+      <label class="form-label">Starting Bid (pts) *</label>
+      <input
+        class="form-input"
+        type="number"
+        min="1"
+        placeholder="e.g. 100"
+        [ngModel]="listingStartingBid()"
+        (ngModelChange)="listingStartingBid.set($event)"
+      />
+
+      <label class="form-label">Buy Now Price (pts, optional)</label>
+      <input
+        class="form-input"
+        type="number"
+        min="1"
+        placeholder="Leave blank to disable"
+        [ngModel]="listingBuyNowPrice()"
+        (ngModelChange)="listingBuyNowPrice.set($event)"
+      />
+
+      <label class="form-label">Duration</label>
+      <select
+        class="form-input"
+        [ngModel]="listingDurationHours()"
+        (ngModelChange)="listingDurationHours.set($event)"
+      >
+        @for (h of durationOptions; track h) {
+          <option [value]="h">{{ h === 1 ? '1 hour' : h + ' hours' }}</option>
+        }
+      </select>
+
+      <div class="modal-actions">
+        <button class="btn-cancel-modal" (click)="closeListingForm()">Cancel</button>
+        <button
+          class="btn-submit-listing"
+          [disabled]="isListing() || !listingStartingBid()"
+          (click)="submitListing()"
+        >
+          @if (isListing()) { Listing… } @else { List Card }
+        </button>
+      </div>
+    </div>
+  </div>
+}
