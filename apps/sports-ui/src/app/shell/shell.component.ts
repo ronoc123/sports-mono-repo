@@ -28,6 +28,5 @@ export class ShellComponent {
       icon: "how_to_vote",
       route: "create-player-option",
     },
-    { name: "Store", icon: "store", route: "store" },
   ];
 }

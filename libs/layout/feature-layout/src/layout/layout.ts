@@ -122,6 +122,12 @@ export class LayoutFeatureComponent implements OnInit {
     this.mode.update((prev) => (prev === "light" ? "dark" : "light"));
   }
 
+  onBuyVotes() {
+    const org = this.selectedOrganization();
+    if (!org) return;
+    this.router.navigate([org.id, "store"]);
+  }
+
   onMarkRead(id: string) {
     this.notificationFacade.markAsRead(id);
   }

@@ -1,112 +1,95 @@
-<div class="modal-backdrop" (click)="close()"></div>
+<!-- ── Header ── -->
+<div class="panel-header">
+  <h2 class="panel-title">
+    <ng-container *ngIf="checkoutStatus() === 'succeeded'">Purchase Complete</ng-container>
+    <ng-container *ngIf="checkoutStatus() === 'error'">Payment Failed</ng-container>
+    <ng-container *ngIf="checkoutStatus() !== 'succeeded' && checkoutStatus() !== 'error'">Complete Purchase</ng-container>
+  </h2>
+  <button
+    class="cancel-btn"
+    (click)="close()"
+    [disabled]="checkoutStatus() === 'processing'"
+  >
+    Cancel
+  </button>
+</div>
 
+<!-- ── Order summary strip ── -->
 <div
-  class="modal-panel"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="checkout-title"
+  class="order-summary"
+  *ngIf="selectedBundle() && checkoutStatus() !== 'succeeded' && checkoutStatus() !== 'error'"
 >
-  <!-- ── Header ── -->
-  <div class="modal-header">
-    <h2 id="checkout-title" class="modal-title">
-      <ng-container *ngIf="checkoutStatus() === 'succeeded'"
-        >Purchase Complete</ng-container
-      >
-      <ng-container *ngIf="checkoutStatus() === 'error'"
-        >Payment Failed</ng-container
-      >
-      <ng-container
-        *ngIf="checkoutStatus() !== 'succeeded' && checkoutStatus() !== 'error'"
-        >Complete Purchase</ng-container
-      >
-    </h2>
-    <button
-      class="modal-close"
-      (click)="close()"
-      aria-label="Close"
-      [disabled]="checkoutStatus() === 'processing'"
-    >
-      <span class="material-icons">close</span>
-    </button>
+  <div class="order-row">
+    <span class="order-label">{{ selectedBundle()?.name }}</span>
+    <span class="order-votes">{{ selectedBundle()?.quantity }} votes</span>
   </div>
+</div>
 
-  <!-- ── Loading: API initiating or Stripe mounting ── -->
-  <div
-    *ngIf="checkoutStatus() === 'initiating' || (checkoutStatus() === 'ready' && mountStatus === 'mounting')"
-    class="modal-loading"
+<!-- ── Loading ── -->
+<div
+  *ngIf="checkoutStatus() === 'initiating' || (checkoutStatus() === 'ready' && mountStatus === 'mounting')"
+  class="panel-loading"
+>
+  <div class="spinner"></div>
+  <p>
+    {{ checkoutStatus() === 'initiating' ? 'Setting up checkout…' : 'Loading payment form…' }}
+  </p>
+</div>
+
+<!-- ── Payment Element (always in DOM so ViewChild resolves) ── -->
+<div
+  class="payment-element-wrapper"
+  [class.hidden]="checkoutStatus() === 'initiating' || mountStatus === 'mounting'"
+>
+  <div #paymentElement></div>
+</div>
+
+<!-- ── Success view ── -->
+<div *ngIf="checkoutStatus() === 'succeeded'" class="outcome-view success-view">
+  <div class="outcome-icon success-icon">
+    <span class="material-icons">check_circle</span>
+  </div>
+  <h3 class="outcome-title">Payment Successful!</h3>
+  <p class="outcome-body">
+    <strong>{{ selectedBundle()?.quantity }} votes</strong> have been credited
+    to <strong>{{ orgName() }}</strong>.
+  </p>
+</div>
+
+<!-- ── Error view ── -->
+<div *ngIf="checkoutStatus() === 'error'" class="outcome-view error-view">
+  <div class="outcome-icon error-icon-wrap">
+    <span class="material-icons">error_outline</span>
+  </div>
+  <p class="error-message">{{ checkoutError() }}</p>
+  <p class="no-charge-notice">No charge was made to your payment method.</p>
+</div>
+
+<!-- ── Footer: pay ── -->
+<div
+  class="panel-footer"
+  *ngIf="checkoutStatus() !== 'succeeded' && checkoutStatus() !== 'error'"
+>
+  <button
+    class="btn-primary"
+    (click)="pay()"
+    [disabled]="checkoutStatus() === 'processing' || mountStatus !== 'ready'"
   >
-    <div class="spinner"></div>
-    <p>
-      {{ checkoutStatus() === 'initiating' ? 'Setting up checkout…' : 'Loading payment form…' }}
-    </p>
-  </div>
+    <span *ngIf="checkoutStatus() !== 'processing'">Pay Now</span>
+    <span *ngIf="checkoutStatus() === 'processing'" class="btn-spinner-wrap">
+      <span class="btn-spinner"></span>
+      Processing…
+    </span>
+  </button>
+</div>
 
-  <div
-    class="payment-element-wrapper"
-    [class.hidden]="false || mountStatus === 'mounting'"
-  >
-    <div #paymentElement></div>
-  </div>
+<!-- ── Footer: error ── -->
+<div class="panel-footer" *ngIf="checkoutStatus() === 'error'">
+  <button class="btn-secondary" (click)="close()">Cancel</button>
+  <button class="btn-primary" (click)="onRetry()">Try Again</button>
+</div>
 
-  <!-- ── Success view (AC1) ── -->
-  <div
-    *ngIf="checkoutStatus() === 'succeeded'"
-    class="outcome-view success-view"
-  >
-    <div class="outcome-icon success-icon">
-      <span class="material-icons">check_circle</span>
-    </div>
-    <h3 class="outcome-title">Payment Successful!</h3>
-    <p class="outcome-body">
-      <strong>{{ selectedBundle()?.quantity }} votes</strong> have been credited
-      to <strong>{{ orgName() }}</strong>.
-    </p>
-  </div>
-
-  <!-- ── Error view (AC2, AC3) ── -->
-  <div *ngIf="checkoutStatus() === 'error'" class="outcome-view error-view">
-    <div class="outcome-icon error-icon-wrap">
-      <span class="material-icons">error_outline</span>
-    </div>
-    <p class="error-message">{{ checkoutError() }}</p>
-    <!-- AC3: explicit "no charge" message -->
-    <p class="no-charge-notice">No charge was made to your payment method.</p>
-  </div>
-
-  <!-- ── Footer ── -->
-
-  <!-- Payment form footer -->
-  <!-- <div *ngIf="isFormVisible()" class="modal-footer"> -->
-  <div class="modal-footer">
-    <button
-      class="btn-secondary"
-      (click)="close()"
-      [disabled]="checkoutStatus() === 'processing'"
-    >
-      Cancel
-    </button>
-    <button
-      class="btn-primary"
-      (click)="pay()"
-      [disabled]="checkoutStatus() === 'processing' || mountStatus !== 'ready'"
-    >
-      <span *ngIf="checkoutStatus() !== 'processing'">Pay Now</span>
-      <span *ngIf="checkoutStatus() === 'processing'" class="btn-spinner-wrap">
-        <span class="btn-spinner"></span>
-        Processing…
-      </span>
-    </button>
-  </div>
-
-  <!-- Error footer: Cancel + Try Again (AC4) -->
-  <div *ngIf="checkoutStatus() === 'error'" class="modal-footer">
-    <button class="btn-secondary" (click)="close()">Cancel</button>
-    <!-- AC4: retry reopens fresh form without re-selecting bundle -->
-    <button class="btn-primary" (click)="onRetry()">Try Again</button>
-  </div>
-
-  <!-- Success footer -->
-  <div *ngIf="checkoutStatus() === 'succeeded'" class="modal-footer">
-    <button class="btn-primary" (click)="close()">Done</button>
-  </div>
+<!-- ── Footer: success ── -->
+<div class="panel-footer" *ngIf="checkoutStatus() === 'succeeded'">
+  <button class="btn-primary" (click)="close()">Done</button>
 </div>

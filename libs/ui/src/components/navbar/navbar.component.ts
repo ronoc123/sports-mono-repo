@@ -22,6 +22,7 @@ export class NavbarComponent {
   readonly openSettings  = output<void>();
   readonly toggleTheme   = output<void>();
   readonly markRead      = output<string>();
+  readonly buyVotes      = output<void>();
 
   userMenuOpen = signal(false);
 

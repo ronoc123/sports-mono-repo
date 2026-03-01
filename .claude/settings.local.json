@@ -18,7 +18,9 @@
       "Bash(grep:*)",
       "Bash(cd \"/c/Users/kampe/OneDrive/Desktop/sports-ui/services/sportsAPI\" && dotnet ef migrations add FanStore_Products_Purchases_Webhooks --project Infrastructure/Infrastructure.csproj --startup-project WebAPI/WebAPI.csproj 2>&1)",
       "Bash(cd \"/c/Users/kampe/OneDrive/Desktop/sports-ui/services/sportsAPI\" && dotnet ef migrations remove --project Infrastructure/Infrastructure.csproj --startup-project WebAPI/WebAPI.csproj 2>&1 && dotnet ef migrations add FanStore_Products_Purchases_Webhooks --project Infrastructure/Infrastructure.csproj --startup-project WebAPI/WebAPI.csproj 2>&1)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "mcp__figma__get_figjam",
+      "mcp__figma__get_screenshot"
     ]
   }
 }

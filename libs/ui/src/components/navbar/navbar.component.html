@@ -8,6 +8,12 @@
   <!-- Right: actions -->
   <div class="navbar-right">
 
+    <!-- Buy Votes CTA -->
+    <button class="buy-votes-btn" (click)="buyVotes.emit()">
+      <span class="material-icons">shopping_cart</span>
+      Buy Votes
+    </button>
+
     <!-- Notifications -->
     <lib-notification-badge
       [notifications]="notifications()"

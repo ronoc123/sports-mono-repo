@@ -26,6 +26,31 @@
   gap: 8px;
 }
 
+/* ── Buy Votes CTA ── */
+.buy-votes-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-tertiary, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.buy-votes-btn:hover {
+  opacity: 0.88;
+}
+
+.buy-votes-btn .material-icons {
+  font-size: 16px !important;
+}
+
 /* ── User avatar button ── */
 .user-avatar-btn {
   width: 36px;

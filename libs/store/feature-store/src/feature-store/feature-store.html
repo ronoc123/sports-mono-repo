@@ -1,66 +1,244 @@
-<div class="page-header">
-  <div class="page-title-block">
-    <h1 class="page-title">Vote Store</h1>
+<div class="store-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-badge">
+      <span class="material-icons badge-icon">auto_awesome</span>
+      Secure Payment Processing
+    </div>
+    <h1 class="page-title">Purchase Voting Credits</h1>
     <p class="page-subtitle">
-      Purchase vote bundles to support your organization.
+      Get more votes to support your favorite player decisions. All purchases are secure and votes never expire.
     </p>
   </div>
-</div>
 
-<!-- Loading -->
-<div *ngIf="status() === 'loading'" class="loading-state">
-  <div class="spinner"></div>
-  <p>Loading bundles...</p>
-</div>
-
-<!-- Empty state -->
-<div
-  *ngIf="status() === 'success' && bundles().length === 0"
-  class="empty-state"
->
-  <p class="empty-title">No vote bundles available</p>
-  <p class="empty-subtitle">Check back later for new vote packages.</p>
-</div>
-
-<!-- Bundle grid -->
-<div
-  *ngIf="status() === 'success' && bundles().length > 0"
-  class="bundles-grid"
->
-  <div *ngFor="let bundle of bundles()" class="bundle-card">
-    <div class="card-header">
-      <span class="vote-quantity">{{ bundle.quantity }}</span>
-      <span class="vote-label">votes</span>
+  <!-- Balance Banner -->
+  <div class="balance-banner">
+    <div class="balance-left">
+      <div class="balance-icon-wrap">
+        <span class="material-icons">confirmation_number</span>
+      </div>
+      <div>
+        <p class="balance-label">Your Current Balance</p>
+        <p class="balance-value">{{ voteBalance() ?? 0 }} <span class="balance-unit">Votes</span></p>
+      </div>
     </div>
-
-    <div class="card-body">
-      <h3 class="bundle-name">{{ bundle.name }}</h3>
-      <p class="bundle-description">{{ bundle.description }}</p>
-    </div>
-
-    <div class="card-footer">
-      <span class="bundle-price"
-        >{{ formatPrice(bundle.priceAmount, bundle.priceCurrency) }}</span
-      >
-      <button
-        class="buy-btn"
-        (click)="onBuy(bundle.id)"
-        [disabled]="checkoutStatus() === 'initiating'"
-      >
-        <span *ngIf="checkoutStatus() !== 'initiating'">Buy</span>
-        <span
-          *ngIf="checkoutStatus() === 'initiating'"
-          class="btn-spinner"
-        ></span>
-      </button>
+    <div class="balance-features">
+      <div class="balance-feature">
+        <span class="material-icons">security</span>
+        <span>Secure</span>
+      </div>
+      <div class="balance-feature">
+        <span class="material-icons">bolt</span>
+        <span>Instant</span>
+      </div>
+      <div class="balance-feature">
+        <span class="material-icons">card_giftcard</span>
+        <span>No Expiry</span>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Checkout modal — active for any non-idle checkout state -->
-<app-checkout-modal
-  *ngIf="checkoutStatus() !== 'idle'"
-  (closed)="onCheckoutClosed()"
-  (retryRequested)="onRetryCheckout()"
-  [clientSecret]="storeService.clientSecret()"
-/>
+  <!-- Loading -->
+  <div *ngIf="status() === 'loading'" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading bundles...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="status() === 'success' && bundles().length === 0" class="empty-state">
+    <p class="empty-title">No vote bundles available</p>
+    <p class="empty-subtitle">Check back later for new vote packages.</p>
+  </div>
+
+  <!-- Main content -->
+  <div *ngIf="status() === 'success' && bundles().length > 0" class="store-content">
+
+    <!-- Bundles + Right panel -->
+    <div class="store-body" [class.store-body--panel-open]="showRightPanel()">
+
+      <!-- Bundle grid -->
+      <div class="packages-col">
+        <h2 class="col-heading">Select a Bundle</h2>
+        <div class="bundles-grid">
+          <div
+            *ngFor="let bundle of bundles(); let i = index"
+            class="bundle-card"
+            [class.bundle-card--active]="selectedCardId() === bundle.id"
+            [ngClass]="bundleColorClass(i)"
+            (click)="selectBundle(bundle.id)"
+          >
+            <!-- Selection indicator -->
+            <div *ngIf="selectedCardId() === bundle.id" class="selection-check">
+              <span class="material-icons">check</span>
+            </div>
+
+            <!-- Gradient header -->
+            <div class="bundle-header">
+              <div class="bundle-icon-wrap">
+                <span class="material-icons">{{ bundleIcon(i) }}</span>
+              </div>
+              <h3 class="bundle-name">{{ bundle.name }}</h3>
+            </div>
+
+            <!-- Pricing -->
+            <div class="bundle-pricing">
+              <span class="price-amount">{{ formatPrice(bundle.priceAmount, bundle.priceCurrency) }}</span>
+              <div class="bundle-votes-row">
+                <span class="material-icons votes-icon">confirmation_number</span>
+                <span class="votes-count">{{ bundle.quantity }}</span>
+                <span class="votes-label">votes</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="bundle-features">
+              <p class="bundle-desc">{{ bundle.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div *ngIf="showRightPanel()" class="checkout-col">
+
+        <!-- Payment method picker (before checkout is initiated) -->
+        <ng-container *ngIf="checkoutStatus() === 'idle'">
+
+          <!-- Header -->
+          <div class="pm-header">
+            <div class="pm-header-left">
+              <h2 class="pm-title">Payment Method</h2>
+              <p class="pm-sub">
+                Choose how to pay for
+                <strong>{{ selectedBundleData()?.quantity }} votes</strong>
+              </p>
+            </div>
+            <div class="pm-total">
+              <p class="pm-total-label">Total</p>
+              <p class="pm-total-amount">
+                {{ selectedBundleData() ? formatPrice(selectedBundleData()!.priceAmount, selectedBundleData()!.priceCurrency) : '' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Payment method buttons -->
+          <div class="pm-body">
+            <div class="pm-grid">
+
+              <!-- Apple Pay (coming soon) -->
+              <button class="pm-btn pm-btn--soon" disabled>
+                <span class="material-icons pm-btn-icon">phone_iphone</span>
+                <span class="pm-btn-label">Apple Pay</span>
+                <span class="pm-soon-badge">Soon</span>
+              </button>
+
+              <!-- Google Pay (coming soon) -->
+              <button class="pm-btn pm-btn--soon" disabled>
+                <span class="material-icons pm-btn-icon">account_balance_wallet</span>
+                <span class="pm-btn-label">Google Pay</span>
+                <span class="pm-soon-badge">Soon</span>
+              </button>
+
+              <!-- PayPal (coming soon) -->
+              <button class="pm-btn pm-btn--soon" disabled>
+                <span class="material-icons pm-btn-icon">currency_exchange</span>
+                <span class="pm-btn-label">PayPal</span>
+                <span class="pm-soon-badge">Soon</span>
+              </button>
+
+              <!-- Stripe / Credit Card (functional) -->
+              <button
+                class="pm-btn pm-btn--stripe"
+                (click)="onStripeCheckout()"
+                [disabled]="checkoutStatus() === 'initiating'"
+              >
+                <ng-container *ngIf="checkoutStatus() !== 'initiating'">
+                  <span class="material-icons pm-btn-icon">credit_card</span>
+                  <span class="pm-btn-label">Credit / Debit Card</span>
+                </ng-container>
+                <span *ngIf="checkoutStatus() === 'initiating'" class="pm-spinner"></span>
+              </button>
+
+            </div>
+
+            <!-- SSL note -->
+            <div class="pm-ssl">
+              <span class="material-icons pm-ssl-icon">verified_user</span>
+              <span>256-bit SSL encrypted · Powered by Stripe</span>
+            </div>
+          </div>
+
+        </ng-container>
+
+        <!-- Stripe checkout modal (after initiating) -->
+        <app-checkout-modal
+          *ngIf="checkoutStatus() !== 'idle'"
+          (closed)="onCheckoutClosed()"
+          (retryRequested)="onRetryCheckout()"
+          [clientSecret]="storeService.clientSecret()"
+        />
+
+      </div>
+    </div>
+
+    <!-- Info cards -->
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-icon info-icon--blue">
+          <span class="material-icons">lock</span>
+        </div>
+        <div>
+          <h3 class="info-title">Secure Payment</h3>
+          <p class="info-body">All transactions are processed securely with industry-leading encryption. Powered by Stripe.</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon info-icon--green">
+          <span class="material-icons">bolt</span>
+        </div>
+        <div>
+          <h3 class="info-title">Instant Delivery</h3>
+          <p class="info-body">Votes are added to your account immediately upon successful payment. Start voting right away!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ section -->
+    <div class="faq-section">
+      <h3 class="faq-title">Frequently Asked Questions</h3>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4 class="faq-q">
+            <span class="material-icons faq-arrow">arrow_right</span>
+            Do votes expire?
+          </h4>
+          <p class="faq-a">No! Your votes never expire. Use them whenever you want to participate in player option decisions.</p>
+        </div>
+        <div class="faq-item">
+          <h4 class="faq-q">
+            <span class="material-icons faq-arrow">arrow_right</span>
+            Is my payment secure?
+          </h4>
+          <p class="faq-a">Yes! All transactions are encrypted and processed securely via Stripe. We never store your card information.</p>
+        </div>
+        <div class="faq-item">
+          <h4 class="faq-q">
+            <span class="material-icons faq-arrow">arrow_right</span>
+            What payment methods are accepted?
+          </h4>
+          <p class="faq-a">We accept all major credit and debit cards through our secure Stripe payment integration.</p>
+        </div>
+        <div class="faq-item">
+          <h4 class="faq-q">
+            <span class="material-icons faq-arrow">arrow_right</span>
+            How quickly are votes added?
+          </h4>
+          <p class="faq-a">Votes are added to your account instantly upon successful payment. You can start voting immediately!</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

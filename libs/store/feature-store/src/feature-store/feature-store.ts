@@ -1,4 +1,4 @@
-import { Component, ViewChild, effect, inject } from "@angular/core";
+import { Component, ViewChild, computed, effect, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { StoreService } from "@sports-ui/store-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
@@ -24,7 +24,20 @@ export class FeatureStore {
   readonly bundles = this.storeService.bundles;
   readonly status = this.storeService.status;
   readonly checkoutStatus = this.storeService.checkoutStatus;
+  readonly selectedBundle = this.storeService.selectedBundle;
   readonly organization = this.orgFacade.selectedOrganization;
+  readonly voteBalance = this.voteAccountFacade.balance;
+
+  readonly selectedCardId = signal<string | null>(null);
+  readonly selectedBundleData = computed(() =>
+    this.bundles().find(b => b.id === this.selectedCardId()) ?? null
+  );
+  readonly showRightPanel = computed(() =>
+    this.selectedCardId() !== null || this.checkoutStatus() !== 'idle'
+  );
+
+  private readonly bundleColors = ['blue', 'purple', 'green', 'amber'];
+  private readonly bundleIcons = ['confirmation_number', 'bolt', 'trending_up', 'workspace_premium'];
 
   constructor() {
     // Load bundles when org changes
@@ -51,6 +64,27 @@ export class FeatureStore {
     });
   }
 
+  bundleColorClass(index: number): string {
+    return `bundle-color-${this.bundleColors[index % this.bundleColors.length]}`;
+  }
+
+  bundleIcon(index: number): string {
+    return this.bundleIcons[index % this.bundleIcons.length];
+  }
+
+  selectBundle(bundleId: string): void {
+    if (this.checkoutStatus() !== 'idle') {
+      this.storeService.clearCheckout();
+    }
+    this.selectedCardId.set(bundleId);
+  }
+
+  async onStripeCheckout(): Promise<void> {
+    const id = this.selectedCardId();
+    if (!id) return;
+    await this.onBuy(id);
+  }
+
   async onBuy(productId: string): Promise<void> {
     const org = this.organization();
     const user = this.authFacade.user();
@@ -67,6 +101,7 @@ export class FeatureStore {
 
   onCheckoutClosed(): void {
     this.storeService.clearCheckout();
+    this.selectedCardId.set(null);
   }
 
   formatPrice(amount: number, currency: string): string {
