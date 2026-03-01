@@ -20,12 +20,12 @@ namespace Infrastructure.Data
             _http = http;
         }
 
-        public async Task<List<SportsDbTeamDto>> GetNflTeams()
+        public async Task<List<SportsDbTeamDto>> GetTeamsByLeague(string leagueId)
         {
             var response = await _http.GetFromJsonAsync<TeamsResponse>(
-                "search_all_teams.php?id=4391");
+                $"search_all_teams.php?id={leagueId}");
 
-            return response.Teams;
+            return response?.Teams ?? new List<SportsDbTeamDto>();
         }
 
         public async Task<List<SportsDbPlayerDto>> GetPlayersForTeam(string teamId)
@@ -36,6 +36,8 @@ namespace Infrastructure.Data
             return response?.Player ?? new List<SportsDbPlayerDto>();
         }
     }
+
+    #region DTOs
 
     public class SportsDbTeamDto
     {
@@ -82,6 +84,8 @@ namespace Infrastructure.Data
         public List<SportsDbPlayerDto> Player { get; set; }
     }
 
+    #endregion
+
     public static class SeedData
     {
         public static async Task SeedAsync(SportsDbAppContext context, SportsDbImporter importer)
@@ -92,21 +96,18 @@ namespace Infrastructure.Data
                 return;
 
             var leagues = await SeedLeagues(context);
-            //var orgs = await SeedOrganizations(context, leagues);
             var orgs = await SeedOrganizations(context, leagues, importer);
-            //var players = await SeedPlayers(context, orgs);
             var players = await SeedPlayers(context, orgs, importer);
             await SeedPlayerOptions(context, players);
         }
 
-
         private static async Task<List<League>> SeedLeagues(SportsDbAppContext context)
         {
             var leagues = new List<League>
-          {
-              League.Create("NFL"),
-              League.Create("NBA")
-          };
+            {
+                League.Create("NFL"),
+                League.Create("NBA")
+            };
 
             context.Leagues.AddRange(leagues);
             await context.SaveChangesAsync();
@@ -114,80 +115,56 @@ namespace Infrastructure.Data
             return leagues;
         }
 
-
         private static async Task<List<Organization>> SeedOrganizations(SportsDbAppContext context, List<League> leagues, SportsDbImporter importer)
         {
-            var nflLeagueId = leagues.First(l => l.Name == "NFL").Id;
-
-            var teams = await importer.GetNflTeams();
+            var leagueApiMap = new Dictionary<string, string>
+            {
+                { "NFL", "4391" }, // NFL
+                { "NBA", "4387" }  // NBA
+            };
 
             var orgs = new List<Organization>();
 
-            foreach (var team in teams)
+            foreach (var league in leagues)
             {
-                var formedYear = int.TryParse(team.intFormedYear, out var fy) ? fy : 1900;
-                var capacity = int.TryParse(team.intStadiumCapacity, out var cap) ? cap : 0;
+                if (!leagueApiMap.TryGetValue(league.Name, out var apiLeagueId))
+                    continue;
 
-                var org = Organization.Create(
-                    nflLeagueId,
-                    team.strTeam,
-                    teamId: team.idTeam,
-                    teamName: team.strTeam,
-                    teamShortName: team.strTeamShort ?? team.strTeam,
-                    formedYear: formedYear,
-                    sport: team.strSport,
-                    stadium: team.strStadium,
-                    location: team.strLocation,
-                    capacity: capacity,
-                    badgeUrl: team.strTeamBadge,
-                    logoUrl: team.strTeamLogo,
-                    fanart1Url: team.strTeamFanart1,
-                    fanart2Url: team.strTeamFanart2,
-                    fanart3Url: team.strTeamFanart3,
-                    website: team.strWebsite,
-                    facebook: team.strFacebook,
-                    twitter: team.strTwitter,
-                    instagram: team.strInstagram,
-                    color1: team.strColour1,
-                    color2: team.strColour2,
-                    color3: team.strColour3,
-                    description: team.strDescriptionEN
-                );
+                var teams = await importer.GetTeamsByLeague(apiLeagueId);
 
-                orgs.Add(org);
-            }
-            foreach (var team in teams)
-            {
-                var formedYear = int.TryParse(team.intFormedYear, out var fy) ? fy : 1900;
-                var capacity = int.TryParse(team.intStadiumCapacity, out var cap) ? cap : 0;
+                foreach (var team in teams)
+                {
+                    var formedYear = int.TryParse(team.intFormedYear, out var fy) ? fy : 1900;
+                    var capacity = int.TryParse(team.intStadiumCapacity, out var cap) ? cap : 0;
 
-                var org = Organization.Create(
-                    nflLeagueId,
-                    team.strTeam,
-                    teamId: team.idTeam,
-                    teamName: team.strTeam,
-                    teamShortName: team.strTeamShort ?? team.strTeam,
-                    formedYear: formedYear,
-                    sport: team.strSport,
-                    stadium: team.strStadium,
-                    location: team.strLocation,
-                    capacity: capacity,
-                    badgeUrl: team.strTeamBadge,
-                    logoUrl: team.strTeamLogo,
-                    fanart1Url: team.strTeamFanart1,
-                    fanart2Url: team.strTeamFanart2,
-                    fanart3Url: team.strTeamFanart3,
-                    website: team.strWebsite,
-                    facebook: team.strFacebook,
-                    twitter: team.strTwitter,
-                    instagram: team.strInstagram,
-                    color1: team.strColour1,
-                    color2: team.strColour2,
-                    color3: team.strColour3,
-                    description: team.strDescriptionEN
-                );
+                    var org = Organization.Create(
+                        league.Id,
+                        team.strTeam,
+                        teamId: team.idTeam,
+                        teamName: team.strTeam,
+                        teamShortName: team.strTeamShort ?? team.strTeam,
+                        formedYear: formedYear,
+                        sport: team.strSport,
+                        stadium: team.strStadium,
+                        location: team.strLocation,
+                        capacity: capacity,
+                        badgeUrl: team.strTeamBadge,
+                        logoUrl: team.strTeamLogo,
+                        fanart1Url: team.strTeamFanart1,
+                        fanart2Url: team.strTeamFanart2,
+                        fanart3Url: team.strTeamFanart3,
+                        website: team.strWebsite,
+                        facebook: team.strFacebook,
+                        twitter: team.strTwitter,
+                        instagram: team.strInstagram,
+                        color1: team.strColour1,
+                        color2: team.strColour2,
+                        color3: team.strColour3,
+                        description: team.strDescriptionEN
+                    );
 
-                orgs.Add(org);
+                    orgs.Add(org);
+                }
             }
 
             context.Organizations.AddRange(orgs);
@@ -195,68 +172,49 @@ namespace Infrastructure.Data
 
             return orgs;
         }
+
         private static async Task<List<Player>> SeedPlayers(SportsDbAppContext context, List<Organization> orgs, SportsDbImporter importer)
         {
             var players = new List<Player>();
 
             foreach (var org in orgs)
             {
-                try
+                if (string.IsNullOrWhiteSpace(org.TeamId))
+                    continue;
+
+                var teamPlayers = await importer.GetPlayersForTeam(org.TeamId);
+
+                foreach (var p in teamPlayers)
                 {
-                    if (string.IsNullOrWhiteSpace(org.TeamId))
+                    if (string.IsNullOrWhiteSpace(p?.strPlayer))
                         continue;
 
-                    var teamPlayers = await importer.GetPlayersForTeam(org.TeamId);
+                    var age = CalculateAge(p.dateBorn);
 
-                    if (teamPlayers == null || !teamPlayers.Any())
-                        continue;
-
-                    foreach (var p in teamPlayers)
+                    try
                     {
-                        try
-                        {
-                            if (string.IsNullOrWhiteSpace(p?.strPlayer))
-                                continue;
+                        var player = Player.Create(
+                            id: PlayerId.Of(Guid.NewGuid()),
+                            leagueId: org.LeagueId,
+                            name: p.strPlayer,
+                            position: p.strPosition ?? "Unknown",
+                            imageUrl: p.strThumb,
+                            age: age,
+                            organizationId: org.Id
+                        );
 
-                            var age = CalculateAge(p.dateBorn);
-
-                            var player = Player.Create(
-                                id: PlayerId.Of(Guid.NewGuid()),
-                                leagueId: org.LeagueId,
-                                name: p.strPlayer,
-                                position: p.strPosition ?? "Unknown",
-                                imageUrl: p.strThumb,
-                                age: age,
-                                organizationId: org.Id
-                            );
-
-                            players.Add(player);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(
-                                $"❌ Failed to create player {p?.strPlayer} for team {org.Name}: {ex.Message}");
-                        }
+                        players.Add(player);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(
+                            $"❌ Failed to create player {p.strPlayer} for {org.Name}: {ex.Message}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(
-                        $"❌ Failed to process team {org.Name}: {ex.Message}");
-                }
             }
 
-            try
-            {
-                context.Players.AddRange(players);
-                await context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Failed saving players to DB: {ex.Message}");
-                throw; // this one we DO want to bubble
-            }
-
+            context.Players.AddRange(players);
+            await context.SaveChangesAsync();
 
             return players;
         }
@@ -268,10 +226,13 @@ namespace Infrastructure.Data
 
             var today = DateTime.UtcNow;
             var age = today.Year - dob.Year;
-            if (dob.Date > today.AddYears(-age)) age--;
+
+            if (dob.Date > today.AddYears(-age))
+                age--;
 
             return age;
         }
+
         private static async Task SeedPlayerOptions(SportsDbAppContext context, List<Player> players)
         {
             var options = new List<PlayerOption>();
@@ -281,6 +242,7 @@ namespace Infrastructure.Data
                 for (int i = 0; i < 2; i++)
                 {
                     var expires = DateTime.UtcNow.AddDays(30 + i * 15);
+
                     options.Add(
                         PlayerOption.Create(
                             title: i == 0 ? "Extend Contract" : "Trade Option",
@@ -304,15 +266,21 @@ namespace Infrastructure.Data
 
             var bundles = new List<Product>
             {
-                Product.Create("Starter Pack",   "10 votes for your organization",   ProductType.Votes, 10,  new Money(0.99m,  "USD")),
-                Product.Create("Fan Pack",        "50 votes for your organization",   ProductType.Votes, 50,  new Money(3.99m,  "USD")),
-                Product.Create("Superfan Pack",   "100 votes for your organization",  ProductType.Votes, 100, new Money(6.99m,  "USD")),
+                Product.Create("Starter Pack", "10 votes for your organization",
+                    ProductType.Votes, 10, new Money(0.99m, "USD")),
+
+                Product.Create("Fan Pack", "50 votes for your organization",
+                    ProductType.Votes, 50, new Money(3.99m, "USD")),
+
+                Product.Create("Superfan Pack", "100 votes for your organization",
+                    ProductType.Votes, 100, new Money(6.99m, "USD")),
+
+                Product.Create("Ultimate Pack", "200 votes for your organization",
+                    ProductType.Votes, 200, new Money(9.99m, "USD")),
             };
 
             context.Products.AddRange(bundles);
             await context.SaveChangesAsync();
         }
-
     }
-
 }

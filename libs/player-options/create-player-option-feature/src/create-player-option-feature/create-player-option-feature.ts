@@ -54,7 +54,7 @@ export class CreatePlayerOptionFeature implements OnInit {
   });
 
   ngOnInit(): void {
-    this.facade.loadPlayers("CDE9103E-1FD4-40B1-9504-7C8971274317");
+    this.facade.loadPlayers("698200CB-7255-4C57-8475-52D5385860D7");
   }
 
   onSearch(term: string) {
