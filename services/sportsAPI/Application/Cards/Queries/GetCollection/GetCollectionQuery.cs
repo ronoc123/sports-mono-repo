@@ -4,5 +4,5 @@ using MediatR;
 
 namespace Application.Cards.Queries.GetCollection;
 
-public record GetCollectionQuery(Guid UserId, Guid OrgId)
+public record GetCollectionQuery(Guid UserId, Guid LeagueId)
     : IRequest<ServiceResponse<List<UserCardDto>>>;

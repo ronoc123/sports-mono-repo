@@ -14,13 +14,13 @@ public sealed class RarityTierConfigConfiguration : IEntityTypeConfiguration<Rar
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.Property(x => x.OrgId)
+        builder.Property(x => x.LeagueId)
             .IsRequired();
 
         builder.Property(x => x.RatingMin).IsRequired();
         builder.Property(x => x.RatingMax).IsRequired();
         builder.Property(x => x.PullWeightBps).IsRequired();
 
-        builder.HasIndex(x => new { x.OrgId, x.RarityName }).IsUnique();
+        builder.HasIndex(x => new { x.LeagueId, x.RarityName }).IsUnique();
     }
 }

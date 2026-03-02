@@ -20,20 +20,20 @@ public class RarityAssignmentService
 
     /// <summary>
     /// Returns the RarityName whose [RatingMin, RatingMax] range contains <paramref name="overallRating"/>
-    /// for the given org. Throws DomainException if no matching tier is configured.
+    /// for the given league. Throws DomainException if no matching tier is configured.
     /// </summary>
-    public async Task<string> AssignAsync(Guid orgId, int overallRating, CancellationToken ct = default)
+    public async Task<string> AssignAsync(Guid leagueId, int overallRating, CancellationToken ct = default)
     {
         var tier = await _repo
             .Query<RarityTierConfig>()
-            .Where(t => t.OrgId == orgId
+            .Where(t => t.LeagueId == leagueId
                      && t.RatingMin <= overallRating
                      && t.RatingMax >= overallRating)
             .FirstOrDefaultAsync(ct);
 
         if (tier is null)
             throw new DomainException(
-                $"No rarity tier configured for overall rating {overallRating} in org {orgId}. " +
+                $"No rarity tier configured for overall rating {overallRating} in league {leagueId}. " +
                 "Configure RarityTierConfig entries first.");
 
         return tier.RarityName;

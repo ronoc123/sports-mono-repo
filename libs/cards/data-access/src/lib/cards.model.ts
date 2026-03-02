@@ -2,7 +2,7 @@ export type RarityTier = 'Common' | 'Rare' | 'Epic' | 'Legendary';
 
 export interface RarityTierConfig {
   id: string;
-  orgId: string;
+  leagueId: string;
   rarityName: RarityTier;
   ratingMin: number;
   ratingMax: number;
@@ -24,7 +24,7 @@ export interface CardOwner {
   id: string;
   userId: string;
   cardPlayerId: string;
-  orgId: string;
+  leagueId: string;
   isListed: boolean;
   acquiredAt: string;
   cardPlayer?: CardPlayer;

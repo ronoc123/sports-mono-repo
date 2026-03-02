@@ -1,10 +1,11 @@
+/* ── Page wrapper ──────────────────────────────────────────────────────── */
 .league-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1rem;
-  background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+  padding: 2rem 1rem 4rem;
 }
 
 .league-container {
@@ -12,121 +13,462 @@
   max-width: 72rem;
 }
 
-.league-header {
+/* ── Header ────────────────────────────────────────────────────────────── */
+.lf-header {
   text-align: center;
   margin-bottom: 3rem;
 }
 
-.league-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 0.75rem;
+.lf-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: linear-gradient(to right, #007cc3, #4fa3d1);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 124, 195, 0.35);
+  margin-bottom: 1.25rem;
 }
 
-.league-subtitle {
-  font-size: 1.125rem;
-  color: #4b5563;
-}
-
-.league-loading {
-  text-align: center;
-  padding: 3rem 0;
-}
-
-.spinner {
+.lf-header-icon mat-icon {
+  color: #fff;
+  font-size: 2rem;
   width: 2rem;
   height: 2rem;
-  border: 2px solid #bfdbfe;
-  border-top: 2px solid #2563eb;
-  border-radius: 50%;
+}
+
+.lf-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+}
+
+.lf-subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  max-width: 36rem;
   margin: 0 auto;
-  animation: spin 0.8s linear infinite;
+  line-height: 1.6;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+/* ── Loading ───────────────────────────────────────────────────────────── */
+.lf-loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
 }
 
-.league-grid {
+.lf-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid #bfdbfe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: lf-spin 0.75s linear infinite;
+}
+
+@keyframes lf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── League Grid ───────────────────────────────────────────────────────── */
+.lf-grid {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 @media (min-width: 768px) {
-  .league-grid {
+  .lf-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.league-card {
+/* ── League Card ───────────────────────────────────────────────────────── */
+.lf-card {
   position: relative;
-  background: white;
-  border-radius: 1rem;
+  background: #fff;
+  border-radius: 1.25rem;
   border: 2px solid #e5e7eb;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
 }
 
-.league-card:hover {
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+.lf-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
-.league-card.selected {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
-  transform: scale(1.05);
+.lf-card--selected {
+  border-color: #007cc3 !important;
+  box-shadow: 0 0 0 4px rgba(0, 124, 195, 0.18), 0 12px 32px rgba(0, 0, 0, 0.1) !important;
+  transform: scale(1.02);
 }
 
-.league-card-header {
-  height: 7rem;
-  padding: 1.5rem;
-  background: linear-gradient(to right, #1d4ed8, #3b82f6);
-  color: white;
+/* Selection check badge */
+.lf-check-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  width: 2rem;
+  height: 2rem;
+  background: #007cc3;
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 124, 195, 0.4);
+  animation: lf-pop-in 0.2s ease-out;
 }
 
-.league-card-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+.lf-check-badge mat-icon {
+  color: #fff;
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
-.league-card-body {
+@keyframes lf-pop-in {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* Gradient header */
+.lf-card-header {
+  height: 8rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition: opacity 0.2s;
+}
+
+.lf-card:hover .lf-card-header {
+  opacity: 1;
+}
+
+.lf-sport-emoji {
+  font-size: 2.75rem;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.lf-card-name {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 0.125rem;
+  line-height: 1.1;
+}
+
+.lf-card-season {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Card body */
+.lf-card-body {
   padding: 1.5rem;
 }
 
-.league-created {
-  font-size: 0.875rem;
+.lf-card-fullname {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.375rem;
+}
+
+.lf-card-desc {
+  font-size: 0.9375rem;
   color: #6b7280;
+  margin: 0 0 1rem;
 }
 
-.league-actions {
+.lf-card-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.lf-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.lf-stat-icon {
+  font-size: 1rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  color: #9ca3af;
+}
+
+.lf-features {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lf-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.lf-feature-icon {
+  font-size: 0.9rem !important;
+  width: 0.9rem !important;
+  height: 0.9rem !important;
+  color: #22c55e;
+}
+
+/* Selection glow overlay */
+.lf-card-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.25rem;
+  pointer-events: none;
+  transition: background 0.2s;
+}
+
+.lf-card--selected .lf-card-overlay {
+  background: rgba(0, 124, 195, 0.04);
+}
+
+/* ── Continue Button ───────────────────────────────────────────────────── */
+.lf-actions {
   text-align: center;
+  margin-bottom: 4rem;
 }
 
-.league-button {
+.lf-continue-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
   height: 3.5rem;
-  padding: 0 2rem;
-  background: #2563eb;
-  color: white;
-  border-radius: 0.5rem;
-  font-weight: 600;
+  padding: 0 2.25rem;
+  background: linear-gradient(to right, #007cc3, #4fa3d1);
+  color: #fff;
   border: none;
+  border-radius: 0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 124, 195, 0.4);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  font-family: inherit;
 }
 
-.league-button:hover:not(:disabled) {
-  background: #1d4ed8;
+.lf-continue-btn:hover:not(:disabled) {
+  background: linear-gradient(to right, #006bb3, #3d92c0);
+  box-shadow: 0 6px 24px rgba(0, 124, 195, 0.5);
+  transform: translateY(-1px);
 }
 
-.league-button:disabled {
+.lf-continue-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.lf-continue-btn mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.lf-selected-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin: 1rem 0 0;
+}
+
+/* ── Divider ───────────────────────────────────────────────────────────── */
+.lf-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.lf-divider::before,
+.lf-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.lf-divider-label {
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* ── Creator Section ───────────────────────────────────────────────────── */
+.lf-creator-section {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 2.5rem;
+}
+
+.lf-creator-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lf-creator-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: linear-gradient(to right, #a855f7, #ec4899);
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
+  margin-bottom: 1rem;
+}
+
+.lf-creator-icon mat-icon {
+  color: #fff;
+  font-size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.lf-creator-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem;
+}
+
+.lf-creator-desc {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  max-width: 36rem;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Creator grid */
+.lf-creator-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .lf-creator-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Creator card */
+.lf-creator-card {
+  position: relative;
+  border: 2px solid;
+  border-radius: 0.875rem;
+  padding: 1.5rem;
+  overflow: hidden;
+  opacity: 0.85;
+}
+
+.lf-creator-card--purple {
+  background: linear-gradient(135deg, #fdf4ff 0%, #fdf2f8 100%);
+  border-color: #e9d5ff;
+}
+
+.lf-creator-card--blue {
+  background: linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%);
+  border-color: #bfdbfe;
+}
+
+.lf-creator-card-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.lf-creator-card-icon--purple {
+  background: #f3e8ff;
+}
+
+.lf-creator-card-icon--purple mat-icon {
+  color: #9333ea;
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.lf-creator-card-icon--blue {
+  background: #dbeafe;
+}
+
+.lf-creator-card-icon--blue mat-icon {
+  color: #2563eb;
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.lf-creator-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem;
+}
+
+.lf-creator-card-desc {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem;
+  line-height: 1.5;
+}
+
+/* Coming soon badge */
+.lf-coming-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 2rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.lf-coming-soon-icon {
+  font-size: 0.875rem !important;
+  width: 0.875rem !important;
+  height: 0.875rem !important;
 }

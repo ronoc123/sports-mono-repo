@@ -1,18 +1,20 @@
-import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { CardStore } from './cards.store';
-import { CardsApi } from './cards.api';
+import { Injectable, inject } from "@angular/core";
+import { firstValueFrom } from "rxjs";
+import { CardStore } from "./cards.store";
+import { CardsApi } from "./cards.api";
 import {
   CreateCardPlayerRequest,
   UpdateCardPlayerRequest,
   PackPurchaseRequest,
   PackPurchaseResult,
   UserCard,
-} from './cards.model';
+} from "./cards.model";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class CardsFacade {
   private readonly store = inject(CardStore);
+  private readonly leagueFacade = inject(LeaguesFacade);
   private readonly api = inject(CardsApi);
 
   // ── Exposed signals ───────────────────────────────
@@ -38,7 +40,7 @@ export class CardsFacade {
       const res = await firstValueFrom(this.api.getCardPlayers(leagueId));
       this.store.setCardPlayers(res.data ?? []);
     } catch {
-      this.store.setError('Failed to load card players');
+      this.store.setError("Failed to load card players");
     }
   }
 
@@ -50,13 +52,16 @@ export class CardsFacade {
       return true;
     } catch (err: any) {
       this.store.setSaveError(
-        err?.error?.message ?? err?.message ?? 'Failed to create card player'
+        err?.error?.message ?? err?.message ?? "Failed to create card player"
       );
       return false;
     }
   }
 
-  async updateCardPlayer(id: string, request: UpdateCardPlayerRequest): Promise<boolean> {
+  async updateCardPlayer(
+    id: string,
+    request: UpdateCardPlayerRequest
+  ): Promise<boolean> {
     this.store.setSaving();
     try {
       const res = await firstValueFrom(this.api.updateCardPlayer(id, request));
@@ -64,13 +69,15 @@ export class CardsFacade {
       return true;
     } catch (err: any) {
       this.store.setSaveError(
-        err?.error?.message ?? err?.message ?? 'Failed to update card player'
+        err?.error?.message ?? err?.message ?? "Failed to update card player"
       );
       return false;
     }
   }
 
-  async purchasePack(request: PackPurchaseRequest): Promise<PackPurchaseResult | null> {
+  async purchasePack(
+    request: PackPurchaseRequest
+  ): Promise<PackPurchaseResult | null> {
     this.store.setPackPurchasing();
     try {
       const res = await firstValueFrom(this.api.purchasePack(request));
@@ -78,11 +85,11 @@ export class CardsFacade {
         this.store.setPackResult(res.data);
         return res.data;
       }
-      this.store.setPackError(res.message ?? 'Purchase failed.');
+      this.store.setPackError(res.message ?? "Purchase failed.");
       return null;
     } catch (err: any) {
       this.store.setPackError(
-        err?.error?.message ?? err?.message ?? 'Failed to purchase pack.'
+        err?.error?.message ?? err?.message ?? "Failed to purchase pack."
       );
       return null;
     }
@@ -95,10 +102,15 @@ export class CardsFacade {
   async loadCollection(userId: string, orgId: string): Promise<void> {
     this.store.setLoading();
     try {
-      const res = await firstValueFrom(this.api.getCollection(userId, orgId));
+      const res = await firstValueFrom(
+        this.api.getCollection(
+          userId,
+          this.leagueFacade.selectedLeagueId() || ""
+        )
+      );
       this.store.setCollection(res.data ?? []);
     } catch {
-      this.store.setError('Failed to load collection');
+      this.store.setError("Failed to load collection");
     }
   }
 }

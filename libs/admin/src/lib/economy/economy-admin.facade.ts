@@ -21,10 +21,10 @@ export class EconomyAdminFacade {
   readonly saveError = this.store.saveError;
 
   // ── Load ──────────────────────────────────────────────────────────────────
-  async loadRarityTiers(orgId: string): Promise<void> {
+  async loadRarityTiers(leagueId: string): Promise<void> {
     this.store.setTiersLoading();
     try {
-      const res = await firstValueFrom(this.api.getRarityTiers(orgId));
+      const res = await firstValueFrom(this.api.getRarityTiers(leagueId));
       this.store.setRarityTiers(res.data ?? []);
     } catch (err: unknown) {
       this.store.setTiersError(extractMessage(err));

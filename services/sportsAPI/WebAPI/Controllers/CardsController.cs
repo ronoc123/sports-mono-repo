@@ -51,6 +51,6 @@ public class CardsController : ControllerBase
     [HttpGet("collection")]
     public async Task<ServiceResponse<List<UserCardDto>>> GetCollection(
         [FromQuery] Guid userId,
-        [FromQuery] Guid orgId)
-        => await _mediator.Send(new GetCollectionQuery(userId, orgId));
+        [FromQuery] Guid leagueId)
+        => await _mediator.Send(new GetCollectionQuery(userId, leagueId));
 }

@@ -15,7 +15,7 @@ public sealed class CardOwner : Aggregate<Guid>
 
     public Guid CardPlayerId { get; private set; }
     public Guid UserId { get; private set; }
-    public Guid OrgId { get; private set; }
+    public Guid LeagueId { get; private set; }
 
     /// <summary>True while this card is listed on the marketplace (locked from H2H).</summary>
     public bool IsListed { get; private set; }
@@ -25,18 +25,18 @@ public sealed class CardOwner : Aggregate<Guid>
     // Navigation property (optional, for includes)
     public CardPlayer? CardPlayer { get; private set; }
 
-    public static CardOwner Create(Guid cardPlayerId, Guid userId, Guid orgId)
+    public static CardOwner Create(Guid cardPlayerId, Guid userId, Guid leagueId)
     {
         if (cardPlayerId == Guid.Empty) throw new DomainException("CardPlayerId is required.");
         if (userId == Guid.Empty) throw new DomainException("UserId is required.");
-        if (orgId == Guid.Empty) throw new DomainException("OrgId is required.");
+        if (leagueId == Guid.Empty) throw new DomainException("LeagueId is required.");
 
         return new CardOwner
         {
             Id = Guid.NewGuid(),
             CardPlayerId = cardPlayerId,
             UserId = userId,
-            OrgId = orgId,
+            LeagueId = leagueId,
             IsListed = false,
             AcquiredAt = DateTime.UtcNow,
         };

@@ -30,13 +30,13 @@ public sealed class PurchasePackCommandHandler
         PurchasePackCommand request,
         CancellationToken cancellationToken)
     {
-        // 1. Load rarity tiers for the org
+        // 1. Load rarity tiers for the league
         var rarityConfigs = await _repo.Query<RarityTierConfig>()
-            .Where(r => r.OrgId == request.OrgId)
+            .Where(r => r.LeagueId == request.LeagueId)
             .ToListAsync(cancellationToken);
 
         if (rarityConfigs.Count == 0)
-            throw new DomainException("No rarity tiers configured for this organisation.");
+            throw new DomainException("No rarity tiers configured for this league.");
 
         // 2. Load all CardPlayers in this league, grouped by rarity tier
         var cardPlayers = await _repo.Query<CardPlayer>()

@@ -18,7 +18,7 @@ public sealed class GetRarityTierConfigQueryHandler
         CancellationToken cancellationToken)
     {
         var tiers = await _repo.Query<RarityTierConfig>()
-            .Where(r => r.OrgId == request.OrgId)
+            .Where(r => r.LeagueId == request.LeagueId)
             .OrderBy(r => r.RarityName)
             .Select(r => new RarityTierConfigDto(r.Id, r.RarityName, r.RatingMin, r.RatingMax, r.PullWeightBps))
             .ToListAsync(cancellationToken);

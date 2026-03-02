@@ -12,7 +12,7 @@ public sealed class CardOwnerConfiguration : IEntityTypeConfiguration<CardOwner>
 
         builder.Property(x => x.CardPlayerId).IsRequired();
         builder.Property(x => x.UserId).IsRequired();
-        builder.Property(x => x.OrgId).IsRequired();
+        builder.Property(x => x.LeagueId).IsRequired();
         builder.Property(x => x.IsListed).IsRequired();
         builder.Property(x => x.AcquiredAt).IsRequired();
 
@@ -22,7 +22,7 @@ public sealed class CardOwnerConfiguration : IEntityTypeConfiguration<CardOwner>
             .HasForeignKey(x => x.CardPlayerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(x => new { x.UserId, x.OrgId });
+        builder.HasIndex(x => new { x.UserId, x.LeagueId });
         builder.HasIndex(x => x.CardPlayerId);
     }
 }

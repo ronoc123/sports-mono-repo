@@ -17,12 +17,10 @@ public sealed class GetCollectionQueryHandler
         _repo = repo;
     }
 
-    public async Task<ServiceResponse<List<UserCardDto>>> Handle(
-        GetCollectionQuery request,
-        CancellationToken cancellationToken)
+    public async Task<ServiceResponse<List<UserCardDto>>> Handle(GetCollectionQuery request, CancellationToken cancellationToken)
     {
         var cards = await _repo.Query<UserCard>()
-            .Where(u => u.UserId == request.UserId && u.OrgId == request.OrgId)
+            .Where(u => u.UserId == request.UserId && u.LeagueId == request.LeagueId)
             .Include(u => u.CardPlayer)
             .Select(u => new UserCardDto
             {

@@ -1,47 +1,144 @@
 <div class="league-page">
   <div class="league-container">
-    <!-- Header -->
-    <div class="league-header">
-      <h1 class="league-title">Choose Your League</h1>
-      <p class="league-subtitle">
-        Select the sports league you want to manage.
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div class="lf-header">
+      <div class="lf-header-icon">
+        <mat-icon>emoji_events</mat-icon>
+      </div>
+      <h1 class="lf-title">Choose Your League</h1>
+      <p class="lf-subtitle">
+        Select the sports league you want to manage. You can change this later in settings.
       </p>
     </div>
 
-    <!-- Loading -->
-    <div *ngIf="isLoading()" class="league-loading">
-      <div class="spinner"></div>
+    <!-- ── Loading ──────────────────────────────────────────── -->
+    <div *ngIf="isLoading()" class="lf-loading">
+      <div class="lf-spinner"></div>
     </div>
 
-    <!-- League Grid -->
-    <div *ngIf="!isLoading()" class="league-grid">
+    <!-- ── League Grid ──────────────────────────────────────── -->
+    <div *ngIf="!isLoading()" class="lf-grid">
       <div
         *ngFor="let league of leagues()"
+        class="lf-card"
+        [class.lf-card--selected]="selectedLeagueId() === league.id"
         (click)="selectLeague(league.id)"
-        class="league-card"
-        [class.selected]="selectedLeagueId() === league.id"
       >
-        <!-- Header -->
-        <div class="league-card-header">
-          <h2 class="league-card-title">{{ league.name }}</h2>
+        <!-- Selection badge -->
+        <div *ngIf="selectedLeagueId() === league.id" class="lf-check-badge">
+          <mat-icon>check</mat-icon>
         </div>
 
-        <!-- Content -->
-        <div class="league-card-body">
-          <p class="league-created">Created: {{ league.createdAt | date }}</p>
+        <!-- Gradient header -->
+        <div class="lf-card-header" [style.background]="getMeta(league.name).gradient">
+          <span class="lf-sport-emoji">{{ getMeta(league.name).icon }}</span>
+          <h2 class="lf-card-name">{{ league.name }}</h2>
+          <p class="lf-card-season">{{ getMeta(league.name).season }}</p>
         </div>
+
+        <!-- Card body -->
+        <div class="lf-card-body">
+          <h3 class="lf-card-fullname">{{ getMeta(league.name).fullName }}</h3>
+          <p class="lf-card-desc">Professional Sports League</p>
+
+          <div class="lf-card-stats">
+            <div class="lf-stat">
+              <mat-icon class="lf-stat-icon">group</mat-icon>
+              <span>Multiple Teams</span>
+            </div>
+            <div class="lf-stat">
+              <mat-icon class="lf-stat-icon">trending_up</mat-icon>
+              <span>Active Season</span>
+            </div>
+          </div>
+
+          <div class="lf-features">
+            <div class="lf-feature">
+              <mat-icon class="lf-feature-icon">check_circle</mat-icon>
+              <span>Live team management</span>
+            </div>
+            <div class="lf-feature">
+              <mat-icon class="lf-feature-icon">check_circle</mat-icon>
+              <span>Player voting system</span>
+            </div>
+            <div class="lf-feature">
+              <mat-icon class="lf-feature-icon">check_circle</mat-icon>
+              <span>Real-time updates</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selection glow overlay -->
+        <div class="lf-card-overlay"></div>
       </div>
     </div>
 
-    <!-- Continue Button -->
-    <div class="league-actions">
+    <!-- ── Continue Button ──────────────────────────────────── -->
+    <div *ngIf="!isLoading()" class="lf-actions">
       <button
-        class="league-button"
+        class="lf-continue-btn"
         [disabled]="!selectedLeagueId()"
         (click)="continue()"
       >
         Continue to Dashboard
+        <mat-icon>arrow_forward</mat-icon>
       </button>
+      <p *ngIf="selectedLeagueId()" class="lf-selected-label">
+        You've selected {{ getSelectedLeagueName() }}
+      </p>
     </div>
+
+    <!-- ── Divider ───────────────────────────────────────────── -->
+    <div *ngIf="!isLoading()" class="lf-divider">
+      <span class="lf-divider-label">Content Creator Options</span>
+    </div>
+
+    <!-- ── Creator Section ──────────────────────────────────── -->
+    <div *ngIf="!isLoading()" class="lf-creator-section">
+      <div class="lf-creator-header">
+        <div class="lf-creator-icon">
+          <mat-icon>content_copy</mat-icon>
+        </div>
+        <h2 class="lf-creator-title">Manage Your Own League</h2>
+        <p class="lf-creator-desc">
+          Are you a content creator? Clone existing franchises to create your own custom league
+          or discover leagues created by other creators.
+        </p>
+      </div>
+
+      <div class="lf-creator-grid">
+        <!-- Clone Franchise (Coming Soon) -->
+        <div class="lf-creator-card lf-creator-card--purple">
+          <div class="lf-creator-card-icon lf-creator-card-icon--purple">
+            <mat-icon>content_copy</mat-icon>
+          </div>
+          <h3 class="lf-creator-card-title">Clone a Franchise</h3>
+          <p class="lf-creator-card-desc">
+            Create your own custom league by selecting teams from existing franchises
+          </p>
+          <div class="lf-coming-soon-badge">
+            <mat-icon class="lf-coming-soon-icon">lock</mat-icon>
+            Coming Soon
+          </div>
+        </div>
+
+        <!-- Find Creator's League (Coming Soon) -->
+        <div class="lf-creator-card lf-creator-card--blue">
+          <div class="lf-creator-card-icon lf-creator-card-icon--blue">
+            <mat-icon>search</mat-icon>
+          </div>
+          <h3 class="lf-creator-card-title">Find a Creator's League</h3>
+          <p class="lf-creator-card-desc">
+            Discover and join leagues managed by your favorite content creators
+          </p>
+          <div class="lf-coming-soon-badge">
+            <mat-icon class="lf-coming-soon-icon">lock</mat-icon>
+            Coming Soon
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>

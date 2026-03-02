@@ -24,7 +24,7 @@ public sealed class CreateCardPlayerCommandHandler
         CancellationToken cancellationToken)
     {
         var rarityTier = await _rarityService.AssignAsync(
-            request.OrgId, request.OverallRating, cancellationToken);
+            request.LeagueId, request.OverallRating, cancellationToken);
 
         var card = CardPlayer.Create(
             request.LeagueId,

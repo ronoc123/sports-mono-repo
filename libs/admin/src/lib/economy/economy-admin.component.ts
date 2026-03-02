@@ -1,20 +1,22 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { EconomyAdminFacade } from './economy-admin.facade';
-import { OrganizationFeatureService } from '@sports-ui/organization-data-access';
-import { RarityTierConfigDto } from './economy-admin.model';
+import { Component, OnInit, inject, signal } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { EconomyAdminFacade } from "./economy-admin.facade";
+import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
+import { RarityTierConfigDto } from "./economy-admin.model";
 
 @Component({
-  selector: 'lib-economy-admin',
+  selector: "lib-economy-admin",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './economy-admin.component.html',
-  styleUrl: './economy-admin.component.css',
+  templateUrl: "./economy-admin.component.html",
+  styleUrl: "./economy-admin.component.css",
 })
 export class EconomyAdminComponent implements OnInit {
   private readonly facade = inject(EconomyAdminFacade);
   private readonly orgService = inject(OrganizationFeatureService);
+  private readonly leagueFacade = inject(LeaguesFacade);
 
   // ── Facade signals ────────────────────────────────────────────────────────
   readonly rarityTiers = this.facade.rarityTiers;
@@ -34,10 +36,11 @@ export class EconomyAdminComponent implements OnInit {
   readonly editPackCost = signal(500);
 
   async ngOnInit(): Promise<void> {
+    const leagueId = this.leagueFacade.selectedLeagueId();
     const orgId = this.orgService.selectedOrganization()?.id;
-    if (orgId) {
+    if (leagueId && orgId) {
       await Promise.all([
-        this.facade.loadRarityTiers(orgId),
+        this.facade.loadRarityTiers(leagueId),
         this.facade.loadPackConfig(orgId),
       ]);
       const packCost = this.facade.packConfig()?.packPointCost;
@@ -70,21 +73,23 @@ export class EconomyAdminComponent implements OnInit {
   async savePackConfig(): Promise<void> {
     const orgId = this.orgService.selectedOrganization()?.id;
     if (!orgId) return;
-    await this.facade.updatePackConfig(orgId, { packPointCost: this.editPackCost() });
+    await this.facade.updatePackConfig(orgId, {
+      packPointCost: this.editPackCost(),
+    });
   }
 
   getRarityColor(rarity: string): string {
     const map: Record<string, string> = {
-      Common: '#64748b',
-      Rare: '#1d4ed8',
-      Epic: '#7c3aed',
-      Legendary: '#b45309',
+      Common: "#64748b",
+      Rare: "#1d4ed8",
+      Epic: "#7c3aed",
+      Legendary: "#b45309",
     };
-    return map[rarity] ?? '#64748b';
+    return map[rarity] ?? "#64748b";
   }
 
   pullWeightPct(bps: number): string {
-    return (bps / 100).toFixed(2) + '%';
+    return (bps / 100).toFixed(2) + "%";
   }
 
   trackById(_: number, item: { id: string }): string {

@@ -36,7 +36,7 @@ public sealed class UpdateCardPlayerCommandHandler
                 "You are not authorized to edit CardPlayers in another league.");
 
         var rarityTier = await _rarityService.AssignAsync(
-            request.OrgId, request.OverallRating, cancellationToken);
+            request.LeagueId, request.OverallRating, cancellationToken);
 
         card.Update(request.Name, request.Position, request.OverallRating, rarityTier);
 

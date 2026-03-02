@@ -1,8 +1,8 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { ApiService } from '@sports-ui/http-client';
-import { ServiceResponse } from '@sports-ui/api-types';
-import { environment } from '@sports-ui/api-types';
+import { Injectable, inject } from "@angular/core";
+import { Observable } from "rxjs";
+import { ApiService } from "@sports-ui/http-client";
+import { ServiceResponse } from "@sports-ui/api-types";
+import { environment } from "@sports-ui/api-types";
 import {
   CardPlayer,
   CardOwner,
@@ -11,9 +11,9 @@ import {
   UpdateCardPlayerRequest,
   PackPurchaseRequest,
   PackPurchaseResult,
-} from './cards.model';
+} from "./cards.model";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class CardsApi {
   private readonly http = inject(ApiService);
 
@@ -45,18 +45,18 @@ export class CardsApi {
   purchasePack(
     request: PackPurchaseRequest
   ): Observable<ServiceResponse<PackPurchaseResult>> {
-    return this.http.post<ServiceResponse<PackPurchaseResult>, PackPurchaseRequest>(
-      `${environment.sportsApi}cards/packs/purchase`,
-      request
-    );
+    return this.http.post<
+      ServiceResponse<PackPurchaseResult>,
+      PackPurchaseRequest
+    >(`${environment.sportsApi}cards/packs/purchase`, request);
   }
 
   getCollection(
     userId: string,
-    orgId: string
+    leagueId: string
   ): Observable<ServiceResponse<UserCard[]>> {
     return this.http.get<ServiceResponse<UserCard[]>>(
-      `${environment.sportsApi}cards/collection?userId=${userId}&orgId=${orgId}`
+      `${environment.sportsApi}cards/collection?userId=${userId}&leagueId=${leagueId}`
     );
   }
 }

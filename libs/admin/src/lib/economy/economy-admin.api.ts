@@ -14,9 +14,9 @@ import {
 export class EconomyAdminApi {
   private readonly http = inject(ApiService);
 
-  getRarityTiers(orgId: string): Observable<ServiceResponse<RarityTierConfigDto[]>> {
+  getRarityTiers(leagueId: string): Observable<ServiceResponse<RarityTierConfigDto[]>> {
     return this.http.get<ServiceResponse<RarityTierConfigDto[]>>(
-      `${environment.sportsApi}admin/economy/rarity-tiers/${orgId}`
+      `${environment.sportsApi}admin/economy/rarity-tiers/${leagueId}`
     );
   }
 

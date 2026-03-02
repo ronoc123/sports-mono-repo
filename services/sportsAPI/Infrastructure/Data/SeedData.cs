@@ -98,7 +98,7 @@ namespace Infrastructure.Data
             await SeedVoteBundles(context);
             var leagues = await SeedLeagues(context);
             var orgs = await SeedOrganizations(context, leagues, importer);
-            await SeedRarityTierConfigs(context, orgs);
+            await SeedRarityTierConfigs(context, leagues);
             var players = await SeedPlayers(context, orgs, importer);
             await SeedPlayerOptions(context, players);
 
@@ -108,22 +108,22 @@ namespace Infrastructure.Data
         }
 
         /// <summary>
-        /// Seeds 4 rarity tiers for every org. Pull weights sum to 10,000 bps (100%).
+        /// Seeds 4 rarity tiers for every league. Pull weights sum to 10,000 bps (100%).
         /// Thresholds: Common 60-74 (50%), Rare 75-84 (30%), Epic 85-94 (15%), Legendary 95-99 (5%).
         /// </summary>
-        private static async Task SeedRarityTierConfigs(SportsDbAppContext context, List<Organization> orgs)
+        private static async Task SeedRarityTierConfigs(SportsDbAppContext context, List<League> leagues)
         {
             var configs = new List<RarityTierConfig>();
 
-            foreach (var org in orgs)
+            foreach (var league in leagues)
             {
-                var orgGuid = org.Id.Value;
+                var leagueGuid = league.Id.Value;
                 configs.AddRange(new[]
                 {
-                    RarityTierConfig.Create(orgGuid, "Common",    60, 74, 5000),
-                    RarityTierConfig.Create(orgGuid, "Rare",      75, 84, 3000),
-                    RarityTierConfig.Create(orgGuid, "Epic",      85, 94, 1500),
-                    RarityTierConfig.Create(orgGuid, "Legendary", 95, 99,  500),
+                    RarityTierConfig.Create(leagueGuid, "Common",    60, 74, 5000),
+                    RarityTierConfig.Create(leagueGuid, "Rare",      75, 84, 3000),
+                    RarityTierConfig.Create(leagueGuid, "Epic",      85, 94, 1500),
+                    RarityTierConfig.Create(leagueGuid, "Legendary", 95, 99,  500),
                 });
             }
 

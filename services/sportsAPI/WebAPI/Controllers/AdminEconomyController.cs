@@ -20,11 +20,11 @@ public class AdminEconomyController : ControllerBase
     public AdminEconomyController(IMediator mediator) => _mediator = mediator;
 
     /// <summary>
-    /// GET /api/admin/economy/rarity-tiers/{orgId} — List all rarity tier configs for an org.
+    /// GET /api/admin/economy/rarity-tiers/{leagueId} — List all rarity tier configs for a league.
     /// </summary>
-    [HttpGet("rarity-tiers/{orgId:guid}")]
-    public async Task<ServiceResponse<List<RarityTierConfigDto>>> GetRarityTiers(Guid orgId)
-        => await _mediator.Send(new GetRarityTierConfigQuery(orgId));
+    [HttpGet("rarity-tiers/{leagueId:guid}")]
+    public async Task<ServiceResponse<List<RarityTierConfigDto>>> GetRarityTiers(Guid leagueId)
+        => await _mediator.Send(new GetRarityTierConfigQuery(leagueId));
 
     /// <summary>
     /// PUT /api/admin/economy/rarity-tiers/{configId} — Update a rarity tier's rating range and pull weight.
