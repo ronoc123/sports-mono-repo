@@ -27,25 +27,25 @@ public sealed class GetMatchDetailQueryHandler : IRequestHandler<GetMatchDetailQ
             .OrderBy(sc => sc.SlotIndex)
             .ToListAsync(cancellationToken);
 
-        // Load CardOwners with CardPlayer navigation
-        var cardOwnerIds = squadCards.Select(sc => sc.CardOwnerId).ToList();
-        var cardOwners = await _repo.Query<CardOwner>(asNoTracking: true)
-            .Include(co => co.CardPlayer)
-            .Where(co => cardOwnerIds.Contains(co.Id))
-            .ToDictionaryAsync(co => co.Id, cancellationToken);
+        // Load UserCards with CardPlayer navigation
+        var userCardIds = squadCards.Select(sc => sc.UserCardId).ToList();
+        var userCards = await _repo.Query<UserCard>(asNoTracking: true)
+            .Include(uc => uc.CardPlayer)
+            .Where(uc => userCardIds.Contains(uc.Id))
+            .ToDictionaryAsync(uc => uc.Id, cancellationToken);
 
         var squadCardDtos = squadCards
-            .Where(sc => cardOwners.ContainsKey(sc.CardOwnerId))
+            .Where(sc => userCards.ContainsKey(sc.UserCardId))
             .Select(sc =>
             {
-                var co = cardOwners[sc.CardOwnerId];
-                var cp = co.CardPlayer!;
+                var uc = userCards[sc.UserCardId];
+                var cp = uc.CardPlayer!;
                 return new SquadCardDto(
-                    co.Id,
+                    uc.Id,
                     cp.Name,
                     cp.Position,
                     cp.OverallRating,
-                    cp.RarityTier,
+                    uc.RarityTier,
                     sc.SlotIndex);
             })
             .ToList();

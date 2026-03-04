@@ -3,7 +3,7 @@
 export interface CreateMatchRequest {
   fanUserId: string;
   orgId: string;
-  cardOwnerIds: string[];
+  userCardIds: string[];
   wagerAmount: number;
 }
 
@@ -24,7 +24,7 @@ export interface BotSquadCard {
 }
 
 export interface SquadCardDto {
-  cardOwnerId: string;
+  userCardId: string;
   playerName: string;
   position: string;
   overallRating: number;

@@ -103,8 +103,11 @@ namespace Infrastructure.Data
             await SeedPlayerOptions(context, players);
 
             var nflLeague = leagues.First(l => l.Name == "NFL");
+            var nbaLeague = leagues.First(l => l.Name == "NBA");
             var filePath = Path.Combine(AppContext.BaseDirectory, "Data", "player_ratings_2015_2025.csv");
+            var nbaFile = Path.Combine(AppContext.BaseDirectory, "Data", "player_overalls.csv");
             await SeedCardPlayersFromCsv(context, nflLeague.Id.Value, filePath);
+            await SeedCardPlayersFromCsv(context, nbaLeague.Id.Value, nbaFile);
         }
 
         /// <summary>

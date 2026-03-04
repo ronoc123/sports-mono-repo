@@ -19,7 +19,7 @@ public record MatchDetailDto(
 );
 
 public record SquadCardDto(
-    Guid CardOwnerId,
+    Guid UserCardId,
     string PlayerName,
     string Position,
     int OverallRating,

@@ -26,7 +26,7 @@ public class H2HController : ControllerBase
         => await _mediator.Send(new CreateMatchCommand(
             body.FanUserId,
             body.OrgId,
-            body.CardOwnerIds,
+            body.UserCardIds,
             body.WagerAmount));
 
     /// <summary>
@@ -52,4 +52,4 @@ public class H2HController : ControllerBase
         => await _mediator.Send(new GetMatchHistoryQuery(fanUserId, orgId, page, pageSize));
 }
 
-public record CreateMatchRequest(Guid FanUserId, Guid OrgId, List<Guid> CardOwnerIds, long WagerAmount);
+public record CreateMatchRequest(Guid FanUserId, Guid OrgId, List<Guid> UserCardIds, long WagerAmount);

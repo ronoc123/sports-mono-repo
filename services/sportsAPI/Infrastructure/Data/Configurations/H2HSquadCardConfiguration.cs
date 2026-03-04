@@ -11,7 +11,7 @@ public class H2HSquadCardConfiguration : IEntityTypeConfiguration<H2HSquadCard>
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.MatchId).IsRequired();
-        builder.Property(s => s.CardOwnerId).IsRequired();
+        builder.Property(s => s.UserCardId).IsRequired();
         builder.Property(s => s.SlotIndex).IsRequired();
 
         builder.HasIndex(s => s.MatchId);

@@ -6,7 +6,7 @@ namespace Application.H2H.Commands.CreateMatch;
 public record CreateMatchCommand(
     Guid FanUserId,
     Guid OrgId,
-    IReadOnlyList<Guid> CardOwnerIds,
+    IReadOnlyList<Guid> UserCardIds,
     long WagerAmount
 ) : IRequest<ServiceResponse<CreateMatchResult>>;
 

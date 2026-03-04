@@ -50,15 +50,15 @@ export class H2HFacade {
   }
 
   async playMatch(fanUserId: string, orgId: string): Promise<boolean> {
-    const cardOwnerIds = this.store.selectedCardIds();
+    const userCardIds = this.store.selectedCardIds();
     const wagerAmount = this.store.wagerAmount();
 
-    if (!wagerAmount || cardOwnerIds.length === 0) return false;
+    if (!wagerAmount || userCardIds.length === 0) return false;
 
     this.store.setMatchPlaying();
     try {
       const res = await firstValueFrom(
-        this.api.createMatch({ fanUserId, orgId, cardOwnerIds, wagerAmount })
+        this.api.createMatch({ fanUserId, orgId, userCardIds, wagerAmount })
       );
       if (res.data) {
         this.store.setMatchResult(res.data);

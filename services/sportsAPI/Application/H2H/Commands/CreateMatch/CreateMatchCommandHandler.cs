@@ -28,32 +28,32 @@ public sealed class CreateMatchCommandHandler
         CancellationToken cancellationToken)
     {
         // 1. Validate squad size
-        if (request.CardOwnerIds.Count < 1 || request.CardOwnerIds.Count > 5)
+        if (request.UserCardIds.Count < 1 || request.UserCardIds.Count > 5)
             throw new DomainException("Squad must contain between 1 and 5 cards.");
 
-        // 2. Load and validate CardOwners (ownership + not listed)
-        var cardOwners = await _repo.Query<CardOwner>(asNoTracking: true)
-            .Include(co => co.CardPlayer)
-            .Where(co => request.CardOwnerIds.Contains(co.Id))
+        // 2. Load and validate UserCards (ownership + not listed)
+        var userCards = await _repo.Query<UserCard>(asNoTracking: true)
+            .Include(uc => uc.CardPlayer)
+            .Where(uc => request.UserCardIds.Contains(uc.Id))
             .ToListAsync(cancellationToken);
 
-        if (cardOwners.Count != request.CardOwnerIds.Count)
+        if (userCards.Count != request.UserCardIds.Count)
             throw new DomainException("One or more cards could not be found.");
 
-        foreach (var co in cardOwners)
+        foreach (var uc in userCards)
         {
-            if (co.UserId != request.FanUserId)
+            if (uc.UserId != request.FanUserId)
                 throw new DomainException("One or more cards do not belong to you.");
-            if (co.IsListed)
+            if (uc.IsListed)
                 throw new DomainException("One or more cards are currently listed on the marketplace.");
         }
 
         // 3. Determine league from squad cards
-        var leagueId = cardOwners.First().CardPlayer!.LeagueId;
+        var leagueId = userCards.First().LeagueId;
 
         // 4. Calculate fan team overall (average of squad ratings)
         var fanTeamOverall = (int)Math.Round(
-            cardOwners.Average(co => co.CardPlayer!.OverallRating));
+            userCards.Average(uc => uc.CardPlayer!.OverallRating));
 
         // 5. Load fan VoteAccount and validate balance
         var fanAccount = await _repo.GetByIdAsync<VoteAccount>(
@@ -73,8 +73,8 @@ public sealed class CreateMatchCommandHandler
             request.WagerAmount,
             fanTeamOverall);
 
-        var squadCards = request.CardOwnerIds
-            .Select((cardOwnerId, index) => H2HSquadCard.Create(match.Id, cardOwnerId, index))
+        var squadCards = request.UserCardIds
+            .Select((userCardId, index) => H2HSquadCard.Create(match.Id, userCardId, index))
             .ToList();
 
         // 7. Deduct wager from fan's account

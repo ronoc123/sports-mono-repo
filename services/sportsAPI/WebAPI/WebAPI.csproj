@@ -39,6 +39,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Link>Data\player_ratings_2015_2025.csv</Link>
     </Content>
+    <Content Include="..\Infrastructure\Data\player_overalls.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Link>Data\player_overalls.csv</Link>
+    </Content>
   </ItemGroup>
 
 </Project>
