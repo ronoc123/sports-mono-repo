@@ -6,7 +6,6 @@ import { environment } from '@sports-ui/api-types';
 import {
   ListingDto,
   ListingDetailDto,
-  PaginatedListings,
   CreateListingRequest,
   PlaceBidRequest,
   BuyNowRequest,
@@ -16,9 +15,9 @@ import {
 export class MarketplaceApi {
   private readonly http = inject(ApiService);
 
-  getListings(orgId: string, page = 1, pageSize = 20): Observable<ServiceResponse<PaginatedListings>> {
-    return this.http.get<ServiceResponse<PaginatedListings>>(
-      `${environment.sportsApi}cards/listings?orgId=${orgId}&page=${page}&pageSize=${pageSize}`
+  getListings(leagueId: string, page = 1, pageSize = 20): Observable<ServiceResponse<ListingDto[]>> {
+    return this.http.get<ServiceResponse<ListingDto[]>>(
+      `${environment.sportsApi}cards/listings?leagueId=${leagueId}&page=${page}&pageSize=${pageSize}`
     );
   }
 
@@ -28,8 +27,8 @@ export class MarketplaceApi {
     );
   }
 
-  createListing(request: CreateListingRequest): Observable<ServiceResponse<ListingDto>> {
-    return this.http.post<ServiceResponse<ListingDto>, CreateListingRequest>(
+  createListing(request: CreateListingRequest): Observable<ServiceResponse<string>> {
+    return this.http.post<ServiceResponse<string>, CreateListingRequest>(
       `${environment.sportsApi}cards/listings`,
       request
     );

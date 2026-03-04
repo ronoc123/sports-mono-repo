@@ -11,9 +11,9 @@ public sealed class AuctionListing : Aggregate<Guid>
 {
     internal AuctionListing() { } // EF
 
-    public Guid CardOwnerId { get; private set; }
+    public Guid UserCardId { get; private set; }
     public Guid SellerId { get; private set; }
-    public Guid OrgId { get; private set; }
+    public Guid LeagueId { get; private set; }
 
     public long StartingBid { get; private set; }
     public long? BuyNowPrice { get; private set; }
@@ -25,16 +25,16 @@ public sealed class AuctionListing : Aggregate<Guid>
     public static readonly int[] ValidDurationHours = [1, 24, 48, 72];
 
     public static AuctionListing Create(
-        Guid cardOwnerId,
+        Guid userCardId,
         Guid sellerId,
-        Guid orgId,
+        Guid leagueId,
         long startingBid,
         long? buyNowPrice,
         int durationHours)
     {
-        if (cardOwnerId == Guid.Empty) throw new DomainException("CardOwnerId is required.");
+        if (userCardId == Guid.Empty) throw new DomainException("UserCardId is required.");
         if (sellerId == Guid.Empty) throw new DomainException("SellerId is required.");
-        if (orgId == Guid.Empty) throw new DomainException("OrgId is required.");
+        if (leagueId == Guid.Empty) throw new DomainException("LeagueId is required.");
         if (startingBid <= 0) throw new DomainException("Starting bid must be greater than zero.");
         if (!ValidDurationHours.Contains(durationHours))
             throw new DomainException($"Duration must be one of: {string.Join(", ", ValidDurationHours)} hours.");
@@ -44,9 +44,9 @@ public sealed class AuctionListing : Aggregate<Guid>
         return new AuctionListing
         {
             Id = Guid.NewGuid(),
-            CardOwnerId = cardOwnerId,
+            UserCardId = userCardId,
             SellerId = sellerId,
-            OrgId = orgId,
+            LeagueId = leagueId,
             StartingBid = startingBid,
             BuyNowPrice = buyNowPrice,
             CurrentBid = startingBid,

@@ -65,16 +65,12 @@ export class MarketplaceFacade {
   }
 
   // ── Data methods ───────────────────────────────────────────────────────────
-  async loadListings(orgId: string, page = 1, pageSize = 20): Promise<void> {
+  async loadListings(leagueId: string, page = 1, pageSize = 20): Promise<void> {
     this.store.setListingsLoading();
     try {
-      const res = await firstValueFrom(this.api.getListings(orgId, page, pageSize));
-      const data = res.data;
-      if (data) {
-        this.store.setListings(data.items, data.totalCount, data.page);
-      } else {
-        this.store.setListings([], 0, 1);
-      }
+      const res = await firstValueFrom(this.api.getListings(leagueId, page, pageSize));
+      const listings = res.data ?? [];
+      this.store.setListings(listings, listings.length, page);
     } catch {
       this.store.setListingsError('Failed to load listings');
     }
@@ -100,7 +96,8 @@ export class MarketplaceFacade {
     try {
       const res = await firstValueFrom(this.api.createListing(request));
       if (res.data) {
-        this.store.setListSuccess(res.data);
+        // Backend returns the new listing ID (GUID) — just mark success
+        this.store.setListSuccess();
         return true;
       }
       this.store.setListError(res.message ?? 'Failed to create listing');

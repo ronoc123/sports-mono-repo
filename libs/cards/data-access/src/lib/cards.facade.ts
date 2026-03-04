@@ -99,7 +99,7 @@ export class CardsFacade {
     this.store.resetPackState();
   }
 
-  async loadCollection(userId: string, orgId: string): Promise<void> {
+  async loadCollection(userId: string): Promise<void> {
     this.store.setLoading();
     try {
       const res = await firstValueFrom(

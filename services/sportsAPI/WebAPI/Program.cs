@@ -24,12 +24,15 @@ builder.Services.AddMessageBroker(builder.Configuration, typeof(RewardReveivedCo
 
 builder.Services.AddCors(options =>
 {
+    // AllowAnyOrigin() cannot be combined with AllowCredentials(), which SignalR requires.
+    // SetIsOriginAllowed(_ => true) is the dev-safe equivalent that supports credentials.
     options.AddPolicy("AllowAll", policy =>
     {
         policy
-          .AllowAnyOrigin()
+          .SetIsOriginAllowed(_ => true)
           .AllowAnyHeader()
-          .AllowAnyMethod();
+          .AllowAnyMethod()
+          .AllowCredentials();
     });
 
     options.AddPolicy("AllowFrontend", policy =>
@@ -46,7 +49,8 @@ builder.Services.AddCors(options =>
               "https://localhost:8080"
           )
           .AllowAnyHeader()
-          .AllowAnyMethod();
+          .AllowAnyMethod()
+          .AllowCredentials();
     });
 });
 
@@ -180,7 +184,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<AuctionHub>("/hubs/auction");
+app.MapHub<AuctionHub>("/hubs/auction").RequireCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowFrontend");
 
 // Database seeding
 using (var scope = app.Services.CreateScope())

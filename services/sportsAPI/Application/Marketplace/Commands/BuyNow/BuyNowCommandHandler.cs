@@ -57,10 +57,10 @@ public sealed class BuyNowCommandHandler
             UserId.Of(listing.SellerId))
             ?? throw new DomainException("Vote account not found for seller.");
 
-        // 5. Load card owner (tracked) for ownership transfer
-        var cardOwner = await _repo.Query<CardOwner>(asNoTracking: false)
-            .FirstOrDefaultAsync(co => co.Id == listing.CardOwnerId, cancellationToken)
-            ?? throw new EntityNotFoundException(nameof(CardOwner), listing.CardOwnerId);
+        // 5. Load user card (tracked) for ownership transfer
+        var userCard = await _repo.Query<UserCard>(asNoTracking: false)
+            .FirstOrDefaultAsync(uc => uc.Id == listing.UserCardId, cancellationToken)
+            ?? throw new EntityNotFoundException(nameof(UserCard), listing.UserCardId);
 
         // 6. Release all active escrows for this listing (refund all existing bidders)
         var activeEscrows = await _repo.Query<PointsEscrow>(asNoTracking: false)
@@ -86,13 +86,13 @@ public sealed class BuyNowCommandHandler
         sellerAccount.CreditAuctionSale(buyNowPrice, listingId);
 
         // 8. Transfer card ownership and settle listing
-        cardOwner.TransferTo(request.BuyerId);
+        userCard.TransferTo(request.BuyerId);
         listing.MarkAsSold();
 
         // 9. Persist all atomically
         _repo.Update(buyerAccount);
         _repo.Update(sellerAccount);
-        _repo.Update(cardOwner);
+        _repo.Update(userCard);
         _repo.Update(listing);
         await _repo.SaveChangesAsync(cancellationToken);
 

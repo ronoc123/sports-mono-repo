@@ -8,9 +8,8 @@ public sealed class CreateListingCommandValidator : AbstractValidator<CreateList
 
     public CreateListingCommandValidator()
     {
-        RuleFor(x => x.CardOwnerId).NotEmpty();
+        RuleFor(x => x.UserCardId).NotEmpty();
         RuleFor(x => x.SellerId).NotEmpty();
-        RuleFor(x => x.OrgId).NotEmpty();
         RuleFor(x => x.StartingBid).GreaterThan(0).WithMessage("Starting bid must be greater than zero.");
         RuleFor(x => x.DurationHours)
             .Must(d => ValidDurations.Contains(d))

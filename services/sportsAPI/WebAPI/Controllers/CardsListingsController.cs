@@ -7,7 +7,6 @@ using Application.Marketplace.Queries.GetListingDetail;
 using Application.Marketplace.Queries.GetListings;
 using Contracts.Contracts;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
@@ -23,18 +22,18 @@ public class CardsListingsController : ControllerBase
 
     /// <summary>POST /api/cards/listings — List a card for auction.</summary>
     [HttpPost]
-    [Authorize(Policy = "UserOnly")]
+    //[Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<ServiceResponse<Guid>>> CreateListing(
         [FromBody] CreateListingCommand command)
         => await _mediator.Send(command);
 
-    /// <summary>GET /api/cards/listings?orgId= — Browse active listings (paginated).</summary>
+    /// <summary>GET /api/cards/listings?leagueId= — Browse active listings for a league (paginated).</summary>
     [HttpGet]
     public async Task<ServiceResponse<List<ListingDto>>> GetListings(
-        [FromQuery] Guid orgId,
+        [FromQuery] Guid leagueId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
-        => await _mediator.Send(new GetListingsQuery(orgId, page, pageSize));
+        => await _mediator.Send(new GetListingsQuery(leagueId, page, pageSize));
 
     /// <summary>GET /api/cards/listings/{listingId} — Full listing detail + bid history.</summary>
     [HttpGet("{listingId:guid}")]
@@ -43,7 +42,7 @@ public class CardsListingsController : ControllerBase
 
     /// <summary>POST /api/cards/listings/{listingId}/bids — Place a bid on an active listing.</summary>
     [HttpPost("{listingId:guid}/bids")]
-    [Authorize(Policy = "UserOnly")]
+    //[Authorize(Policy = "UserOnly")]
     public async Task<ServiceResponse<bool>> PlaceBid(
         Guid listingId,
         [FromBody] PlaceBidRequest body)
@@ -51,7 +50,7 @@ public class CardsListingsController : ControllerBase
 
     /// <summary>POST /api/cards/listings/{listingId}/buy-now — Immediately purchase a card at buy now price.</summary>
     [HttpPost("{listingId:guid}/buy-now")]
-    [Authorize(Policy = "UserOnly")]
+    //[Authorize(Policy = "UserOnly")]
     public async Task<ServiceResponse<bool>> BuyNow(
         Guid listingId,
         [FromBody] BuyNowRequest body)

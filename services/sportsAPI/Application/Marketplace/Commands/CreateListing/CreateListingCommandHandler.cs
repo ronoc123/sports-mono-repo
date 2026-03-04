@@ -2,6 +2,7 @@ using BuildingBlocks.Exceptions;
 using Contracts.Contracts;
 using Domain.Cards;
 using Domain.Marketplace;
+
 using Domain.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,35 +20,35 @@ public sealed class CreateListingCommandHandler
         CreateListingCommand request,
         CancellationToken cancellationToken)
     {
-        // 1. Verify ownership
-        var cardOwner = await _repo.Query<CardOwner>(asNoTracking: false)
-            .FirstOrDefaultAsync(c => c.Id == request.CardOwnerId, cancellationToken);
+        // 1. Verify ownership via UserCard
+        var userCard = await _repo.Query<UserCard>(asNoTracking: false)
+            .FirstOrDefaultAsync(c => c.Id == request.UserCardId, cancellationToken);
 
-        if (cardOwner is null)
-            throw new EntityNotFoundException(nameof(CardOwner), request.CardOwnerId);
+        if (userCard is null)
+            throw new EntityNotFoundException(nameof(UserCard), request.UserCardId);
 
-        if (cardOwner.UserId != request.SellerId)
+        if (userCard.UserId != request.SellerId)
             throw new DomainException("You do not own this card.");
 
         // 2. Guard: already listed
-        if (cardOwner.IsListed)
+        if (userCard.IsListed)
             throw new DomainException("Card is already listed.");
 
-        // 3. Create listing aggregate
+        // 3. Create listing aggregate (league-scoped)
         var listing = AuctionListing.Create(
-            request.CardOwnerId,
+            request.UserCardId,
             request.SellerId,
-            request.OrgId,
+            userCard.LeagueId,
             request.StartingBid,
             request.BuyNowPrice,
             request.DurationHours);
 
         // 4. Lock the card
-        cardOwner.MarkAsListed();
+        userCard.MarkAsListed();
 
         // 5. Persist atomically
         await _repo.AddAsync(listing, cancellationToken);
-        _repo.Update(cardOwner);
+        _repo.Update(userCard);
         await _repo.SaveChangesAsync(cancellationToken);
 
         return ServiceResponse.Ok(listing.Id, "Listing created successfully.");

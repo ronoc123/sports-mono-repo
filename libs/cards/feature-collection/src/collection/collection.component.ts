@@ -1,26 +1,23 @@
-import {
-  Component,
-  OnInit,
-  inject,
-  signal,
-  computed,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { CardsFacade, UserCard } from '@sports-ui/cards-data-access';
-import { AuthFacade } from '@sports-ui/auth-data-access';
-import { OrganizationFeatureService } from '@sports-ui/organization-data-access';
-import { MarketplaceFacade } from '@sports-ui/marketplace-data-access';
+import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { RouterModule } from "@angular/router";
+import { MatIconModule } from "@angular/material/icon";
+import { CardsFacade, UserCard } from "@sports-ui/cards-data-access";
+import { AuthFacade } from "@sports-ui/auth-data-access";
+import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
+import { MarketplaceFacade } from "@sports-ui/marketplace-data-access";
 
-type RarityFilter = 'All' | 'Common' | 'Rare' | 'Epic' | 'Legendary';
+type RarityFilter = "All" | "Common" | "Rare" | "Epic" | "Legendary";
+type SortField = "name" | "overallRating" | "pulledAt";
+type ViewMode = "grid" | "list";
 
 @Component({
-  selector: 'lib-collection',
+  selector: "lib-collection",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './collection.component.html',
-  styleUrl: './collection.component.css',
+  imports: [CommonModule, FormsModule, RouterModule, MatIconModule],
+  templateUrl: "./collection.component.html",
+  styleUrl: "./collection.component.css",
 })
 export class CollectionComponent implements OnInit {
   private readonly facade = inject(CardsFacade);
@@ -34,10 +31,26 @@ export class CollectionComponent implements OnInit {
   readonly collection = this.facade.collection;
 
   // ── Local UI state ────────────────────────────────
-  readonly rarityFilter = signal<RarityFilter>('All');
-  readonly searchQuery = signal('');
+  readonly rarityFilter = signal<RarityFilter>("All");
+  readonly searchQuery = signal("");
+  readonly viewMode = signal<ViewMode>("grid");
+  readonly sortField = signal<SortField>("overallRating");
+  readonly sortDirection = signal<"asc" | "desc">("desc");
+  readonly selectedCard = signal<UserCard | null>(null);
 
-  readonly rarityFilters: RarityFilter[] = ['All', 'Common', 'Rare', 'Epic', 'Legendary'];
+  readonly rarityFilters: RarityFilter[] = [
+    "All",
+    "Common",
+    "Rare",
+    "Epic",
+    "Legendary",
+  ];
+
+  readonly sortOptions: { label: string; value: SortField }[] = [
+    { label: "Overall Rating", value: "overallRating" },
+    { label: "Name", value: "name" },
+    { label: "Date Pulled", value: "pulledAt" },
+  ];
 
   readonly filteredCollection = computed(() => {
     let cards = this.collection();
@@ -52,17 +65,51 @@ export class CollectionComponent implements OnInit {
     }
 
     const rarity = this.rarityFilter();
-    if (rarity !== 'All') {
+    if (rarity !== "All") {
       cards = cards.filter((c) => c.rarityTier === rarity);
     }
 
-    return cards;
+    const field = this.sortField();
+    const dir = this.sortDirection() === "asc" ? 1 : -1;
+    return [...cards].sort((a, b) => {
+      if (field === "overallRating")
+        return (a.overallRating - b.overallRating) * dir;
+      if (field === "name") return a.name.localeCompare(b.name) * dir;
+      if (field === "pulledAt") {
+        const ta = a.pulledAt ? new Date(a.pulledAt).getTime() : 0;
+        const tb = b.pulledAt ? new Date(b.pulledAt).getTime() : 0;
+        return (ta - tb) * dir;
+      }
+      return 0;
+    });
   });
 
+  // ── Stats ─────────────────────────────────────────
   readonly totalCount = computed(() => this.collection().length);
   readonly filteredCount = computed(() => this.filteredCollection().length);
 
-  // ── Listing form state ────────────────────────────────────────────────────
+  readonly avgOverallRating = computed(() => {
+    const cards = this.collection();
+    if (!cards.length) return 0;
+    return Math.round(
+      cards.reduce((sum, c) => sum + c.overallRating, 0) / cards.length
+    );
+  });
+
+  readonly commonCount = computed(
+    () => this.collection().filter((c) => c.rarityTier === "Common").length
+  );
+  readonly rareCount = computed(
+    () => this.collection().filter((c) => c.rarityTier === "Rare").length
+  );
+  readonly epicCount = computed(
+    () => this.collection().filter((c) => c.rarityTier === "Epic").length
+  );
+  readonly legendaryCount = computed(
+    () => this.collection().filter((c) => c.rarityTier === "Legendary").length
+  );
+
+  // ── Listing form state ────────────────────────────
   readonly listingCard = signal<UserCard | null>(null);
   readonly listingStartingBid = signal<number | null>(null);
   readonly listingBuyNowPrice = signal<number | null>(null);
@@ -73,40 +120,54 @@ export class CollectionComponent implements OnInit {
 
   readonly durationOptions = [1, 24, 48, 72];
 
-  readonly rarityColors: Record<string, { bg: string; text: string; border: string }> = {
-    Common: { bg: '#f1f5f9', text: '#475569', border: '#cbd5e1' },
-    Rare: { bg: '#eff6ff', text: '#1d4ed8', border: '#93c5fd' },
-    Epic: { bg: '#f5f3ff', text: '#7c3aed', border: '#c4b5fd' },
-    Legendary: { bg: '#fffbeb', text: '#b45309', border: '#fcd34d' },
-  };
-
   async ngOnInit(): Promise<void> {
     const userId = this.authFacade.user()?.id;
     const orgId = this.orgFacade.selectedOrganization()?.id;
     if (userId && orgId) {
-      await this.facade.loadCollection(userId, orgId);
+      await this.facade.loadCollection(userId);
     }
   }
 
-  rarityStyle(tier: string): Record<string, string> {
-    const c = this.rarityColors[tier] ?? this.rarityColors['Common'];
-    return {
-      background: c.bg,
-      color: c.text,
-      'border-color': c.border,
+  initials(name: string): string {
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  rarityGradient(tier: string): string {
+    const map: Record<string, string> = {
+      Common: "linear-gradient(135deg, #475569, #64748b)",
+      Rare: "linear-gradient(135deg, #1d4ed8, #3b82f6)",
+      Epic: "linear-gradient(135deg, #7c3aed, #a855f7)",
+      Legendary: "linear-gradient(135deg, #b45309, #f59e0b)",
     };
+    return map[tier] ?? map["Common"];
+  }
+
+  rarityAccent(tier: string): string {
+    const map: Record<string, string> = {
+      Common: "#64748b",
+      Rare: "#3b82f6",
+      Epic: "#a855f7",
+      Legendary: "#f59e0b",
+    };
+    return map[tier] ?? "#64748b";
   }
 
   rarityCount(tier: RarityFilter): number {
-    if (tier === 'All') return this.collection().length;
+    if (tier === "All") return this.collection().length;
     return this.collection().filter((c) => c.rarityTier === tier).length;
   }
 
-  trackByCard(_: number, card: UserCard): string {
-    return card.id;
+  toggleSortDir(): void {
+    this.sortDirection.update((d) => (d === "asc" ? "desc" : "asc"));
   }
 
-  openListingForm(card: UserCard): void {
+  openCardDetail(card: UserCard): void {
+    this.selectedCard.set(card);
     this.listingCard.set(card);
     this.listingStartingBid.set(null);
     this.listingBuyNowPrice.set(null);
@@ -114,7 +175,8 @@ export class CollectionComponent implements OnInit {
     this.marketplaceFacade.resetListState();
   }
 
-  closeListingForm(): void {
+  closeCardDetail(): void {
+    this.selectedCard.set(null);
     this.listingCard.set(null);
     this.marketplaceFacade.resetListState();
   }
@@ -125,20 +187,23 @@ export class CollectionComponent implements OnInit {
     const orgId = this.orgFacade.selectedOrganization()?.id;
     const startingBid = this.listingStartingBid();
 
-    if (!card || !userId || !orgId || !startingBid || startingBid <= 0) return;
+    if (!card || !userId || !startingBid || startingBid <= 0) return;
 
     const ok = await this.marketplaceFacade.createListing({
-      cardOwnerId: card.id,
+      userCardId: card.id,
       sellerId: userId,
-      orgId,
       startingBid,
       buyNowPrice: this.listingBuyNowPrice() ?? undefined,
       durationHours: this.listingDurationHours(),
     });
 
     if (ok) {
-      this.closeListingForm();
-      await this.facade.loadCollection(userId, orgId);
+      this.closeCardDetail();
+      await this.facade.loadCollection(userId);
     }
+  }
+
+  trackByCard(_: number, card: UserCard): string {
+    return card.id;
   }
 }

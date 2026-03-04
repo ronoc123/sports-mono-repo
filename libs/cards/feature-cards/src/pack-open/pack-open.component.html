@@ -1,107 +1,208 @@
-<div class="pack-page">
-  <!-- ── Header ─────────────────────────────── -->
-  <div class="pack-header">
-    <span class="pack-header-icon material-icons">style</span>
+<div class="pp-page">
+  <!-- ── Header ────────────────────────────────────────── -->
+  <div class="pp-header">
     <div>
-      <h1 class="pack-title">Card Packs</h1>
-      <p class="pack-subtitle">
-        Open a pack to add 5 new players to your collection
-      </p>
+      <h1 class="pp-title">Card Packs</h1>
+      <p class="pp-subtitle">Open packs to collect player cards</p>
+    </div>
+    <div class="pp-header-right">
+      <a class="pp-collection-btn" routerLink="../collection">
+        <mat-icon>emoji_events</mat-icon>
+        View Collection
+      </a>
+      <div class="pp-balance-pill">
+        <mat-icon>toll</mat-icon>
+        <div>
+          <p class="pp-balance-label">Available Points</p>
+          <p class="pp-balance-val">{{ balance() | number }}</p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ── League selector ────────────────────── -->
-
-  <!-- ── Pack card ───────────────────────────── -->
-  @if (packStatus() !== 'success') {
-  <div class="pack-card">
-    <div class="pack-card-glow"></div>
-    <div class="pack-card-body">
-      <span class="pack-card-icon material-icons">auto_awesome</span>
-      <h2 class="pack-card-name">Standard Pack</h2>
-      <p class="pack-card-desc">
-        Contains exactly 5 player cards drawn by rarity weight
-      </p>
-      <div class="pack-cost-row">
-        <span class="material-icons cost-icon">toll</span>
-        <span class="cost-value">{{ packCost | number }}</span>
-        <span class="cost-label">Points</span>
+  <!-- ── Results modal ──────────────────────────────────── -->
+  @if (packStatus() === 'success' && revealedCards().length > 0) {
+  <div class="pp-overlay">
+    <div class="pp-results-modal">
+      <div class="pp-results-header">
+        <h2 class="pp-results-title">Pack Opened!</h2>
+        <p class="pp-results-sub">
+          You received {{ revealedCards().length }} cards
+        </p>
+        @if (!revealComplete()) {
+        <div class="pp-reveal-progress">{{ revealedCards().length }}</div>
+        }
       </div>
 
-      @if (packError()) {
-      <div class="pack-error">
-        <span class="material-icons error-icon">error_outline</span>
-        {{ packError() }}
+      <div class="pp-results-grid">
+        @for (card of revealedCards(); track card.id; let i = $index) {
+        <div
+          class="pp-result-card"
+          [class]="'pp-result-card--' + card.rarityTier.toLowerCase()"
+          [style.animation-delay]="i * 80 + 'ms'"
+        >
+          <div
+            class="pp-rc-stripe"
+            [style.background]="rarityAccent(card.rarityTier)"
+          ></div>
+          <div class="pp-rc-top">
+            <span class="pp-rc-ovr">{{ card.overallRating }}</span>
+            <span class="pp-rc-pos">{{ card.position }}</span>
+          </div>
+          <div
+            class="pp-rc-avatar"
+            [style.background]="rarityGradient(card.rarityTier)"
+          >
+            {{ initials(card.name) }}
+          </div>
+          <div class="pp-rc-info">
+            <p class="pp-rc-name">{{ card.name }}</p>
+            <span
+              class="pp-rc-rarity"
+              [class]="'pp-rarity--' + card.rarityTier.toLowerCase()"
+            >
+              {{ card.rarityTier }}
+            </span>
+          </div>
+          <div
+            class="pp-rc-stripe-bottom"
+            [style.background]="rarityAccent(card.rarityTier)"
+          ></div>
+        </div>
+        }
+      </div>
+
+      @if (revealComplete()) {
+      <div class="pp-results-balance">
+        <mat-icon>toll</mat-icon>
+        Balance: {{ balance() | number }} pts
+      </div>
+      <div class="pp-results-actions">
+        <button class="pp-btn-close" (click)="onOpenAnother()">Close</button>
+        <a class="pp-btn-collection" routerLink="../collection">
+          <mat-icon>emoji_events</mat-icon>
+          View Collection
+        </a>
       </div>
       }
-
-      <button
-        class="open-btn"
-        (click)="onOpenPack()"
-        [disabled]="!canPurchase()"
-      >
-        @if (isPurchasing()) {
-        <span class="spinner-sm"></span>
-        <span>Processing…</span>
-        } @else if (balance() < packCost) {
-        <span
-          >Insufficient Points ({{ balance() | number }} /
-          {{ packCost | number }})</span
-        >
-        } @else {
-        <span class="material-icons">lock_open</span>
-        <span>Open Pack</span>
-        }
-      </button>
-
-      <p class="pack-note">Rarity pull rates are not disclosed.</p>
     </div>
   </div>
   }
 
-  <!-- ── Card reveal ─────────────────────────── -->
-  @if (packStatus() === 'success') {
-  <div class="reveal-section">
-    <div class="reveal-header">
-      <h2 class="reveal-title">
-        @if (revealComplete()) { Your 5 Cards! } @else { Revealing… }
-      </h2>
-      @if (!revealComplete()) {
-      <div class="reveal-progress">{{ revealedCards().length }} / 5</div>
-      }
+  <!-- ── Available Packs ────────────────────────────────── -->
+  <div class="pp-section">
+    <div class="pp-section-heading">
+      <mat-icon>card_giftcard</mat-icon>
+      <h2>Available Packs</h2>
     </div>
 
-    <div class="cards-grid">
-      @for (card of revealedCards(); track card.id) {
-      <div class="card-reveal" [ngStyle]="rarityStyle(card.rarityTier)">
-        <div class="card-rarity-badge" [ngStyle]="rarityStyle(card.rarityTier)">
-          {{ card.rarityTier }}
-        </div>
-        <div class="card-ovr">{{ card.overallRating }}</div>
-        <div class="card-name">{{ card.name }}</div>
-        <div class="card-position">{{ card.position }}</div>
-      </div>
-      }
-
-      <!-- Placeholder slots for unrevealed cards -->
-      @for (_ of [].constructor(5 - revealedCards().length); track $index) {
-      <div class="card-reveal card-placeholder">
-        <span class="material-icons placeholder-icon">style</span>
-      </div>
-      }
-    </div>
-
-    @if (revealComplete()) {
-    <div class="reveal-footer">
-      <p class="balance-updated">
-        <span class="material-icons">toll</span>
-        Balance updated: {{ balance() | number }} Points
-      </p>
-      <button class="btn-open-another" (click)="onOpenAnother()">
-        Open Another Pack
-      </button>
+    @if (packError()) {
+    <div class="pp-error">
+      <mat-icon>error_outline</mat-icon>
+      {{ packError() }}
     </div>
     }
+
+    <div class="pp-packs-grid">
+      @for (pack of packTiers; track pack.id) {
+      <div class="pp-pack-card" [class.pp-pack-card--soon]="pack.comingSoon">
+        <!-- Gradient header -->
+        <div class="pp-pack-header" [style.background]="pack.gradient">
+          <div class="pp-header-circle"></div>
+          <div class="pp-pack-icon-wrap">
+            <mat-icon>{{ pack.icon }}</mat-icon>
+          </div>
+          <h3 class="pp-pack-name">{{ pack.name }}</h3>
+          <p class="pp-pack-desc">{{ pack.description }}</p>
+        </div>
+
+        <!-- Pack body -->
+        <div class="pp-pack-body">
+          <div class="pp-pack-meta">
+            <div class="pp-meta-row">
+              <span class="pp-meta-label">Cards per pack</span>
+              <span class="pp-meta-val">{{ pack.cardsPerPack }} cards</span>
+            </div>
+            <div class="pp-meta-row">
+              <span class="pp-meta-label">Cost</span>
+              <div class="pp-meta-cost">
+                <mat-icon class="pp-coin-icon">toll</mat-icon>
+                <span class="pp-meta-val">{{ pack.cost | number }} pts</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pp-drop-rates">
+            <p class="pp-drop-label">Drop Rates</p>
+            @for (rate of pack.dropRates; track rate.tier) {
+            <div class="pp-drop-row">
+              <span
+                class="pp-drop-tier"
+                [class]="'pp-dr--' + rate.tier.toLowerCase()"
+              >
+                {{ rate.tier }}
+              </span>
+              <span class="pp-drop-pct">{{ rate.pct }}%</span>
+            </div>
+            }
+          </div>
+
+          @if (pack.comingSoon) {
+          <div class="pp-coming-soon">
+            <mat-icon>lock</mat-icon>
+            Coming Soon
+          </div>
+          } @else {
+          <button
+            class="pp-open-btn"
+            [style.background]="pack.gradient"
+            (click)="onOpenPack()"
+            [disabled]="!canPurchase()"
+          >
+            @if (isPurchasing()) {
+            <span class="pp-spinner"></span>
+            } @else {
+            <mat-icon>shopping_cart</mat-icon>
+            } Open Pack @if (!isPurchasing()) {
+            <mat-icon>arrow_forward</mat-icon>
+            }
+          </button>
+          @if (balance() < pack.cost) {
+          <p class="pp-insufficient">
+            Need {{ pack.cost - balance() | number }} more points
+          </p>
+          } }
+        </div>
+      </div>
+      }
+    </div>
   </div>
-  }
+
+  <!-- ── Collection Stats ───────────────────────────────── -->
+  <div class="pp-stats-section">
+    <div class="pp-stats-heading">
+      <mat-icon>local_fire_department</mat-icon>
+      <h3>Collection Stats</h3>
+    </div>
+    <div class="pp-stats-grid">
+      <div class="pp-stat-card">
+        <div class="pp-stat-val">{{ totalCollectionCards() }}</div>
+        <div class="pp-stat-lbl">Total Cards</div>
+      </div>
+      <div class="pp-stat-card">
+        <div class="pp-stat-val pp-stat-val--legendary">
+          {{ legendaryCount() }}
+        </div>
+        <div class="pp-stat-lbl">Legendary+</div>
+      </div>
+      <div class="pp-stat-card">
+        <div class="pp-stat-val pp-stat-val--orange">{{ bestOverall() }}</div>
+        <div class="pp-stat-lbl">Best Overall</div>
+      </div>
+      <div class="pp-stat-card">
+        <div class="pp-stat-val pp-stat-val--blue">{{ uniquePlayers() }}</div>
+        <div class="pp-stat-lbl">Unique Players</div>
+      </div>
+    </div>
+  </div>
 </div>

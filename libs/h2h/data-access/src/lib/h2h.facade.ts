@@ -1,10 +1,10 @@
-import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { H2HStore } from './h2h.store';
-import { H2HApi } from './h2h.api';
-import { CardsFacade } from '@sports-ui/cards-data-access';
+import { Injectable, inject } from "@angular/core";
+import { firstValueFrom } from "rxjs";
+import { H2HStore } from "./h2h.store";
+import { H2HApi } from "./h2h.api";
+import { CardsFacade } from "@sports-ui/cards-data-access";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class H2HFacade {
   private readonly store = inject(H2HStore);
   private readonly api = inject(H2HApi);
@@ -31,13 +31,13 @@ export class H2HFacade {
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  async loadCollection(userId: string, orgId: string): Promise<void> {
+  async loadCollection(userId: string): Promise<void> {
     this.store.setCollectionLoading();
     try {
-      await this.cardsFacade.loadCollection(userId, orgId);
+      await this.cardsFacade.loadCollection(userId);
       this.store.setCollection(this.cardsFacade.collection());
     } catch {
-      this.store.setCollectionError('Failed to load collection');
+      this.store.setCollectionError("Failed to load collection");
     }
   }
 
@@ -64,11 +64,11 @@ export class H2HFacade {
         this.store.setMatchResult(res.data);
         return true;
       }
-      this.store.setMatchError(res.message ?? 'Match failed');
+      this.store.setMatchError(res.message ?? "Match failed");
       return false;
     } catch (err: any) {
       this.store.setMatchError(
-        err?.error?.message ?? err?.message ?? 'Failed to play match'
+        err?.error?.message ?? err?.message ?? "Failed to play match"
       );
       return false;
     }
@@ -78,7 +78,11 @@ export class H2HFacade {
     this.store.resetSquad();
   }
 
-  async loadMatchHistory(fanUserId: string, orgId: string, page = 1): Promise<void> {
+  async loadMatchHistory(
+    fanUserId: string,
+    orgId: string,
+    page = 1
+  ): Promise<void> {
     this.store.setHistoryLoading();
     try {
       const result = await firstValueFrom(
@@ -86,7 +90,7 @@ export class H2HFacade {
       );
       this.store.setMatchHistory(result.items, result.totalCount, result.page);
     } catch {
-      this.store.setHistoryError('Failed to load match history');
+      this.store.setHistoryError("Failed to load match history");
     }
   }
 }

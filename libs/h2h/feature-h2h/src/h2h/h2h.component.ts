@@ -1,26 +1,20 @@
-import {
-  Component,
-  OnInit,
-  inject,
-  signal,
-  computed,
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { H2HFacade } from '@sports-ui/h2h-data-access';
-import { BotSquadCard } from '@sports-ui/h2h-data-access';
-import { AuthFacade } from '@sports-ui/auth-data-access';
-import { OrganizationFeatureService } from '@sports-ui/organization-data-access';
-import { UserCard } from '@sports-ui/cards-data-access';
+import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { H2HFacade } from "@sports-ui/h2h-data-access";
+import { BotSquadCard } from "@sports-ui/h2h-data-access";
+import { AuthFacade } from "@sports-ui/auth-data-access";
+import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
+import { UserCard } from "@sports-ui/cards-data-access";
 
-type H2HView = 'builder' | 'history';
+type H2HView = "builder" | "history";
 
 @Component({
-  selector: 'lib-h2h',
+  selector: "lib-h2h",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './h2h.component.html',
-  styleUrl: './h2h.component.css',
+  templateUrl: "./h2h.component.html",
+  styleUrl: "./h2h.component.css",
 })
 export class H2HComponent implements OnInit {
   private readonly facade = inject(H2HFacade);
@@ -46,7 +40,7 @@ export class H2HComponent implements OnInit {
   readonly error = this.facade.error;
 
   // ── Local UI state ────────────────────────────────────────────────────────
-  readonly activeView = signal<H2HView>('builder');
+  readonly activeView = signal<H2HView>("builder");
   readonly showConfirmDialog = signal(false);
 
   readonly parsedBotSquad = computed<BotSquadCard[]>(() => {
@@ -62,14 +56,14 @@ export class H2HComponent implements OnInit {
   readonly pointsDelta = computed(() => {
     const result = this.matchResult();
     if (!result) return 0;
-    return result.outcome === 'win' ? result.wagerAmount : -result.wagerAmount;
+    return result.outcome === "win" ? result.wagerAmount : -result.wagerAmount;
   });
 
   async ngOnInit(): Promise<void> {
     const userId = this.authFacade.user()?.id;
     const orgId = this.orgFacade.selectedOrganization()?.id;
     if (userId && orgId) {
-      await this.facade.loadCollection(userId, orgId);
+      await this.facade.loadCollection(userId);
       await this.facade.loadMatchHistory(userId, orgId);
     }
   }
@@ -120,12 +114,12 @@ export class H2HComponent implements OnInit {
 
   getRarityColor(rarity: string): string {
     const map: Record<string, string> = {
-      Common: '#64748b',
-      Rare: '#1d4ed8',
-      Epic: '#7c3aed',
-      Legendary: '#b45309',
+      Common: "#64748b",
+      Rare: "#1d4ed8",
+      Epic: "#7c3aed",
+      Legendary: "#b45309",
     };
-    return map[rarity] ?? '#64748b';
+    return map[rarity] ?? "#64748b";
   }
 
   trackById(_: number, item: { id: string }): string {

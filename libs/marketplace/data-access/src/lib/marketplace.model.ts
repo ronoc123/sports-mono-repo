@@ -4,9 +4,8 @@ import { RarityTier } from '@sports-ui/cards-data-access';
 
 export interface ListingDto {
   id: string;
-  cardOwnerId: string;
+  userCardId: string;
   sellerId: string;
-  orgId: string;
   playerName: string;
   position: string;
   overallRating: number;
@@ -31,9 +30,8 @@ export interface ListingDetailDto extends ListingDto {
 // ── Request models ────────────────────────────────────────────────────────────
 
 export interface CreateListingRequest {
-  cardOwnerId: string;
+  userCardId: string;
   sellerId: string;
-  orgId: string;
   startingBid: number;
   buyNowPrice?: number;
   durationHours: number;

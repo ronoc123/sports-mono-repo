@@ -24,11 +24,11 @@ public sealed class GetListingDetailQueryHandler
             .FirstOrDefaultAsync(l => l.Id == request.ListingId, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(AuctionListing), request.ListingId);
 
-        var cardOwner = await _repo.Query<CardOwner>()
-            .Include(co => co.CardPlayer)
-            .FirstOrDefaultAsync(co => co.Id == listing.CardOwnerId, cancellationToken);
+        var userCard = await _repo.Query<UserCard>()
+            .Include(uc => uc.CardPlayer)
+            .FirstOrDefaultAsync(uc => uc.Id == listing.UserCardId, cancellationToken);
 
-        var cp = cardOwner?.CardPlayer;
+        var cp = userCard?.CardPlayer;
 
         var bids = await _repo.Query<Bid>()
             .Where(b => b.ListingId == listing.Id)
@@ -45,12 +45,12 @@ public sealed class GetListingDetailQueryHandler
         var dto = new ListingDetailDto
         {
             Id = listing.Id,
-            CardOwnerId = listing.CardOwnerId,
+            UserCardId = listing.UserCardId,
             SellerId = listing.SellerId,
             CardName = cp?.Name ?? string.Empty,
             Position = cp?.Position ?? string.Empty,
             OverallRating = cp?.OverallRating ?? 0,
-            RarityTier = cp?.RarityTier ?? string.Empty,
+            RarityTier = userCard?.RarityTier ?? string.Empty,
             StartingBid = listing.StartingBid,
             BuyNowPrice = listing.BuyNowPrice,
             CurrentBid = listing.CurrentBid,

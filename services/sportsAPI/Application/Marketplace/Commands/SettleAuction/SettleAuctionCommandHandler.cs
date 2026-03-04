@@ -48,9 +48,9 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
 
         var listingId = listing.Id.ToString();
 
-        // Load the card owner (tracked) — always unlisted on settlement
-        var cardOwner = await _repo.Query<CardOwner>(asNoTracking: false)
-            .FirstOrDefaultAsync(co => co.Id == listing.CardOwnerId, cancellationToken);
+        // Load the user card (tracked) — always unlisted on settlement
+        var userCard = await _repo.Query<UserCard>(asNoTracking: false)
+            .FirstOrDefaultAsync(uc => uc.Id == listing.UserCardId, cancellationToken);
 
         // Find the winning escrow — the one PointsEscrow still held for this listing
         var winningEscrow = await _repo.Query<PointsEscrow>(asNoTracking: false)
@@ -62,9 +62,9 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
         {
             // ── No bids: expire the listing ───────────────────────────────
             listing.MarkAsExpired();
-            cardOwner?.MarkAsUnlisted();
+            userCard?.MarkAsUnlisted();
 
-            if (cardOwner is not null) _repo.Update(cardOwner);
+            if (userCard is not null) _repo.Update(userCard);
             _repo.Update(listing);
             await _repo.SaveChangesAsync(cancellationToken);
 
@@ -77,10 +77,20 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
 
         // ── Has a winner: settle the listing ──────────────────────────────
 
+        // OrgId comes from the UserCard (VoteAccount is org-scoped)
+        var orgId = userCard?.OrgId ?? Guid.Empty;
+        if (orgId == Guid.Empty)
+        {
+            _logger.LogError(
+                "SettleAuctionCommand: could not resolve OrgId for listing {ListingId}. Aborting.",
+                request.ListingId);
+            return;
+        }
+
         // Load seller VoteAccount (tracked) — receives the winning bid
         var sellerAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(listing.OrgId),
+            OrganizationId.Of(orgId),
             UserId.Of(listing.SellerId));
 
         if (sellerAccount is null)
@@ -104,7 +114,7 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
         {
             var staleAccount = await _repo.GetByIdAsync<VoteAccount>(
                 cancellationToken,
-                OrganizationId.Of(listing.OrgId),
+                OrganizationId.Of(orgId),
                 UserId.Of(staleEscrow.UserId));
 
             if (staleAccount is not null)
@@ -118,13 +128,13 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
         }
 
         // Transfer card ownership to winner and mark listing settled
-        cardOwner?.TransferTo(winningEscrow.UserId);
+        userCard?.TransferTo(winningEscrow.UserId);
         listing.MarkAsSettled();
 
         // Persist all — single SaveChanges = implicit transaction
         _repo.Update(winningEscrow);
         _repo.Update(sellerAccount);
-        if (cardOwner is not null) _repo.Update(cardOwner);
+        if (userCard is not null) _repo.Update(userCard);
         _repo.Update(listing);
         await _repo.SaveChangesAsync(cancellationToken);
 

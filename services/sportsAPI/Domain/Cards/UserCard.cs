@@ -54,4 +54,11 @@ public sealed class UserCard : Aggregate<Guid>
 
     public void MarkAsListed() => IsListed = true;
     public void MarkAsUnlisted() => IsListed = false;
+
+    public void TransferTo(Guid newUserId)
+    {
+        if (newUserId == Guid.Empty) throw new DomainException("NewUserId is required.");
+        UserId = newUserId;
+        IsListed = false;
+    }
 }

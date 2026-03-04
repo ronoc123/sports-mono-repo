@@ -1,149 +1,352 @@
-<div class="collection-page">
-
-  <!-- ── Header ─────────────────────────────── -->
-  <div class="collection-header">
-    <span class="collection-header-icon material-icons">collections_bookmark</span>
+<div class="cc-page">
+  <!-- ── Header ──────────────────────────────────────── -->
+  <div class="cc-header">
     <div>
-      <h1 class="collection-title">My Collection</h1>
-      <p class="collection-subtitle">
-        @if (isLoading()) {
-          Loading your cards…
-        } @else {
-          {{ totalCount() }} card{{ totalCount() !== 1 ? 's' : '' }} in your collection
-        }
+      <h1 class="cc-title">My Collection</h1>
+      <p class="cc-subtitle">
+        @if (isLoading()) { Loading your cards… } @else {
+        {{ totalCount() }} card{{ totalCount() !== 1 ? "s" : "" }} total }
       </p>
     </div>
   </div>
 
-  <!-- ── Error ──────────────────────────────── -->
+  <!-- ── Stats Bar ─────────────────────────────────────── -->
+  <!-- @if (!isLoading() && totalCount() > 0) {
+    <div class="cc-stats-bar">
+      <div class="cc-stat-pill cc-stat-total">
+        <span class="cc-stat-val">{{ totalCount() }}</span>
+        <span class="cc-stat-lbl">Total</span>
+      </div>
+      <div class="cc-stat-pill cc-stat-avg">
+        <span class="cc-stat-val">{{ avgOverallRating() }}</span>
+        <span class="cc-stat-lbl">Avg OVR</span>
+      </div>
+      <div class="cc-stat-pill cc-stat-common">
+        <span class="cc-stat-val">{{ commonCount() }}</span>
+        <span class="cc-stat-lbl">Common</span>
+      </div>
+      <div class="cc-stat-pill cc-stat-rare">
+        <span class="cc-stat-val">{{ rareCount() }}</span>
+        <span class="cc-stat-lbl">Rare</span>
+      </div>
+      <div class="cc-stat-pill cc-stat-epic">
+        <span class="cc-stat-val">{{ epicCount() }}</span>
+        <span class="cc-stat-lbl">Epic</span>
+      </div>
+      <div class="cc-stat-pill cc-stat-legendary">
+        <span class="cc-stat-val">{{ legendaryCount() }}</span>
+        <span class="cc-stat-lbl">Legendary</span>
+      </div>
+    </div>
+  } -->
+
+  <!-- ── Error ──────────────────────────────────────── -->
   @if (error()) {
-    <div class="error-banner">
-      <span class="material-icons">error_outline</span>
-      {{ error() }}
-    </div>
+  <div class="cc-error">
+    <mat-icon>error_outline</mat-icon>
+    {{ error() }}
+  </div>
   }
 
-  <!-- ── Filters ────────────────────────────── -->
+  <!-- ── Filters ─────────────────────────────────────── -->
   @if (!isLoading() && totalCount() > 0) {
-    <div class="filters-bar">
-      <div class="search-wrap">
-        <span class="material-icons search-icon">search</span>
-        <input
-          class="search-input"
-          type="text"
-          placeholder="Search by name or position…"
-          [value]="searchQuery()"
-          (input)="searchQuery.set($any($event.target).value)"
-        />
-        @if (searchQuery()) {
-          <button class="search-clear" (click)="searchQuery.set('')">
-            <span class="material-icons">close</span>
-          </button>
-        }
-      </div>
-
-      <div class="rarity-filters">
-        @for (tier of rarityFilters; track tier) {
-          <button
-            class="rarity-btn"
-            [class.active]="rarityFilter() === tier"
-            (click)="rarityFilter.set(tier)"
-          >
-            {{ tier }}
-            <span class="rarity-count">{{ rarityCount(tier) }}</span>
-          </button>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- ── Loading skeleton ───────────────────── -->
-  @if (isLoading()) {
-    <div class="cards-grid">
-      @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
-        <div class="card-item card-skeleton"></div>
+  <div class="cc-filters">
+    <div class="cc-search-wrap">
+      <mat-icon class="cc-search-icon">search</mat-icon>
+      <input
+        class="cc-search-input"
+        type="text"
+        placeholder="Search players…"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+      @if (searchQuery()) {
+      <button class="cc-search-clear" (click)="searchQuery.set('')">
+        <mat-icon>close</mat-icon>
+      </button>
       }
     </div>
-  }
 
-  <!-- ── Empty state ────────────────────────── -->
-  @if (!isLoading() && totalCount() === 0) {
-    <div class="empty-state">
-      <span class="material-icons empty-icon">style</span>
-      <h2 class="empty-title">No cards yet</h2>
-      <p class="empty-desc">Open a pack to start building your collection!</p>
-      <a class="empty-link" routerLink="../card-packs">
-        <span class="material-icons">add_circle_outline</span>
-        Open a Pack
-      </a>
+    <select
+      class="cc-select"
+      [ngModel]="rarityFilter()"
+      (ngModelChange)="rarityFilter.set($event)"
+    >
+      @for (tier of rarityFilters; track tier) {
+      <option [value]="tier">
+        {{ tier === "All" ? "All Rarities" : tier }}
+      </option>
+      }
+    </select>
+
+    <select
+      class="cc-select"
+      [ngModel]="sortField()"
+      (ngModelChange)="sortField.set($event)"
+    >
+      @for (opt of sortOptions; track opt.value) {
+      <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    <button
+      class="cc-sort-dir-btn"
+      (click)="toggleSortDir()"
+      [title]="sortDirection() === 'asc' ? 'Sort Ascending' : 'Sort Descending'"
+    >
+      <mat-icon>{{
+        sortDirection() === "asc" ? "arrow_upward" : "arrow_downward"
+      }}</mat-icon>
+    </button>
+
+    <div class="cc-view-toggle">
+      <button
+        class="cc-view-btn"
+        [class.active]="viewMode() === 'grid'"
+        (click)="viewMode.set('grid')"
+      >
+        <mat-icon>grid_view</mat-icon>
+      </button>
+      <button
+        class="cc-view-btn"
+        [class.active]="viewMode() === 'list'"
+        (click)="viewMode.set('list')"
+      >
+        <mat-icon>view_list</mat-icon>
+      </button>
     </div>
+  </div>
   }
 
-  <!-- ── Cards grid ─────────────────────────── -->
-  @if (!isLoading() && totalCount() > 0) {
-    @if (filteredCollection().length === 0) {
-      <div class="no-results">
-        <span class="material-icons">search_off</span>
-        <p>No cards match your filters.</p>
-        <button class="btn-clear-filters" (click)="rarityFilter.set('All'); searchQuery.set('')">
-          Clear filters
-        </button>
-      </div>
-    } @else {
-      <div class="result-summary">
-        Showing {{ filteredCount() }} of {{ totalCount() }} cards
-      </div>
-
-      <div class="cards-grid">
-        @for (card of filteredCollection(); track trackByCard($index, card)) {
-          <div class="card-item" [ngStyle]="rarityStyle(card.rarityTier)">
-            <div class="card-rarity-badge" [ngStyle]="rarityStyle(card.rarityTier)">
-              {{ card.rarityTier }}
-            </div>
-            <div class="card-ovr">{{ card.overallRating }}</div>
-            <div class="card-name">{{ card.name }}</div>
-            <div class="card-position">{{ card.position }}</div>
-            @if (card.isListed) {
-              <div class="card-listed-badge">
-                <span class="material-icons">storefront</span>
-                Listed
-              </div>
-            } @else {
-              <button class="btn-list-auction" (click)="$event.stopPropagation(); openListingForm(card)">
-                <span class="material-icons">gavel</span>
-                List for Auction
-              </button>
-            }
-          </div>
-        }
-      </div>
+  <!-- ── Loading skeleton ─────────────────────────── -->
+  @if (isLoading()) {
+  <div class="cc-grid">
+    @for (_ of [1,2,3,4,5,6,7,8]; track $index) {
+    <div class="cc-card-skeleton"></div>
     }
+  </div>
   }
 
+  <!-- ── Empty state ────────────────────────────────── -->
+  @if (!isLoading() && totalCount() === 0) {
+  <div class="cc-empty">
+    <div class="cc-empty-icon">
+      <mat-icon>style</mat-icon>
+    </div>
+    <h2 class="cc-empty-title">No cards yet</h2>
+    <p class="cc-empty-desc">Open a pack to start building your collection!</p>
+    <a class="cc-empty-btn" routerLink="../card-packs">
+      <mat-icon>add_circle_outline</mat-icon>
+      Open a Pack
+    </a>
+  </div>
+  }
+
+  <!-- ── No results ─────────────────────────────────── -->
+  @if (!isLoading() && totalCount() > 0 && filteredCollection().length === 0) {
+  <div class="cc-no-results">
+    <mat-icon>search_off</mat-icon>
+    <p>No cards match your filters.</p>
+    <button
+      class="cc-clear-btn"
+      (click)="rarityFilter.set('All'); searchQuery.set('')"
+    >
+      Clear filters
+    </button>
+  </div>
+  }
+
+  <!-- ── Grid view ─────────────────────────────────── -->
+  @if (!isLoading() && filteredCollection().length > 0 && viewMode() === 'grid')
+  {
+  <div class="cc-result-info">
+    Showing {{ filteredCount() }} of {{ totalCount() }} cards
+  </div>
+  <div class="cc-grid">
+    @for (card of filteredCollection(); track trackByCard($index, card)) {
+    <div
+      class="cc-card"
+      [class]="'cc-card--' + card.rarityTier.toLowerCase()"
+      (click)="openCardDetail(card)"
+    >
+      <div
+        class="cc-card-stripe"
+        [style.background]="rarityAccent(card.rarityTier)"
+      ></div>
+
+      <div class="cc-card-top">
+        <span class="cc-ovr-badge">{{ card.overallRating }}</span>
+        <span class="cc-pos-badge">{{ card.position }}</span>
+      </div>
+
+      <div
+        class="cc-card-avatar"
+        [style.background]="rarityGradient(card.rarityTier)"
+      >
+        {{ initials(card.name) }}
+      </div>
+
+      <div class="cc-card-info">
+        <div class="cc-card-name">{{ card.name }}</div>
+        <div
+          class="cc-rarity-badge"
+          [class]="'cc-rarity--' + card.rarityTier.toLowerCase()"
+        >
+          {{ card.rarityTier }}
+        </div>
+      </div>
+
+      @if (card.isListed) {
+      <div class="cc-listed-badge">
+        <mat-icon>storefront</mat-icon>
+        Listed
+      </div>
+      }
+
+      <div
+        class="cc-card-stripe-bottom"
+        [style.background]="rarityAccent(card.rarityTier)"
+      ></div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- ── List view ─────────────────────────────────── -->
+  @if (!isLoading() && filteredCollection().length > 0 && viewMode() === 'list')
+  {
+  <div class="cc-result-info">
+    Showing {{ filteredCount() }} of {{ totalCount() }} cards
+  </div>
+  <div class="cc-list">
+    @for (card of filteredCollection(); track trackByCard($index, card)) {
+    <div class="cc-list-row" (click)="openCardDetail(card)">
+      <div
+        class="cc-list-thumb"
+        [style.background]="rarityGradient(card.rarityTier)"
+      >
+        {{ initials(card.name) }}
+      </div>
+
+      <div class="cc-list-info">
+        <span class="cc-list-name">{{ card.name }}</span>
+        <span class="cc-list-pos">{{ card.position }}</span>
+      </div>
+
+      <span
+        class="cc-rarity-badge"
+        [class]="'cc-rarity--' + card.rarityTier.toLowerCase()"
+      >
+        {{ card.rarityTier }}
+      </span>
+
+      <div class="cc-list-ovr">
+        <span class="cc-list-ovr-val">{{ card.overallRating }}</span>
+        <span class="cc-list-ovr-lbl">OVR</span>
+      </div>
+
+      @if (card.isListed) {
+      <span class="cc-listed-tag">
+        <mat-icon>storefront</mat-icon>
+        Listed
+      </span>
+      } @else {
+      <button
+        class="cc-list-auction-btn"
+        (click)="$event.stopPropagation(); openCardDetail(card)"
+      >
+        <mat-icon>gavel</mat-icon>
+        Sell
+      </button>
+      }
+    </div>
+    }
+  </div>
+  }
 </div>
 
-<!-- ── List for Auction Modal ───────────────────────────────────────────── -->
-@if (listingCard()) {
-  <div class="modal-overlay" (click)="closeListingForm()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>List for Auction</h2>
-        <button class="modal-close" (click)="closeListingForm()">
-          <span class="material-icons">close</span>
+<!-- ── Card Detail / Listing Modal ──────────────────────────────────────── -->
+@if (selectedCard()) {
+<div class="cc-modal-overlay" (click)="closeCardDetail()">
+  <div class="cc-modal" (click)="$event.stopPropagation()">
+    <!-- Left: card preview -->
+    <div class="cc-modal-preview">
+      <div
+        class="cc-modal-card"
+        [class]="'cc-modal-card--' + selectedCard()!.rarityTier.toLowerCase()"
+      >
+        <div
+          class="cc-card-stripe"
+          [style.background]="rarityAccent(selectedCard()!.rarityTier)"
+        ></div>
+        <div class="cc-card-top">
+          <span class="cc-ovr-badge cc-ovr-badge--lg">{{
+            selectedCard()!.overallRating
+          }}</span>
+          <span class="cc-pos-badge">{{ selectedCard()!.position }}</span>
+        </div>
+        <div
+          class="cc-card-avatar cc-card-avatar--lg"
+          [style.background]="rarityGradient(selectedCard()!.rarityTier)"
+        >
+          {{ initials(selectedCard()!.name) }}
+        </div>
+        <div class="cc-card-info">
+          <div class="cc-card-name cc-card-name--lg">
+            {{ selectedCard()!.name }}
+          </div>
+          <div
+            class="cc-rarity-badge"
+            [class]="'cc-rarity--' + selectedCard()!.rarityTier.toLowerCase()"
+          >
+            {{ selectedCard()!.rarityTier }}
+          </div>
+        </div>
+        <div
+          class="cc-card-stripe-bottom"
+          [style.background]="rarityAccent(selectedCard()!.rarityTier)"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Right: details + listing form -->
+    <div class="cc-modal-body">
+      <div class="cc-modal-header">
+        <h2 class="cc-modal-title">{{ selectedCard()!.name }}</h2>
+        <button class="cc-modal-close" (click)="closeCardDetail()">
+          <mat-icon>close</mat-icon>
         </button>
       </div>
-      <p class="modal-card-name">{{ listingCard()!.name }} — {{ listingCard()!.rarityTier }}</p>
+
+      <div class="cc-modal-meta">
+        <span
+          class="cc-rarity-badge"
+          [class]="'cc-rarity--' + selectedCard()!.rarityTier.toLowerCase()"
+          >{{ selectedCard()!.rarityTier }}</span
+        >
+        <span class="cc-modal-pos">{{ selectedCard()!.position }}</span>
+        <span class="cc-modal-ovr"
+          >{{ selectedCard()!.overallRating }} OVR</span
+        >
+      </div>
+
+      @if (selectedCard()!.isListed) {
+      <div class="cc-modal-listed-notice">
+        <mat-icon>storefront</mat-icon>
+        This card is currently listed on the marketplace.
+      </div>
+      } @else {
+      <div class="cc-modal-section-title">List for Auction</div>
 
       @if (listError()) {
-        <div class="modal-error">{{ listError() }}</div>
-      }
-      @if (listStatus() === 'success') {
-        <div class="modal-success">Listed successfully!</div>
+      <div class="cc-modal-error">{{ listError() }}</div>
+      } @if (listStatus() === 'success') {
+      <div class="cc-modal-success">Listed successfully!</div>
       }
 
-      <label class="form-label">Starting Bid (pts) *</label>
+      <label class="cc-form-label">Starting Bid (pts) *</label>
       <input
-        class="form-input"
+        class="cc-form-input"
         type="number"
         min="1"
         placeholder="e.g. 100"
@@ -151,9 +354,9 @@
         (ngModelChange)="listingStartingBid.set($event)"
       />
 
-      <label class="form-label">Buy Now Price (pts, optional)</label>
+      <label class="cc-form-label">Buy Now Price (pts, optional)</label>
       <input
-        class="form-input"
+        class="cc-form-input"
         type="number"
         min="1"
         placeholder="Leave blank to disable"
@@ -161,27 +364,31 @@
         (ngModelChange)="listingBuyNowPrice.set($event)"
       />
 
-      <label class="form-label">Duration</label>
+      <label class="cc-form-label">Duration</label>
       <select
-        class="form-input"
+        class="cc-form-input"
         [ngModel]="listingDurationHours()"
         (ngModelChange)="listingDurationHours.set($event)"
       >
         @for (h of durationOptions; track h) {
-          <option [value]="h">{{ h === 1 ? '1 hour' : h + ' hours' }}</option>
+        <option [value]="h">{{ h === 1 ? "1 hour" : h + " hours" }}</option>
         }
       </select>
 
-      <div class="modal-actions">
-        <button class="btn-cancel-modal" (click)="closeListingForm()">Cancel</button>
+      <div class="cc-modal-actions">
+        <button class="cc-btn-cancel" (click)="closeCardDetail()">
+          Cancel
+        </button>
         <button
-          class="btn-submit-listing"
+          class="cc-btn-submit"
           [disabled]="isListing() || !listingStartingBid()"
           (click)="submitListing()"
         >
           @if (isListing()) { Listing… } @else { List Card }
         </button>
       </div>
+      }
     </div>
   </div>
+</div>
 }

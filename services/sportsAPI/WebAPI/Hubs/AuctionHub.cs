@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace sportsAPI.Hubs;
@@ -7,7 +6,7 @@ namespace sportsAPI.Hubs;
 /// Real-time auction hub. Stub — fully wired in Story 3.4.
 /// Clients join/leave auction groups to receive live bid updates and outbid notifications.
 /// </summary>
-[Authorize]
+//[Authorize]
 public sealed class AuctionHub : Hub
 {
     /// <summary>Join the group for a specific listing to receive live bid events.</summary>

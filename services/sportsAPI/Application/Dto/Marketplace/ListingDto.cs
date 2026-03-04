@@ -3,7 +3,7 @@ namespace Application.Dto.Marketplace;
 public class ListingDto
 {
     public Guid Id { get; set; }
-    public Guid CardOwnerId { get; set; }
+    public Guid UserCardId { get; set; }
     public Guid SellerId { get; set; }
     public string CardName { get; set; } = string.Empty;
     public string Position { get; set; } = string.Empty;

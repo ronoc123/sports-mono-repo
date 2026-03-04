@@ -5,7 +5,7 @@ using MediatR;
 namespace Application.Marketplace.Queries.GetListings;
 
 public record GetListingsQuery(
-    Guid OrgId,
+    Guid LeagueId,
     int Page = 1,
     int PageSize = 20
 ) : IRequest<ServiceResponse<List<ListingDto>>>;

@@ -13,6 +13,7 @@ import { Subscription } from 'rxjs';
 import { MarketplaceFacade } from '@sports-ui/marketplace-data-access';
 import { AuthFacade } from '@sports-ui/auth-data-access';
 import { OrganizationFeatureService } from '@sports-ui/organization-data-access';
+import { LeaguesFacade } from '@sports-ui/league-data-access';
 import { ListingDto } from '@sports-ui/marketplace-data-access';
 
 @Component({
@@ -26,6 +27,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   private readonly facade = inject(MarketplaceFacade);
   private readonly authFacade = inject(AuthFacade);
   private readonly orgFacade = inject(OrganizationFeatureService);
+  private readonly leaguesFacade = inject(LeaguesFacade);
 
   private signalRSubscriptions: Subscription[] = [];
 
@@ -74,10 +76,11 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    const leagueId = this.leaguesFacade.selectedLeagueId();
     const orgId = this.orgFacade.selectedOrganization()?.id;
     const userId = this.authFacade.user()?.id;
 
-    if (orgId) await this.facade.loadListings(orgId);
+    if (leagueId) await this.facade.loadListings(leagueId);
     if (userId && orgId) await this.facade.loadAvailableBalance(userId, orgId);
 
     await this.facade.connectSignalR();
@@ -165,8 +168,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
 
     if (ok) {
       await this.closeDetail();
-      const newOrgId = this.orgFacade.selectedOrganization()?.id;
-      if (newOrgId) await this.facade.loadListings(newOrgId);
+      const leagueId = this.leaguesFacade.selectedLeagueId();
+      if (leagueId) await this.facade.loadListings(leagueId);
       await this.facade.loadAvailableBalance(userId, orgId);
     }
 

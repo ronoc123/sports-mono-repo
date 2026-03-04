@@ -103,11 +103,8 @@ export const MarketplaceStore = signalStore(
     setListing() {
       patchState(store, { listStatus: 'loading', listError: null });
     },
-    setListSuccess(newListing: ListingDto) {
-      patchState(store, {
-        listings: [newListing, ...store.listings()],
-        listStatus: 'success',
-      });
+    setListSuccess() {
+      patchState(store, { listStatus: 'success' });
     },
     setListError(listError: string) {
       patchState(store, { listError, listStatus: 'error' });

@@ -2,6 +2,7 @@ using Application.Dto.Marketplace;
 using Contracts.Contracts;
 using Domain.Cards;
 using Domain.Marketplace;
+
 using Domain.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,7 @@ public sealed class GetListingsQueryHandler
 
         // Listings join with CardOwner and CardPlayer for display data
         var listings = await _repo.Query<AuctionListing>()
-            .Where(l => l.OrgId == request.OrgId
+            .Where(l => l.LeagueId == request.LeagueId
                      && l.Status == "active"
                      && l.ExpiresAt > now)
             .OrderBy(l => l.ExpiresAt)
@@ -32,7 +33,7 @@ public sealed class GetListingsQueryHandler
             .ToListAsync(cancellationToken);
 
         var listingIds = listings.Select(l => l.Id).ToList();
-        var cardOwnerIds = listings.Select(l => l.CardOwnerId).ToList();
+        var userCardIds = listings.Select(l => l.UserCardId).ToList();
 
         // Load bid counts
         var bidCounts = await _repo.Query<Bid>()
@@ -41,25 +42,25 @@ public sealed class GetListingsQueryHandler
             .Select(g => new { ListingId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.ListingId, x => x.Count, cancellationToken);
 
-        // Load card owner + player data
-        var cardOwners = await _repo.Query<CardOwner>()
-            .Include(co => co.CardPlayer)
-            .Where(co => cardOwnerIds.Contains(co.Id))
-            .ToDictionaryAsync(co => co.Id, cancellationToken);
+        // Load user card + player data
+        var userCards = await _repo.Query<UserCard>()
+            .Include(uc => uc.CardPlayer)
+            .Where(uc => userCardIds.Contains(uc.Id))
+            .ToDictionaryAsync(uc => uc.Id, cancellationToken);
 
         var dtos = listings.Select(l =>
         {
-            cardOwners.TryGetValue(l.CardOwnerId, out var co);
-            var cp = co?.CardPlayer;
+            userCards.TryGetValue(l.UserCardId, out var uc);
+            var cp = uc?.CardPlayer;
             return new ListingDto
             {
                 Id = l.Id,
-                CardOwnerId = l.CardOwnerId,
+                UserCardId = l.UserCardId,
                 SellerId = l.SellerId,
                 CardName = cp?.Name ?? string.Empty,
                 Position = cp?.Position ?? string.Empty,
                 OverallRating = cp?.OverallRating ?? 0,
-                RarityTier = cp?.RarityTier ?? string.Empty,
+                RarityTier = uc?.RarityTier ?? string.Empty,
                 StartingBid = l.StartingBid,
                 BuyNowPrice = l.BuyNowPrice,
                 CurrentBid = l.CurrentBid,
