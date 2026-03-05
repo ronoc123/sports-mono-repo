@@ -12,9 +12,9 @@ public sealed class VoteTransactionConfiguration : IEntityTypeConfiguration<Vote
   {
     builder.HasKey(x => x.Id);
 
-    builder.Property(c => c.OrgId).HasConversion(
-      organizationId => organizationId.Value,
-      value => OrganizationId.Of(value));
+    builder.Property(c => c.LeagueId).HasConversion(
+      leagueId => leagueId.Value,
+      value => LeagueId.Of(value));
 
     builder.Property(c => c.UserId).HasConversion(
       userId => userId.Value,
@@ -29,4 +29,3 @@ public sealed class VoteTransactionConfiguration : IEntityTypeConfiguration<Vote
         .HasColumnType("datetimeoffset");
   }
 }
-

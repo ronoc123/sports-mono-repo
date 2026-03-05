@@ -39,13 +39,13 @@ export interface CreateListingRequest {
 
 export interface PlaceBidRequest {
   bidderId: string;
-  orgId: string;
+  leagueId: string;
   amount: number;
 }
 
 export interface BuyNowRequest {
   buyerId: string;
-  orgId: string;
+  leagueId: string;
 }
 
 // ── Paginated response ───────────────────────────────────────────────────────

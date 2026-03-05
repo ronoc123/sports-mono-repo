@@ -10,7 +10,7 @@ namespace Application.Dto.VoteAccount
   {
     public long Id { get; set; }
 
-    public Guid OrgId { get; set; }
+    public Guid LeagueId { get; set; }
     public Guid UserId { get; set; }
 
     public long Amount { get; set; }

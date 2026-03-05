@@ -5,7 +5,7 @@
     <span class="material-icons header-icon">sports_score</span>
     <div>
       <h1 class="h2h-title">Head-to-Head</h1>
-      <p class="h2h-subtitle">Build your squad and compete for points</p>
+      <p class="h2h-subtitle">Build your optimal card lineup to compete for points</p>
     </div>
     <div class="view-tabs">
       <button class="tab-btn" [class.active]="activeView() === 'builder'" (click)="switchView('builder')">
@@ -62,7 +62,7 @@
             <div class="bot-cards">
               @for (card of parsedBotSquad(); track card.name) {
                 <div class="bot-card">
-                  <div class="bot-card-rarity" [style.background]="getRarityColor(card.rarityTier)">
+                  <div class="bot-card-rarity" [style]="getRarityBadgeStyle(card.rarityTier)">
                     {{ card.rarityTier }}
                   </div>
                   <div class="bot-card-ovr">{{ card.overallRating }}</div>
@@ -96,84 +96,112 @@
 
         <!-- ── Collection grid ──────────────────────────────────────────── -->
         <div class="collection-panel">
-          <h2 class="panel-title">Select Your Squad <span class="slot-count">{{ selectedCardIds().length }}/5</span></h2>
+          <div class="collection-card">
+            <h2 class="panel-title">
+              Select Your Squad
+              <span class="slot-count">{{ selectedCardIds().length }}/5</span>
+            </h2>
 
-          @if (isLoadingCollection()) {
-            <div class="card-grid">
-              @for (_ of [1,2,3,4,5,6]; track $index) {
-                <div class="card-item card-skeleton"></div>
-              }
-            </div>
-          } @else if (collection().length === 0) {
-            <div class="empty-state">
-              <span class="material-icons">style</span>
-              <p>No cards in your collection yet. Open some packs!</p>
-            </div>
-          } @else {
-            <div class="card-grid">
-              @for (card of collection(); track card.id) {
-                <div
-                  class="card-item"
-                  [class.selected]="isSelected(card.id)"
-                  [class.listed]="card.isListed"
-                  [class.disabled]="!isSelected(card.id) && (card.isListed || isSquadFull())"
-                  (click)="toggleCard(card)"
-                >
-                  <div class="card-rarity-badge" [style.background]="getRarityColor(card.rarityTier)">
-                    {{ card.rarityTier }}
-                  </div>
-                  @if (isSelected(card.id)) {
-                    <div class="card-selected-badge material-icons">check_circle</div>
-                  }
-                  <div class="card-ovr">{{ card.overallRating }}</div>
-                  <div class="card-name">{{ card.name }}</div>
-                  <div class="card-position">{{ card.position }}</div>
-                  @if (card.isListed) {
-                    <div class="card-listed-note">
-                      <span class="material-icons">storefront</span> Listed
+            @if (isLoadingCollection()) {
+              <div class="card-grid">
+                @for (_ of [1,2,3,4,5,6]; track $index) {
+                  <div class="card-item card-skeleton"></div>
+                }
+              </div>
+            } @else if (collection().length === 0) {
+              <div class="empty-state">
+                <span class="material-icons">style</span>
+                <p>No cards in your collection yet. Open some packs!</p>
+              </div>
+            } @else {
+              <div class="card-grid">
+                @for (card of collection(); track card.id) {
+                  <div
+                    class="card-item"
+                    [class.selected]="isSelected(card.id)"
+                    [class.listed]="card.isListed"
+                    [class.disabled]="!isSelected(card.id) && (card.isListed || isSquadFull())"
+                    (click)="toggleCard(card)"
+                  >
+                    <!-- Rarity badge absolute top-left -->
+                    <div class="card-rarity-badge" [style]="getRarityBadgeStyle(card.rarityTier)">
+                      {{ card.rarityTier }}
                     </div>
-                  }
-                </div>
-              }
-            </div>
-          }
+
+                    <!-- Check mark absolute top-right when selected -->
+                    @if (isSelected(card.id)) {
+                      <div class="card-selected-badge material-icons">check_circle</div>
+                    }
+
+                    <!-- OVR centered -->
+                    <div class="card-ovr" [class.ovr-selected]="isSelected(card.id)">
+                      {{ card.overallRating }}
+                    </div>
+
+                    <!-- Player info centered -->
+                    <div class="card-name">{{ card.name }}</div>
+                    <div class="card-position">{{ card.position }}</div>
+
+                    @if (card.isListed) {
+                      <div class="card-listed-note">
+                        <span class="material-icons">storefront</span> Listed
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
 
         <!-- ── Squad panel ───────────────────────────────────────────────── -->
         <div class="squad-panel">
           <h2 class="panel-title">Squad Summary</h2>
 
+          <!-- Team Overall -->
           <div class="squad-overall">
             <div class="squad-ovr-label">Team Overall</div>
-            <div class="squad-ovr-value">{{ squadOverall() > 0 ? squadOverall() : '—' }}</div>
+            <div class="squad-ovr-value">
+              @if (squadOverall() > 0) {
+                {{ squadOverall() }}
+              } @else {
+                <div class="squad-ovr-empty"></div>
+              }
+            </div>
           </div>
 
+          <!-- Squad slots -->
           <div class="squad-slots">
             @for (i of [0,1,2,3,4]; track i) {
               <div class="squad-slot" [class.filled]="selectedCards()[i]">
+                <span class="slot-label">Slot {{ i + 1 }}</span>
                 @if (selectedCards()[i]) {
                   <div class="slot-card">
-                    <div class="slot-rarity-dot" [style.background]="getRarityColor(selectedCards()[i].rarityTier)"></div>
                     <span class="slot-name">{{ selectedCards()[i].name }}</span>
                     <span class="slot-ovr">{{ selectedCards()[i].overallRating }}</span>
                   </div>
                 } @else {
-                  <div class="slot-empty">Slot {{ i + 1 }}</div>
+                  <span class="slot-empty">Empty</span>
                 }
               </div>
             }
           </div>
 
+          <!-- Wager -->
           <div class="wager-section">
             <label class="wager-label">Wager Amount (pts)</label>
-            <input
-              class="wager-input"
-              type="number"
-              min="1"
-              placeholder="e.g. 50"
-              [value]="wagerAmount() ?? ''"
-              (input)="onWagerInput($any($event.target).value)"
-            />
+            <div class="wager-row">
+              <input
+                class="wager-input"
+                type="number"
+                min="1"
+                placeholder="0"
+                [value]="wagerAmount() ?? ''"
+                (input)="onWagerInput($any($event.target).value)"
+              />
+              <button class="wager-quick" (click)="onWagerInput(50)">50</button>
+              <button class="wager-quick" (click)="onWagerInput(100)">100</button>
+            </div>
           </div>
 
           @if (matchError()) {
@@ -183,9 +211,11 @@
             </div>
           }
 
-          @if (selectedCardIds().length === 0) {
-            <p class="squad-hint">Select 1–5 cards to form your squad.</p>
-          }
+          <!-- Difficulty info box -->
+          <div class="difficulty-box">
+            <span class="material-icons difficulty-icon">lightbulb</span>
+            <p class="difficulty-text">Bot difficulty scales with your squad rating</p>
+          </div>
 
           <button
             class="btn-play"
@@ -196,10 +226,9 @@
             Play Match
           </button>
 
-          <p class="difficulty-note">
-            <span class="material-icons">info</span>
-            Bot difficulty scales with your squad rating
-          </p>
+          @if (selectedCardIds().length === 0) {
+            <p class="squad-hint">Select 1–5 cards to form your squad.</p>
+          }
         </div>
 
       </div>
@@ -238,6 +267,9 @@
                   Wager: {{ match.wagerAmount | number }} pts
                 </div>
               </div>
+              <div class="history-delta" [class.positive]="match.outcome === 'win'" [class.negative]="match.outcome === 'loss'">
+                {{ match.outcome === 'win' ? '+' : '-' }}{{ match.wagerAmount | number }}
+              </div>
               <div class="history-date">{{ match.createdAt | date:'shortDate' }}</div>
             </div>
           }
@@ -256,27 +288,30 @@
 
       <div class="confirm-detail">
         <div class="confirm-row">
-          <span>Squad size:</span>
+          <span>Squad size</span>
           <strong>{{ selectedCardIds().length }} card{{ selectedCardIds().length !== 1 ? 's' : '' }}</strong>
         </div>
         <div class="confirm-row">
-          <span>Team overall:</span>
+          <span>Team overall</span>
           <strong>{{ squadOverall() }}</strong>
         </div>
         <div class="confirm-row">
-          <span>Wager amount:</span>
+          <span>Wager amount</span>
           <strong>{{ wagerAmount() | number }} pts</strong>
         </div>
       </div>
 
-      <p class="confirm-note">
-        <span class="material-icons">lightbulb</span>
+      <div class="confirm-info-box">
+        <span class="material-icons" style="font-size:1rem">lightbulb</span>
         Bot difficulty scales with your squad rating
-      </p>
+      </div>
 
       <div class="confirm-actions">
         <button class="btn-cancel" (click)="cancelConfirm()">Cancel</button>
-        <button class="btn-confirm" (click)="confirmPlay()">Play Match</button>
+        <button class="btn-confirm" (click)="confirmPlay()">
+          <span class="material-icons">play_arrow</span>
+          Play Match
+        </button>
       </div>
     </div>
   </div>

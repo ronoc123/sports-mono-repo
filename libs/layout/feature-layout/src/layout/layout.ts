@@ -1,5 +1,6 @@
 import {
   Component,
+  OnDestroy,
   OnInit,
   ViewChild,
   effect,
@@ -32,7 +33,7 @@ import { LeaguesFacade } from "@sports-ui/league-data-access";
   templateUrl: "./layout.html",
   styleUrls: ["./layout.css"],
 })
-export class LayoutFeatureComponent implements OnInit {
+export class LayoutFeatureComponent implements OnInit, OnDestroy {
   protected router = inject(Router);
   private authFacade = inject(AuthFacade);
   private orgFacade = inject(OrganizationFeatureService);
@@ -75,11 +76,10 @@ export class LayoutFeatureComponent implements OnInit {
       }
     });
 
-    // 🔔 Notifications effect
+    // Notifications effect
     effect(() => {
       const user = this.user();
 
-      // guard until we have what we need
       if (!user) return;
 
       this.notificationFacade.loadNotifications({
@@ -89,12 +89,14 @@ export class LayoutFeatureComponent implements OnInit {
       });
     });
 
-    // 💰 Points balance effect — load whenever user + org are both available
+    // Points balance effect — load whenever user + league are both available,
+    // and connect to real-time balance hub
     effect(() => {
       const user = this.user();
-      const org = this.selectedOrganization();
-      if (!user || !org) return;
-      this.voteAccountFacade.load(user.id, org.id);
+      const leagueId = this.leagueFacade.selectedLeagueId();
+      if (!user || !leagueId) return;
+      this.voteAccountFacade.load(user.id, leagueId);
+      this.voteAccountFacade.connectBalance(user.id, leagueId);
     });
   }
 
@@ -105,12 +107,17 @@ export class LayoutFeatureComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.voteAccountFacade.disconnectBalance();
+  }
+
   // Event handlers from UI
   onToggleSidebar() {
     this.drawer.toggle();
   }
 
   onLogout() {
+    this.voteAccountFacade.disconnectBalance();
     this.authFacade.logout();
   }
 

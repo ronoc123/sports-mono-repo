@@ -8,7 +8,7 @@ namespace Application.Dto.VoteAccount
 {
   public class VoteAccountDto
   {
-    public Guid OrgId { get; set; }
+    public Guid LeagueId { get; set; }
     public Guid UserId { get; set; }
 
     public long Balance { get; set; }

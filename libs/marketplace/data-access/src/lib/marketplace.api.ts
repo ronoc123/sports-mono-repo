@@ -48,9 +48,9 @@ export class MarketplaceApi {
     );
   }
 
-  getAvailableBalance(userId: string, orgId: string): Observable<ServiceResponse<number>> {
+  getAvailableBalance(userId: string, leagueId: string): Observable<ServiceResponse<number>> {
     return this.http.get<ServiceResponse<number>>(
-      `${environment.sportsApi}cards/listings/available-balance?userId=${userId}&orgId=${orgId}`
+      `${environment.sportsApi}cards/listings/available-balance?userId=${userId}&leagueId=${leagueId}`
     );
   }
 }

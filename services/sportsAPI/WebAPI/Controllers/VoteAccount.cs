@@ -7,8 +7,6 @@ using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace WebAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -20,39 +18,30 @@ namespace WebAPI.Controllers
         {
             _mediator = meduator;
         }
-        // GET api/<VoteAccount>/5
-        [HttpGet("get-vote-account/{userId}")]
-        public async Task<ServiceResponse<List<VoteAccountDto>>> GetAll([FromQuery] Guid userId)
-        {
-            return null;
-        }
 
-        [HttpGet("get-vote-account/{userId}/organization/{organizationId}")]
-        public async Task<ServiceResponse<VoteAccountDto>> Get(Guid userId, Guid organizationId)
+        [HttpGet("get-vote-account/{userId}/league/{leagueId}")]
+        public async Task<ServiceResponse<VoteAccountDto>> Get(Guid userId, Guid leagueId)
         {
-            var query = new GetVoteAccountQuery(UserId.Of(userId), OrganizationId.Of(organizationId));
+            var query = new GetVoteAccountQuery(UserId.Of(userId), LeagueId.Of(leagueId));
 
             var result = await _mediator.Send(query);
             return result;
         }
 
-        // POST api/<VoteAccount>
         [HttpPost("redeem-vote/{userId}/reward/{promoCode}")]
-        public async Task<ServiceResponse<VoteAccountDto>> Redeem(Guid userId, string promoCode)
+        public async Task<ServiceResponse<VoteAccountDto>> Redeem(Guid userId, string promoCode, [FromQuery] Guid leagueId)
         {
-            var query = new RedeemRewardCommand(UserId.Of(userId), promoCode);
+            var command = new RedeemRewardCommand(UserId.Of(userId), promoCode, LeagueId.Of(leagueId));
 
-            var result = await _mediator.Send(query);
+            var result = await _mediator.Send(command);
             return result;
         }
 
-        // POST api/<VoteAccount>
         [HttpPost("reward-for-user")]
         public async Task<ServiceResponse<string>> Send([FromBody] EmailRewardRedemptionCommand command)
         {
             var result = await _mediator.Send(command);
             return result;
         }
-
     }
 }

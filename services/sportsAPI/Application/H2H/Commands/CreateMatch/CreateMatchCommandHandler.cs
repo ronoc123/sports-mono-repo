@@ -55,10 +55,10 @@ public sealed class CreateMatchCommandHandler
         var fanTeamOverall = (int)Math.Round(
             userCards.Average(uc => uc.CardPlayer!.OverallRating));
 
-        // 5. Load fan VoteAccount and validate balance
+        // 5. Load fan VoteAccount using league-scoped key
         var fanAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            LeagueId.Of(leagueId),
             UserId.Of(request.FanUserId))
             ?? throw new DomainException("Vote account not found.");
 
@@ -96,7 +96,7 @@ public sealed class CreateMatchCommandHandler
 
         var updatedAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            LeagueId.Of(leagueId),
             UserId.Of(request.FanUserId));
 
         return ServiceResponse.Ok(new CreateMatchResult(

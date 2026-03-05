@@ -11,10 +11,8 @@ import { PlayerOptionFeatureService } from "@sports-ui/player-options-data-acces
 import { PlayerOptionCardComponent, SearchbarComponent } from "@sports-ui/ui";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
-import { map } from "rxjs";
-import { ActivatedRoute } from "@angular/router";
-import { toSignal } from "@angular/core/rxjs-interop";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 
 @Component({
   selector: "lib-feature-player-option",
@@ -36,6 +34,7 @@ import { OrganizationFeatureService } from "@sports-ui/organization-data-access"
 })
 export class FeaturePlayerOption {
   private orgFacade = inject(OrganizationFeatureService);
+  private leagueFacade = inject(LeaguesFacade);
   feature = inject(PlayerOptionFeatureService);
   selected = inject(VoteAccountFacade);
   authFacade = inject(AuthFacade);
@@ -70,9 +69,10 @@ export class FeaturePlayerOption {
       option.option.id,
       this.authFacade.user()?.id ?? "",
       option.amount,
-      this.organization()?.id ?? ""
+      this.leagueFacade.selectedLeagueId() ?? ""
     );
   }
+
   onSearch(term: string) {
     this.searchTerm.set(term ?? "");
   }

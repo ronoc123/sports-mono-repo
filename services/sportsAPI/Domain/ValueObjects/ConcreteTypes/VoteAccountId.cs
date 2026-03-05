@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace Domain.ValueObjects.ConcreteTypes
 {
-  public sealed record VoteAccountId(OrganizationId OrgId, UserId UserId)
+  public sealed record VoteAccountId(LeagueId LeagueId, UserId UserId)
   {
     // EF-friendly ctor (scalar params)
-    public VoteAccountId(Guid orgId, Guid userId)
-        : this(OrganizationId.Of(orgId), UserId.Of(userId)) { }
+    public VoteAccountId(Guid leagueId, Guid userId)
+        : this(LeagueId.Of(leagueId), UserId.Of(userId)) { }
 
     // Parameterless ctor is optional if you use the scalar-parameter one
-    private VoteAccountId() : this(OrganizationId.Of(Guid.Empty), UserId.Of(Guid.Empty)) { }
+    private VoteAccountId() : this(LeagueId.Of(Guid.NewGuid()), UserId.Of(Guid.Empty)) { }
 
-    public static VoteAccountId Of(OrganizationId orgId, UserId userId)
-        => new(orgId, userId);
+    public static VoteAccountId Of(LeagueId leagueId, UserId userId)
+        => new(leagueId, userId);
   }
 }

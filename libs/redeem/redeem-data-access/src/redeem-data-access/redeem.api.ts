@@ -9,10 +9,11 @@ export class RedeemApi {
 
   redeemReward(
     userId: string,
-    promoCode: string
+    promoCode: string,
+    leagueId: string
   ): Observable<ServiceResponse<string>> {
     return this.http.post<ServiceResponse<string>, any>(
-      `${environment.sportsApi}voteaccount/redeem-vote/${userId}/reward/${promoCode}`,
+      `${environment.sportsApi}voteaccount/redeem-vote/${userId}/reward/${promoCode}?leagueId=${leagueId}`,
       {}
     );
   }

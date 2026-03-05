@@ -4,7 +4,6 @@ import { VoteAccount } from "./vote-account.model";
 import { ApiService } from "@sports-ui/http-client";
 import { ServiceResponse } from "@sports-ui/api-types";
 import { environment } from "@sports-ui/api-types";
-import { HttpParams } from "@angular/common/http";
 
 @Injectable({ providedIn: "root" })
 export class VoteAccountApi {
@@ -12,22 +11,24 @@ export class VoteAccountApi {
 
   getVoteAccount(
     userId: string,
-    organizationId: string
+    leagueId: string
   ): Observable<ServiceResponse<VoteAccount>> {
     return this.http.get(
-      `${environment.sportsApi}voteaccount/get-vote-account/${userId}/organization/${organizationId}`
+      `${environment.sportsApi}voteaccount/get-vote-account/${userId}/league/${leagueId}`
     );
   }
 
   castVote(
     playerOptionId: string,
     userId: string,
-    voteAmount: number
+    voteAmount: number,
+    leagueId: string
   ): Observable<ServiceResponse<boolean>> {
     return this.http.post(`${environment.sportsApi}PlayerOption/vote`, {
       playerOptionId,
       userId,
       voteAmount,
+      leagueId,
     });
   }
 }

@@ -6,6 +6,8 @@ import { BotSquadCard } from "@sports-ui/h2h-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 import { UserCard } from "@sports-ui/cards-data-access";
+import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 
 type H2HView = "builder" | "history";
 
@@ -20,6 +22,8 @@ export class H2HComponent implements OnInit {
   private readonly facade = inject(H2HFacade);
   private readonly authFacade = inject(AuthFacade);
   private readonly orgFacade = inject(OrganizationFeatureService);
+  private readonly voteAccountFacade = inject(VoteAccountFacade);
+  private readonly leaguesFacade = inject(LeaguesFacade);
 
   // ── Facade signals ────────────────────────────────────────────────────────
   readonly collection = this.facade.collection;
@@ -94,8 +98,10 @@ export class H2HComponent implements OnInit {
     this.showConfirmDialog.set(false);
     const userId = this.authFacade.user()?.id;
     const orgId = this.orgFacade.selectedOrganization()?.id;
+    const leagueId = this.leaguesFacade.selectedLeagueId();
     if (userId && orgId) {
       await this.facade.playMatch(userId, orgId);
+      if (leagueId) await this.voteAccountFacade.load(userId, leagueId);
     }
   }
 
@@ -120,6 +126,16 @@ export class H2HComponent implements OnInit {
       Legendary: "#b45309",
     };
     return map[rarity] ?? "#64748b";
+  }
+
+  getRarityBadgeStyle(rarity: string): { background: string; color: string } {
+    const map: Record<string, { background: string; color: string }> = {
+      Common:    { background: '#f1f5f9', color: '#475569' },
+      Rare:      { background: '#dbeafe', color: '#1d4ed8' },
+      Epic:      { background: '#ede9fe', color: '#7c3aed' },
+      Legendary: { background: '#ffedd5', color: '#b45309' },
+    };
+    return map[rarity] ?? { background: '#f1f5f9', color: '#475569' };
   }
 
   trackById(_: number, item: { id: string }): string {

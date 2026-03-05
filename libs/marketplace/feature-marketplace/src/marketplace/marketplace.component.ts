@@ -12,7 +12,6 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { MarketplaceFacade } from '@sports-ui/marketplace-data-access';
 import { AuthFacade } from '@sports-ui/auth-data-access';
-import { OrganizationFeatureService } from '@sports-ui/organization-data-access';
 import { LeaguesFacade } from '@sports-ui/league-data-access';
 import { ListingDto } from '@sports-ui/marketplace-data-access';
 
@@ -26,7 +25,6 @@ import { ListingDto } from '@sports-ui/marketplace-data-access';
 export class MarketplaceComponent implements OnInit, OnDestroy {
   private readonly facade = inject(MarketplaceFacade);
   private readonly authFacade = inject(AuthFacade);
-  private readonly orgFacade = inject(OrganizationFeatureService);
   private readonly leaguesFacade = inject(LeaguesFacade);
 
   private signalRSubscriptions: Subscription[] = [];
@@ -47,6 +45,15 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   readonly bidAmount = signal<number | null>(null);
   readonly showBuyNowConfirm = signal(false);
   readonly bidValidationError = signal<string | null>(null);
+  readonly searchQuery = signal<string>('');
+  readonly timeFilter = signal<'all' | '1h' | '6h' | '24h'>('all');
+
+  readonly timeFilterOptions = [
+    { value: 'all' as const, label: 'All' },
+    { value: '1h' as const, label: '<1h' },
+    { value: '6h' as const, label: '<6h' },
+    { value: '24h' as const, label: '<24h' },
+  ];
 
   readonly minBid = computed(() => {
     const listing = this.selectedListing();
@@ -66,6 +73,19 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     return formatTimeRemaining(listing.expiresAt);
   });
 
+  readonly filteredListings = computed(() => {
+    let result = this.listings();
+    const q = this.searchQuery().toLowerCase();
+    if (q) result = result.filter(l => l.playerName.toLowerCase().includes(q));
+    const tf = this.timeFilter();
+    if (tf !== 'all') {
+      const hours = tf === '1h' ? 1 : tf === '6h' ? 6 : 24;
+      const cutoff = Date.now() + hours * 3600000;
+      result = result.filter(l => new Date(l.expiresAt).getTime() <= cutoff);
+    }
+    return result;
+  });
+
   constructor() {
     // Auto-clear notifications after 5s
     effect(() => {
@@ -77,11 +97,10 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     const leagueId = this.leaguesFacade.selectedLeagueId();
-    const orgId = this.orgFacade.selectedOrganization()?.id;
     const userId = this.authFacade.user()?.id;
 
     if (leagueId) await this.facade.loadListings(leagueId);
-    if (userId && orgId) await this.facade.loadAvailableBalance(userId, orgId);
+    if (userId && leagueId) await this.facade.loadAvailableBalance(userId, leagueId);
 
     await this.facade.connectSignalR();
   }
@@ -136,44 +155,53 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     const listing = this.selectedListing();
     const amount = this.bidAmount();
     const userId = this.authFacade.user()?.id;
-    const orgId = this.orgFacade.selectedOrganization()?.id;
+    const leagueId = this.leaguesFacade.selectedLeagueId();
 
-    if (!listing || !userId || !orgId) return;
+    if (!listing || !userId || !leagueId) return;
     if (!this.validateBid(amount)) return;
 
     const ok = await this.facade.placeBid(listing.id, {
       bidderId: userId,
-      orgId,
+      leagueId,
       amount: amount!,
     });
 
     if (ok) {
       this.bidAmount.set(null);
       await this.facade.loadListingDetail(listing.id);
-      await this.facade.loadAvailableBalance(userId, orgId);
+      await this.facade.loadAvailableBalance(userId, leagueId);
     }
   }
 
   async confirmBuyNow(): Promise<void> {
     const listing = this.selectedListing();
     const userId = this.authFacade.user()?.id;
-    const orgId = this.orgFacade.selectedOrganization()?.id;
+    const leagueId = this.leaguesFacade.selectedLeagueId();
 
-    if (!listing || !userId || !orgId) return;
+    if (!listing || !userId || !leagueId) return;
 
     const ok = await this.facade.buyNow(listing.id, {
       buyerId: userId,
-      orgId,
+      leagueId,
     });
 
     if (ok) {
       await this.closeDetail();
-      const leagueId = this.leaguesFacade.selectedLeagueId();
       if (leagueId) await this.facade.loadListings(leagueId);
-      await this.facade.loadAvailableBalance(userId, orgId);
+      await this.facade.loadAvailableBalance(userId, leagueId);
     }
 
     this.showBuyNowConfirm.set(false);
+  }
+
+  quickBid(offset: number | 'min'): void {
+    const min = this.minBid();
+    if (offset === 'min') {
+      this.bidAmount.set(min);
+    } else {
+      this.bidAmount.set((this.bidAmount() ?? min) + offset);
+    }
+    this.bidValidationError.set(null);
   }
 
   trackById(_: number, item: ListingDto): string {
@@ -188,6 +216,16 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
       Legendary: '#b45309',
     };
     return map[rarity] ?? '#64748b';
+  }
+
+  getCardArtGradient(rarity: string): string {
+    const map: Record<string, string> = {
+      Common: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
+      Rare: 'linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)',
+      Epic: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)',
+      Legendary: 'linear-gradient(135deg, #d97706 0%, #92400e 100%)',
+    };
+    return map[rarity] ?? 'linear-gradient(135deg, #334155 0%, #1e293b 100%)';
   }
 }
 

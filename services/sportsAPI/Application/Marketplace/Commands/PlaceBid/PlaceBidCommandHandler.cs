@@ -1,3 +1,4 @@
+using Application.Common.Interfaces;
 using Application.Marketplace.Services;
 using BuildingBlocks.Exceptions;
 using Contracts.Contracts;
@@ -18,11 +19,13 @@ public sealed class PlaceBidCommandHandler
 
     private readonly IRepository _repo;
     private readonly IAuctionSignalRService _signalR;
+    private readonly IBalanceNotificationService _balanceNotifier;
 
-    public PlaceBidCommandHandler(IRepository repo, IAuctionSignalRService signalR)
+    public PlaceBidCommandHandler(IRepository repo, IAuctionSignalRService signalR, IBalanceNotificationService balanceNotifier)
     {
         _repo = repo;
         _signalR = signalR;
+        _balanceNotifier = balanceNotifier;
     }
 
     public async Task<ServiceResponse<bool>> Handle(
@@ -30,6 +33,7 @@ public sealed class PlaceBidCommandHandler
         CancellationToken cancellationToken)
     {
         var listingId = request.ListingId.ToString();
+        var leagueId = LeagueId.Of(request.LeagueId);
 
         // 1. Load listing (tracked — will be updated)
         var listing = await _repo.Query<AuctionListing>(asNoTracking: false)
@@ -53,7 +57,7 @@ public sealed class PlaceBidCommandHandler
         // 5. Load bidder's VoteAccount (tracked)
         var bidderAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            leagueId,
             UserId.Of(request.BidderId))
             ?? throw new DomainException("Vote account not found for bidder.");
 
@@ -72,7 +76,7 @@ public sealed class PlaceBidCommandHandler
         {
             var previousBidderAccount = await _repo.GetByIdAsync<VoteAccount>(
                 cancellationToken,
-                OrganizationId.Of(request.OrgId),
+                leagueId,
                 UserId.Of(previousEscrow.UserId))
                 ?? throw new DomainException("Vote account not found for previous bidder.");
 
@@ -80,6 +84,8 @@ public sealed class PlaceBidCommandHandler
             previousBidderAccount.CreditBidRelease(previousEscrow.HeldAmount, listingId);
             _repo.Update(previousEscrow);
             _repo.Update(previousBidderAccount);
+
+            _ = _balanceNotifier.NotifyBalanceChangedAsync(previousEscrow.UserId.ToString(), previousBidderAccount.Balance, cancellationToken);
         }
 
         // 9. Create new escrow for the incoming bid
@@ -101,6 +107,8 @@ public sealed class PlaceBidCommandHandler
 
         // 13. Emit real-time events (fire-and-forget — do not fail the command on SignalR error)
         var broadcastTs = DateTime.UtcNow;
+
+        _ = _balanceNotifier.NotifyBalanceChangedAsync(request.BidderId.ToString(), bidderAccount.Balance, cancellationToken);
 
         // Outbid notification to the previous high bidder
         if (previousEscrow is not null)

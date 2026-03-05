@@ -1,3 +1,4 @@
+using Application.Common.Interfaces;
 using Application.Marketplace.Services;
 using Domain.Cards;
 using Domain.Marketplace;
@@ -15,15 +16,18 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
     private readonly IRepository _repo;
     private readonly IAuctionSignalRService _signalR;
     private readonly ILogger<SettleAuctionCommandHandler> _logger;
+    private readonly IBalanceNotificationService _balanceNotifier;
 
     public SettleAuctionCommandHandler(
         IRepository repo,
         IAuctionSignalRService signalR,
-        ILogger<SettleAuctionCommandHandler> logger)
+        ILogger<SettleAuctionCommandHandler> logger,
+        IBalanceNotificationService balanceNotifier)
     {
         _repo = repo;
         _signalR = signalR;
         _logger = logger;
+        _balanceNotifier = balanceNotifier;
     }
 
     public async Task Handle(SettleAuctionCommand request, CancellationToken cancellationToken)
@@ -77,20 +81,22 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
 
         // ── Has a winner: settle the listing ──────────────────────────────
 
-        // OrgId comes from the UserCard (VoteAccount is org-scoped)
-        var orgId = userCard?.OrgId ?? Guid.Empty;
-        if (orgId == Guid.Empty)
+        // LeagueId comes from the UserCard (VoteAccount is league-scoped)
+        var leagueGuid = userCard?.LeagueId ?? Guid.Empty;
+        if (leagueGuid == Guid.Empty)
         {
             _logger.LogError(
-                "SettleAuctionCommand: could not resolve OrgId for listing {ListingId}. Aborting.",
+                "SettleAuctionCommand: could not resolve LeagueId for listing {ListingId}. Aborting.",
                 request.ListingId);
             return;
         }
 
+        var leagueId = LeagueId.Of(leagueGuid);
+
         // Load seller VoteAccount (tracked) — receives the winning bid
         var sellerAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(orgId),
+            leagueId,
             UserId.Of(listing.SellerId));
 
         if (sellerAccount is null)
@@ -114,7 +120,7 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
         {
             var staleAccount = await _repo.GetByIdAsync<VoteAccount>(
                 cancellationToken,
-                OrganizationId.Of(orgId),
+                leagueId,
                 UserId.Of(staleEscrow.UserId));
 
             if (staleAccount is not null)
@@ -122,6 +128,7 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
                 staleEscrow.Release();
                 staleAccount.CreditBidRelease(staleEscrow.HeldAmount, listingId);
                 _repo.Update(staleAccount);
+                _ = _balanceNotifier.NotifyBalanceChangedAsync(staleEscrow.UserId.ToString(), staleAccount.Balance, cancellationToken);
             }
 
             _repo.Update(staleEscrow);
@@ -141,6 +148,8 @@ public sealed class SettleAuctionCommandHandler : IRequestHandler<SettleAuctionC
         _logger.LogInformation(
             "SettleAuctionCommand: listing {ListingId} settled. Winner={WinnerId}, Amount={Amount}.",
             request.ListingId, winningEscrow.UserId, winningEscrow.HeldAmount);
+
+        _ = _balanceNotifier.NotifyBalanceChangedAsync(listing.SellerId.ToString(), sellerAccount.Balance, cancellationToken);
 
         _ = _signalR.BroadcastAuctionSettledAsync(
             listing.Id,

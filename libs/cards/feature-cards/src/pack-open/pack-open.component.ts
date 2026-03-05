@@ -175,7 +175,7 @@ export class PackOpenComponent implements OnInit, OnDestroy {
     const result = await this.facade.purchasePack({ userId, orgId, leagueId });
 
     if (result) {
-      await this.voteAccountFacade.load(userId, orgId);
+      await this.voteAccountFacade.load(userId, leagueId);
       this._startReveal(result.cards);
     }
   }

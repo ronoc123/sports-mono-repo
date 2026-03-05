@@ -12,19 +12,19 @@ import { NotificationBadgeComponent } from "../notification-badge/notification-b
   styleUrls: ["./navbar.component.css"],
 })
 export class NavbarComponent {
-  readonly config        = input<LayoutConfig>();
-  readonly user          = input<any>();
+  readonly config = input<LayoutConfig>();
+  readonly user = input<any>();
   readonly notifications = input<NotificationDto[]>([]);
-  readonly balance       = input<number>(0);
-  readonly currencyName  = input<string>('Points');
+  readonly balance = input<number>(0);
+  readonly currencyName = input<string>("Points");
 
-  readonly toggleNavBar  = output<void>();
-  readonly logout        = output<void>();
-  readonly openProfile   = output<void>();
-  readonly openSettings  = output<void>();
-  readonly toggleTheme   = output<void>();
-  readonly markRead      = output<string>();
-  readonly buyVotes      = output<void>();
+  readonly toggleNavBar = output<void>();
+  readonly logout = output<void>();
+  readonly openProfile = output<void>();
+  readonly openSettings = output<void>();
+  readonly toggleTheme = output<void>();
+  readonly markRead = output<string>();
+  readonly buyVotes = output<void>();
 
   userMenuOpen = signal(false);
 

@@ -1,4 +1,5 @@
 using Application.Cards.Services;
+using Application.Common.Interfaces;
 using Application.Dto.Cards;
 using BuildingBlocks.Exceptions;
 using Contracts.Contracts;
@@ -19,11 +20,13 @@ public sealed class PurchasePackCommandHandler
 
     private readonly IRepository _repo;
     private readonly RarityEngine _rarityEngine;
+    private readonly IBalanceNotificationService _balanceNotifier;
 
-    public PurchasePackCommandHandler(IRepository repo, RarityEngine rarityEngine)
+    public PurchasePackCommandHandler(IRepository repo, RarityEngine rarityEngine, IBalanceNotificationService balanceNotifier)
     {
         _repo = repo;
         _rarityEngine = rarityEngine;
+        _balanceNotifier = balanceNotifier;
     }
 
     public async Task<ServiceResponse<PackPurchaseResultDto>> Handle(
@@ -68,7 +71,7 @@ public sealed class PurchasePackCommandHandler
         // 4. Load VoteAccount and validate balance (throws DomainException → 422 if insufficient)
         var account = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            LeagueId.Of(request.LeagueId),
             UserId.Of(request.UserId));
 
         if (account is null)
@@ -130,6 +133,8 @@ public sealed class PurchasePackCommandHandler
             RemainingBalance = account.Balance,
             Cards = cardDtos,
         };
+
+        _ = _balanceNotifier.NotifyBalanceChangedAsync(request.UserId.ToString(), account.Balance, cancellationToken);
 
         return ServiceResponse.Ok(result, "Pack purchased successfully. 5 cards added to your collection.");
     }

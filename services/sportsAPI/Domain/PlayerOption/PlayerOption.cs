@@ -98,9 +98,6 @@ namespace Domain.PlayerOption
       if (spend.PlayerOptionId != Id)
         throw new InvalidOperationException("Spend token not authorized for this option.");
 
-      if (spend.OrgId != OrganizationId)
-        throw new InvalidOperationException("Spend token not authorized for this organization.");
-
       if (spend.Amount <= 0)
         throw new InvalidOperationException("Vote amount must be positive.");
 

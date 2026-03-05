@@ -6,5 +6,5 @@ namespace Application.Marketplace.Commands.BuyNow;
 public record BuyNowCommand(
     Guid ListingId,
     Guid BuyerId,
-    Guid OrgId
+    Guid LeagueId
 ) : IRequest<ServiceResponse<bool>>;

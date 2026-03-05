@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Application.Marketplace.Queries.GetAvailableBalance;
 
-public record GetAvailableBalanceQuery(Guid UserId, Guid OrgId)
+public record GetAvailableBalanceQuery(Guid UserId, Guid LeagueId)
     : IRequest<ServiceResponse<long>>;

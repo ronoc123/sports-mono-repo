@@ -54,11 +54,11 @@ namespace Application.Votes.Commands.EmailRewardRedemption
                 throw new ValidationException("Organization Not Found");
             }
 
-            var account = await _repo.GetByIdAsync<VoteAccount>(ct, OrganizationId.Of(request.OrganizationId), domainUserId);
+            var account = await _repo.GetByIdAsync<VoteAccount>(ct, organization.LeagueId, domainUserId);
 
             if (account is null)
             {
-                account = VoteAccount.Create(OrganizationId.Of(request.OrganizationId), domainUserId, 0);
+                account = VoteAccount.Create(organization.LeagueId, domainUserId, 0);
                 await _repo.AddAsync(account);
             }
 

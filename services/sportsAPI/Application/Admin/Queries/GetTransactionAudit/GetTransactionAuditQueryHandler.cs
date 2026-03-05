@@ -18,10 +18,10 @@ public sealed class GetTransactionAuditQueryHandler
         GetTransactionAuditQuery request,
         CancellationToken cancellationToken)
     {
-        var orgId = OrganizationId.Of(request.OrgId);
+        var leagueId = LeagueId.Of(request.LeagueId);
 
         var query = _repo.Query<VoteTransaction>()
-            .Where(t => t.OrgId == orgId);
+            .Where(t => t.LeagueId == leagueId);
 
         if (request.UserId.HasValue)
         {
@@ -42,7 +42,7 @@ public sealed class GetTransactionAuditQueryHandler
 
         var dtos = items.Select(t => new TransactionAuditDto(
             t.Id,
-            t.OrgId.Value,
+            t.LeagueId.Value,
             t.UserId.Value,
             t.Amount,
             t.Reason,

@@ -18,10 +18,10 @@ public sealed class ExportTransactionsCsvQueryHandler
         ExportTransactionsCsvQuery request,
         CancellationToken cancellationToken)
     {
-        var orgId = OrganizationId.Of(request.OrgId);
+        var leagueId = LeagueId.Of(request.LeagueId);
 
         var query = _repo.Query<VoteTransaction>()
-            .Where(t => t.OrgId == orgId);
+            .Where(t => t.LeagueId == leagueId);
 
         if (request.UserId.HasValue)
         {
@@ -37,13 +37,13 @@ public sealed class ExportTransactionsCsvQueryHandler
             .ToListAsync(cancellationToken);
 
         var sb = new StringBuilder();
-        sb.AppendLine("Id,OrgId,UserId,Amount,Reason,RefId,CreatedAt");
+        sb.AppendLine("Id,LeagueId,UserId,Amount,Reason,RefId,CreatedAt");
 
         foreach (var r in rows)
         {
             sb.AppendLine(string.Join(',',
                 r.Id,
-                r.OrgId.Value,
+                r.LeagueId.Value,
                 r.UserId.Value,
                 r.Amount,
                 EscapeCsv(r.Reason),

@@ -13,5 +13,6 @@ namespace Application.PlayerOptions.Commands.VotePlayerOption;
 public record VotePlayerOptionCommand(
     Guid PlayerOptionId,
     Guid UserId,
-    int VoteAmount
+    int VoteAmount,
+    Guid LeagueId
 ) : IRequest<ServiceResponse<bool>>;

@@ -8,6 +8,6 @@ public sealed class BuyNowCommandValidator : AbstractValidator<BuyNowCommand>
     {
         RuleFor(x => x.ListingId).NotEmpty();
         RuleFor(x => x.BuyerId).NotEmpty();
-        RuleFor(x => x.OrgId).NotEmpty();
+        RuleFor(x => x.LeagueId).NotEmpty();
     }
 }

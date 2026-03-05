@@ -5,6 +5,5 @@ using MediatR;
 
 namespace Application.Votes.Queries.GetVoteAccount
 {
-
-    public record GetVoteAccountQuery(UserId UserId, OrganizationId OrganizationId) : IRequest<ServiceResponse<VoteAccountDto>>;
+    public record GetVoteAccountQuery(UserId UserId, LeagueId LeagueId) : IRequest<ServiceResponse<VoteAccountDto>>;
 }

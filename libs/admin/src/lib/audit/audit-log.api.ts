@@ -10,7 +10,7 @@ export class AuditLogApi {
   private readonly http = inject(ApiService);
 
   getTransactions(
-    orgId: string,
+    leagueId: string,
     userId?: string,
     reason?: string,
     page = 1,
@@ -20,15 +20,15 @@ export class AuditLogApi {
     if (userId) params.set('userId', userId);
     if (reason) params.set('reason', reason);
     return this.http.get<ServiceResponse<TransactionAuditResult>>(
-      `${environment.sportsApi}admin/economy/transactions/${orgId}?${params}`
+      `${environment.sportsApi}admin/economy/transactions/${leagueId}?${params}`
     );
   }
 
-  getExportUrl(orgId: string, userId?: string, reason?: string): string {
+  getExportUrl(leagueId: string, userId?: string, reason?: string): string {
     const params = new URLSearchParams();
     if (userId) params.set('userId', userId);
     if (reason) params.set('reason', reason);
     const qs = params.toString();
-    return `${environment.sportsApi}admin/economy/transactions/${orgId}/export${qs ? '?' + qs : ''}`;
+    return `${environment.sportsApi}admin/economy/transactions/${leagueId}/export${qs ? '?' + qs : ''}`;
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuditLogFacade } from './audit-log.facade';
-import { OrganizationFeatureService } from '@sports-ui/organization-data-access';
+import { LeaguesFacade } from '@sports-ui/league-data-access';
 import { TRANSACTION_REASONS } from './audit-log.model';
 
 @Component({
@@ -14,7 +14,7 @@ import { TRANSACTION_REASONS } from './audit-log.model';
 })
 export class AuditLogComponent implements OnInit {
   private readonly facade = inject(AuditLogFacade);
-  private readonly orgService = inject(OrganizationFeatureService);
+  private readonly leaguesFacade = inject(LeaguesFacade);
 
   // ── Facade signals ────────────────────────────────────────────────────────
   readonly transactions = this.facade.transactions;
@@ -35,13 +35,13 @@ export class AuditLogComponent implements OnInit {
     await this.load();
   }
 
-  private get orgId(): string | undefined {
-    return this.orgService.selectedOrganization()?.id;
+  private get leagueId(): string | undefined {
+    return this.leaguesFacade.selectedLeagueId() ?? undefined;
   }
 
   async load(): Promise<void> {
-    const orgId = this.orgId;
-    if (orgId) await this.facade.loadTransactions(orgId);
+    const leagueId = this.leagueId;
+    if (leagueId) await this.facade.loadTransactions(leagueId);
   }
 
   async applyFilters(): Promise<void> {
@@ -62,9 +62,9 @@ export class AuditLogComponent implements OnInit {
   }
 
   getExportUrl(): string {
-    const orgId = this.orgId;
-    if (!orgId) return '';
-    return this.facade.getExportUrl(orgId);
+    const leagueId = this.leagueId;
+    if (!leagueId) return '';
+    return this.facade.getExportUrl(leagueId);
   }
 
   amountClass(amount: number): string {

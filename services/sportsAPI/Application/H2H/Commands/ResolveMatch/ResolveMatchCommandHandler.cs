@@ -1,3 +1,4 @@
+using Application.Common.Interfaces;
 using Domain.Cards;
 using Domain.H2H;
 using Domain.H2H.Services;
@@ -15,13 +16,16 @@ public sealed class ResolveMatchCommandHandler : IRequestHandler<ResolveMatchCom
 {
     private readonly IRepository _repo;
     private readonly ILogger<ResolveMatchCommandHandler> _logger;
+    private readonly IBalanceNotificationService _balanceNotifier;
 
     public ResolveMatchCommandHandler(
         IRepository repo,
-        ILogger<ResolveMatchCommandHandler> logger)
+        ILogger<ResolveMatchCommandHandler> logger,
+        IBalanceNotificationService balanceNotifier)
     {
         _repo = repo;
         _logger = logger;
+        _balanceNotifier = balanceNotifier;
     }
 
     public async Task Handle(ResolveMatchCommand request, CancellationToken cancellationToken)
@@ -82,10 +86,10 @@ public sealed class ResolveMatchCommandHandler : IRequestHandler<ResolveMatchCom
         });
         string botSquadSnapshot = JsonSerializer.Serialize(snapshotData);
 
-        // 6. Load fan VoteAccount (tracked)
+        // 6. Load fan VoteAccount using league-scoped key
         var fanAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(match.OrgId),
+            LeagueId.Of(match.LeagueId),
             UserId.Of(match.FanUserId));
 
         if (fanAccount is null)
@@ -109,6 +113,8 @@ public sealed class ResolveMatchCommandHandler : IRequestHandler<ResolveMatchCom
 
         // 9. Persist — single SaveChanges = implicit transaction
         await _repo.SaveChangesAsync(cancellationToken);
+
+        _ = _balanceNotifier.NotifyBalanceChangedAsync(match.FanUserId.ToString(), fanAccount.Balance, cancellationToken);
 
         _logger.LogInformation(
             "ResolveMatchCommand: match {MatchId} resolved. Outcome={Outcome}, FanOvr={FanOvr}, BotOvr={BotOvr}.",

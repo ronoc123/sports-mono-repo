@@ -6,6 +6,6 @@ namespace Application.Marketplace.Commands.PlaceBid;
 public record PlaceBidCommand(
     Guid ListingId,
     Guid BidderId,
-    Guid OrgId,
+    Guid LeagueId,
     long Amount
 ) : IRequest<ServiceResponse<bool>>;

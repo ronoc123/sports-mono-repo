@@ -46,7 +46,7 @@ public class CardsListingsController : ControllerBase
     public async Task<ServiceResponse<bool>> PlaceBid(
         Guid listingId,
         [FromBody] PlaceBidRequest body)
-        => await _mediator.Send(new PlaceBidCommand(listingId, body.BidderId, body.OrgId, body.Amount));
+        => await _mediator.Send(new PlaceBidCommand(listingId, body.BidderId, body.LeagueId, body.Amount));
 
     /// <summary>POST /api/cards/listings/{listingId}/buy-now — Immediately purchase a card at buy now price.</summary>
     [HttpPost("{listingId:guid}/buy-now")]
@@ -54,16 +54,16 @@ public class CardsListingsController : ControllerBase
     public async Task<ServiceResponse<bool>> BuyNow(
         Guid listingId,
         [FromBody] BuyNowRequest body)
-        => await _mediator.Send(new BuyNowCommand(listingId, body.BuyerId, body.OrgId));
+        => await _mediator.Send(new BuyNowCommand(listingId, body.BuyerId, body.LeagueId));
 
-    /// <summary>GET /api/cards/listings/available-balance?userId=&amp;orgId= — Fan's spendable balance.</summary>
+    /// <summary>GET /api/cards/listings/available-balance?userId=&amp;leagueId= — Fan's spendable balance.</summary>
     [HttpGet("available-balance")]
     public async Task<ServiceResponse<long>> GetAvailableBalance(
         [FromQuery] Guid userId,
-        [FromQuery] Guid orgId)
-        => await _mediator.Send(new GetAvailableBalanceQuery(userId, orgId));
+        [FromQuery] Guid leagueId)
+        => await _mediator.Send(new GetAvailableBalanceQuery(userId, leagueId));
 }
 
 // ── Request body DTOs (controller-only, not Application layer) ─────────────────
-public record PlaceBidRequest(Guid BidderId, Guid OrgId, long Amount);
-public record BuyNowRequest(Guid BuyerId, Guid OrgId);
+public record PlaceBidRequest(Guid BidderId, Guid LeagueId, long Amount);
+public record BuyNowRequest(Guid BuyerId, Guid LeagueId);

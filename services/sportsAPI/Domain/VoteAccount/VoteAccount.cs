@@ -5,14 +5,14 @@ namespace Domain.VoteAccount
     using Domain.ValueObjects.ConcreteTypes;
 
     /// <summary>
-    /// Per-organization wallet for a user. AR key = (OrgId, UserId).
+    /// Per-league wallet for a user. AR key = (LeagueId, UserId).
     /// Only this AR mutates vote balances.
     /// </summary>
     public sealed class VoteAccount : Aggregate<VoteAccountId>
     {
         internal VoteAccount() { } // EF
 
-        public OrganizationId OrgId { get; private set; } = default!;
+        public LeagueId LeagueId { get; private set; } = default!;
         public UserId UserId { get; private set; } = default!;
 
         public long Balance { get; private set; }
@@ -27,17 +27,17 @@ namespace Domain.VoteAccount
         private VoteAccount(VoteAccountId id, long initialBalance)
         {
             Id = id;
-            OrgId = id.OrgId;
+            LeagueId = id.LeagueId;
             UserId = id.UserId;
             Balance = initialBalance;
             Version = 0;
             CreatedAt = UpdatedAt = DateTime.UtcNow;
         }
 
-        public static VoteAccount Create(OrganizationId orgId, UserId userId, long initialBalance = 0)
+        public static VoteAccount Create(LeagueId leagueId, UserId userId, long initialBalance = 0)
         {
             if (initialBalance < 0) throw new DomainException("Initial balance cannot be negative.");
-            return new VoteAccount(VoteAccountId.Of(orgId, userId), initialBalance);
+            return new VoteAccount(VoteAccountId.Of(leagueId, userId), initialBalance);
         }
 
         public void ApplyReward(RedemptionToken token)
@@ -47,13 +47,12 @@ namespace Domain.VoteAccount
 
             _transactions.Add(
                 VoteTransaction.ForRewardCredit(
-                    token.OrgId,
+                    LeagueId,
                     token.RedeemingUser,
                     token.Amount,
                     token.RewardItemId.ToString()
                 ));
         }
-
 
         public SpendToken AuthorizeSpend(PlayerOptionId optionId, long amount, string spendId)
         {
@@ -61,28 +60,23 @@ namespace Domain.VoteAccount
             ArgumentException.ThrowIfNullOrWhiteSpace(spendId);
             if (amount <= 0) throw new DomainException("Spend amount must be positive.");
 
-
             if (Balance < amount)
                 throw new DomainException("Insufficient Funds.");
 
-
-            return new SpendToken(Id, OrgId, optionId, amount, spendId);
+            return new SpendToken(Id, LeagueId, optionId, amount, spendId);
         }
 
         public void ApplySpend(SpendToken token)
         {
-
             if (Balance < token.Amount)
                 throw new DomainException("Insufficient balance at finalization.");
 
             Balance -= token.Amount;
 
-            _transactions.Add(VoteTransaction.ForVoteSpend(OrgId, UserId, token.PlayerOptionId, token.Amount, token.SpendId));
+            _transactions.Add(VoteTransaction.ForVoteSpend(LeagueId, UserId, token.PlayerOptionId, token.Amount, token.SpendId));
         }
 
         // ── Fan Economy balance operations ───────────────────────────────────
-        // Each method validates server-side before writing any transaction record,
-        // satisfying FR4 (no partial writes on failure) and FR3 (full audit trail).
 
         /// <summary>Deduct points when a fan purchases a card pack.</summary>
         public void DeductForPackPurchase(long amount, string packId)
@@ -91,7 +85,7 @@ namespace Domain.VoteAccount
             if (Balance < amount) throw new DomainException("Insufficient balance.");
             Balance -= amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForPackPurchase(OrgId, UserId, amount, packId));
+            _transactions.Add(VoteTransaction.ForPackPurchase(LeagueId, UserId, amount, packId));
         }
 
         /// <summary>Deduct and escrow points when a fan places a bid.</summary>
@@ -101,7 +95,7 @@ namespace Domain.VoteAccount
             if (Balance < amount) throw new DomainException("Insufficient balance.");
             Balance -= amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForBidEscrow(OrgId, UserId, amount, listingId));
+            _transactions.Add(VoteTransaction.ForBidEscrow(LeagueId, UserId, amount, listingId));
         }
 
         /// <summary>Restore escrowed points to the balance when a fan is outbid.</summary>
@@ -110,7 +104,7 @@ namespace Domain.VoteAccount
             if (amount <= 0) throw new DomainException("Release amount must be positive.");
             Balance += amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForBidRelease(OrgId, UserId, amount, listingId));
+            _transactions.Add(VoteTransaction.ForBidRelease(LeagueId, UserId, amount, listingId));
         }
 
         /// <summary>Credit points to seller when auction settles or buy now is triggered.</summary>
@@ -119,7 +113,7 @@ namespace Domain.VoteAccount
             if (amount <= 0) throw new DomainException("Sale credit amount must be positive.");
             Balance += amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForAuctionSaleCredit(OrgId, UserId, amount, listingId));
+            _transactions.Add(VoteTransaction.ForAuctionSaleCredit(LeagueId, UserId, amount, listingId));
         }
 
         /// <summary>Deduct points when buyer completes a buy now purchase.</summary>
@@ -129,7 +123,7 @@ namespace Domain.VoteAccount
             if (Balance < amount) throw new DomainException("Insufficient balance.");
             Balance -= amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForBuyNowDebit(OrgId, UserId, amount, listingId));
+            _transactions.Add(VoteTransaction.ForBuyNowDebit(LeagueId, UserId, amount, listingId));
         }
 
         /// <summary>Deduct wager points at the start of an H2H match.</summary>
@@ -139,7 +133,7 @@ namespace Domain.VoteAccount
             if (Balance < amount) throw new DomainException("Insufficient balance.");
             Balance -= amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForH2HWager(OrgId, UserId, amount, matchId));
+            _transactions.Add(VoteTransaction.ForH2HWager(LeagueId, UserId, amount, matchId));
         }
 
         /// <summary>Credit wager × 2 to the winner when an H2H match resolves.</summary>
@@ -148,8 +142,7 @@ namespace Domain.VoteAccount
             if (amount <= 0) throw new DomainException("Winnings amount must be positive.");
             Balance += amount;
             UpdatedAt = DateTime.UtcNow;
-            _transactions.Add(VoteTransaction.ForH2HWin(OrgId, UserId, amount, matchId));
+            _transactions.Add(VoteTransaction.ForH2HWin(LeagueId, UserId, amount, matchId));
         }
-
     }
 }

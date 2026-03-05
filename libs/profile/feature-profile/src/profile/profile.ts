@@ -2,7 +2,7 @@ import { Component, computed, effect, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
-import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 
 @Component({
   selector: "lib-profile",
@@ -14,12 +14,11 @@ import { OrganizationFeatureService } from "@sports-ui/organization-data-access"
 export class Profile {
   private authFacade = inject(AuthFacade);
   private voteAccountFacade = inject(VoteAccountFacade);
-  private organizationFacade = inject(OrganizationFeatureService);
+  private leagueFacade = inject(LeaguesFacade);
 
   voteAccount  = this.voteAccountFacade.account;
   transactions = this.voteAccountFacade.transactions;
   user         = this.authFacade.user;
-  organization = this.organizationFacade.selectedOrganization;
 
   initials = computed(() => {
     const u = this.user();
@@ -33,9 +32,9 @@ export class Profile {
   constructor() {
     effect(() => {
       const user = this.user();
-      const org  = this.organization();
-      if (!user || !org) return;
-      this.voteAccountFacade.load(user.id, org.id);
+      const leagueId = this.leagueFacade.selectedLeagueId();
+      if (!user || !leagueId) return;
+      this.voteAccountFacade.load(user.id, leagueId);
     });
   }
 

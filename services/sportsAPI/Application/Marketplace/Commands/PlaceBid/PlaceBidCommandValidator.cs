@@ -8,7 +8,7 @@ public sealed class PlaceBidCommandValidator : AbstractValidator<PlaceBidCommand
     {
         RuleFor(x => x.ListingId).NotEmpty();
         RuleFor(x => x.BidderId).NotEmpty();
-        RuleFor(x => x.OrgId).NotEmpty();
+        RuleFor(x => x.LeagueId).NotEmpty();
         RuleFor(x => x.Amount).GreaterThan(0).WithMessage("Bid amount must be greater than zero.");
     }
 }

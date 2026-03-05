@@ -13,11 +13,11 @@ export class RedeemFacade {
   readonly loading = computed(() => this.store.status() === "loading");
   readonly error = computed(() => this.store.error() ?? null);
 
-  async redeemReward(userId: string, promoCode: string) {
+  async redeemReward(userId: string, promoCode: string, leagueId: string) {
     this.store.setLoading();
 
     try {
-      await firstValueFrom(this.api.redeemReward(userId, promoCode));
+      await firstValueFrom(this.api.redeemReward(userId, promoCode, leagueId));
       this.store.setSuccess();
       this.toast.success("Reward redeemed successfully");
     } catch (e: any) {

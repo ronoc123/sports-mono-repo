@@ -16,7 +16,7 @@ namespace Application.Profiles
 
       // Map VoteTransaction → VoteTransactionDto
       CreateMap<VoteTransaction, VoteTransactionDto>()
-        .ForMember(d => d.OrgId, opt => opt.MapFrom(s => s.OrgId.Value))
+        .ForMember(d => d.LeagueId, opt => opt.MapFrom(s => s.LeagueId.Value))
         .ForMember(d => d.UserId, opt => opt.MapFrom(s => s.UserId.Value))
         .ForMember(d => d.PlayerOptionId,
           opt => opt.MapFrom(s => s.PlayerOptionId != null ? s.PlayerOptionId.Value : (Guid?)null)

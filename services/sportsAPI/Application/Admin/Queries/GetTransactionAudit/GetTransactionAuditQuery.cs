@@ -4,7 +4,7 @@ using MediatR;
 namespace Application.Admin.Queries.GetTransactionAudit;
 
 public record GetTransactionAuditQuery(
-    Guid OrgId,
+    Guid LeagueId,
     Guid? UserId = null,
     string? Reason = null,
     int Page = 1,

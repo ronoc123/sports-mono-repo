@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Web;
 using Web.Web;
+using Application.Common.Interfaces;
 using Application.Marketplace.Services;
 using Infrastructure.Marketplace.Services;
 using sportsAPI.Hubs;
@@ -142,6 +143,9 @@ builder.Services.AddSignalR();
 // Auction real-time notification service (injected into command handlers)
 builder.Services.AddScoped<IAuctionSignalRService, AuctionSignalRService>();
 
+// Balance real-time notification service
+builder.Services.AddScoped<IBalanceNotificationService, BalanceNotificationService>();
+
 // Auction expiry background service (Story 3.3)
 builder.Services.AddHostedService<AuctionExpiryService>();
 
@@ -185,6 +189,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<AuctionHub>("/hubs/auction").RequireCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowFrontend");
+app.MapHub<BalanceHub>("/hubs/balance").RequireCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowFrontend");
 
 // Database seeding
 using (var scope = app.Services.CreateScope())

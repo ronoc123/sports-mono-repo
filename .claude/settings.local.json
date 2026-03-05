@@ -23,7 +23,8 @@
       "mcp__figma__get_screenshot",
       "Bash(npm show:*)",
       "Bash(dotnet:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(cd \"C:/Users/kampe/OneDrive/Desktop/sports-ui/services/sportsAPI\" && sqlcmd -S localhost,1433 -d SportsDb -U sa -Q \"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'VoteAccounts' ORDER BY ORDINAL_POSITION\" 2>&1)"
     ]
   }
 }

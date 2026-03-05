@@ -1,10 +1,8 @@
 using Contracts.Contracts;
-using Domain.Marketplace;
 using Domain.Repositories;
 using Domain.ValueObjects.ConcreteTypes;
 using Domain.VoteAccount;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Marketplace.Queries.GetAvailableBalance;
 
@@ -23,7 +21,7 @@ public sealed class GetAvailableBalanceQueryHandler
         // so available = Balance directly. This endpoint exposes it clearly.
         var account = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            LeagueId.Of(request.LeagueId),
             UserId.Of(request.UserId));
 
         var balance = account?.Balance ?? 0;

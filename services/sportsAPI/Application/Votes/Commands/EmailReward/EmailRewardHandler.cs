@@ -44,7 +44,7 @@ namespace Application.Votes.Commands.EmailReward
                 RewardId = reward.Id.Value,
                 Email = "Testing@gmail.com",
                 RedeemedAt = DateTime.UtcNow,
-                OrganizationId = account.OrgId.Value,
+                OrganizationId = account.LeagueId.Value,
                 UserId = account.UserId.Value,
                 Message = "You received a reward!",
                 Title = $"New Votes for the Rams!"

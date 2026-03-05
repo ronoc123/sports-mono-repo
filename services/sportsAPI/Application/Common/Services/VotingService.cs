@@ -56,11 +56,11 @@ namespace Application.Common.Services
                 throw new ValidationException("Organization Not Found");
             }
 
-            var account = await _repo.GetByIdAsync<VoteAccount>(ct, OrganizationId.Of(organizationId), UserId.Of(userId));
+            var account = await _repo.GetByIdAsync<VoteAccount>(ct, organization.LeagueId, UserId.Of(userId));
 
             if (account is null)
             {
-                account = VoteAccount.Create(OrganizationId.Of(organizationId), UserId.Of(userId), 0);
+                account = VoteAccount.Create(organization.LeagueId, UserId.Of(userId), 0);
                 await _repo.AddAsync(account);
             }
 

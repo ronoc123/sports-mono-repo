@@ -52,28 +52,28 @@ public class AdminEconomyController : ControllerBase
         => await _mediator.Send(new UpdatePackConfigCommand(orgId, body.PackPointCost));
 
     /// <summary>
-    /// GET /api/admin/economy/transactions/{orgId} — Paginated transaction audit log.
+    /// GET /api/admin/economy/transactions/{leagueId} — Paginated transaction audit log.
     /// </summary>
-    [HttpGet("transactions/{orgId:guid}")]
+    [HttpGet("transactions/{leagueId:guid}")]
     public async Task<ServiceResponse<TransactionAuditResult>> GetTransactions(
-        Guid orgId,
+        Guid leagueId,
         [FromQuery] Guid? userId = null,
         [FromQuery] string? reason = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
-        => await _mediator.Send(new GetTransactionAuditQuery(orgId, userId, reason, page, pageSize));
+        => await _mediator.Send(new GetTransactionAuditQuery(leagueId, userId, reason, page, pageSize));
 
     /// <summary>
-    /// GET /api/admin/economy/transactions/{orgId}/export — Download transactions as CSV.
+    /// GET /api/admin/economy/transactions/{leagueId}/export — Download transactions as CSV.
     /// </summary>
-    [HttpGet("transactions/{orgId:guid}/export")]
+    [HttpGet("transactions/{leagueId:guid}/export")]
     public async Task<IActionResult> ExportTransactions(
-        Guid orgId,
+        Guid leagueId,
         [FromQuery] Guid? userId = null,
         [FromQuery] string? reason = null)
     {
-        var csv = await _mediator.Send(new ExportTransactionsCsvQuery(orgId, userId, reason));
-        return File(csv, "text/csv", $"transactions-{orgId}-{DateTime.UtcNow:yyyyMMdd}.csv");
+        var csv = await _mediator.Send(new ExportTransactionsCsvQuery(leagueId, userId, reason));
+        return File(csv, "text/csv", $"transactions-{leagueId}-{DateTime.UtcNow:yyyyMMdd}.csv");
     }
 }
 

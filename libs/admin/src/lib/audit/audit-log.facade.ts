@@ -22,13 +22,13 @@ export class AuditLogFacade {
   readonly error = this.store.error;
 
   // ── Actions ───────────────────────────────────────────────────────────────
-  async loadTransactions(orgId: string): Promise<void> {
+  async loadTransactions(leagueId: string): Promise<void> {
     this.store.setLoading();
     try {
       const userId = this.store.filterUserId() || undefined;
       const reason = this.store.filterReason() || undefined;
       const res = await firstValueFrom(
-        this.api.getTransactions(orgId, userId, reason, this.store.page(), this.store.pageSize())
+        this.api.getTransactions(leagueId, userId, reason, this.store.page(), this.store.pageSize())
       );
       if (res.data) {
         this.store.setTransactions(res.data.items, res.data.totalCount, res.data.page);
@@ -50,9 +50,9 @@ export class AuditLogFacade {
     this.store.setPage(page);
   }
 
-  getExportUrl(orgId: string): string {
+  getExportUrl(leagueId: string): string {
     const userId = this.store.filterUserId() || undefined;
     const reason = this.store.filterReason() || undefined;
-    return this.api.getExportUrl(orgId, userId, reason);
+    return this.api.getExportUrl(leagueId, userId, reason);
   }
 }

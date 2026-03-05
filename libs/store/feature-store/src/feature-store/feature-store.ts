@@ -4,6 +4,7 @@ import { StoreService } from "@sports-ui/store-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { VoteAccountFacade } from "@sports-ui/vote-account-data-access";
+import { LeaguesFacade } from "@sports-ui/league-data-access";
 import { CheckoutModal } from "./checkout-modal/checkout-modal";
 
 @Component({
@@ -17,6 +18,7 @@ export class FeatureStore {
   private readonly orgFacade = inject(OrganizationFeatureService);
   private readonly authFacade = inject(AuthFacade);
   private readonly voteAccountFacade = inject(VoteAccountFacade);
+  private readonly leagueFacade = inject(LeaguesFacade);
   readonly storeService = inject(StoreService);
 
   @ViewChild(CheckoutModal) checkoutModal?: CheckoutModal;
@@ -53,13 +55,13 @@ export class FeatureStore {
     //   this.checkoutModal?.onClientSecretChanged(secret);
     // });
 
-    // Story 3.3: Refresh vote balance when payment succeeds (no manual reload required)
+    // Refresh vote balance when payment succeeds (no manual reload required)
     effect(() => {
       if (this.checkoutStatus() !== "succeeded") return;
-      const org = this.organization();
+      const leagueId = this.leagueFacade.selectedLeagueId();
       const user = this.authFacade.user();
-      if (org && user) {
-        this.voteAccountFacade.load(user.id, org.id);
+      if (leagueId && user) {
+        this.voteAccountFacade.load(user.id, leagueId);
       }
     });
   }

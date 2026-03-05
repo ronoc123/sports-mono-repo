@@ -1,3 +1,4 @@
+using Application.Common.Interfaces;
 using BuildingBlocks.Exceptions;
 using Contracts.Contracts;
 using Domain.Cards;
@@ -14,14 +15,20 @@ public sealed class BuyNowCommandHandler
     : IRequestHandler<BuyNowCommand, ServiceResponse<bool>>
 {
     private readonly IRepository _repo;
+    private readonly IBalanceNotificationService _balanceNotifier;
 
-    public BuyNowCommandHandler(IRepository repo) => _repo = repo;
+    public BuyNowCommandHandler(IRepository repo, IBalanceNotificationService balanceNotifier)
+    {
+        _repo = repo;
+        _balanceNotifier = balanceNotifier;
+    }
 
     public async Task<ServiceResponse<bool>> Handle(
         BuyNowCommand request,
         CancellationToken cancellationToken)
     {
         var listingId = request.ListingId.ToString();
+        var leagueId = LeagueId.Of(request.LeagueId);
 
         // 1. Load listing (tracked)
         var listing = await _repo.Query<AuctionListing>(asNoTracking: false)
@@ -43,7 +50,7 @@ public sealed class BuyNowCommandHandler
         // 3. Load buyer's account (tracked)
         var buyerAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            leagueId,
             UserId.Of(request.BuyerId))
             ?? throw new DomainException("Vote account not found for buyer.");
 
@@ -53,7 +60,7 @@ public sealed class BuyNowCommandHandler
         // 4. Load seller's account (tracked)
         var sellerAccount = await _repo.GetByIdAsync<VoteAccount>(
             cancellationToken,
-            OrganizationId.Of(request.OrgId),
+            leagueId,
             UserId.Of(listing.SellerId))
             ?? throw new DomainException("Vote account not found for seller.");
 
@@ -71,7 +78,7 @@ public sealed class BuyNowCommandHandler
         {
             var bidderAccount = await _repo.GetByIdAsync<VoteAccount>(
                 cancellationToken,
-                OrganizationId.Of(request.OrgId),
+                leagueId,
                 UserId.Of(escrow.UserId))
                 ?? throw new DomainException($"Vote account not found for bidder {escrow.UserId}.");
 
@@ -79,6 +86,8 @@ public sealed class BuyNowCommandHandler
             bidderAccount.CreditBidRelease(escrow.HeldAmount, listingId);
             _repo.Update(escrow);
             _repo.Update(bidderAccount);
+
+            _ = _balanceNotifier.NotifyBalanceChangedAsync(escrow.UserId.ToString(), bidderAccount.Balance, cancellationToken);
         }
 
         // 7. Deduct from buyer and credit seller
@@ -95,6 +104,9 @@ public sealed class BuyNowCommandHandler
         _repo.Update(userCard);
         _repo.Update(listing);
         await _repo.SaveChangesAsync(cancellationToken);
+
+        _ = _balanceNotifier.NotifyBalanceChangedAsync(request.BuyerId.ToString(), buyerAccount.Balance, cancellationToken);
+        _ = _balanceNotifier.NotifyBalanceChangedAsync(listing.SellerId.ToString(), sellerAccount.Balance, cancellationToken);
 
         return ServiceResponse.Ok(true, "Buy now purchase completed. Card transferred to your collection.");
     }

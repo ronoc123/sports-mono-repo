@@ -1,6 +1,6 @@
 export interface VoteTransaction {
   id: number;
-  orgId: string;
+  leagueId: string;
   userId: string;
   amount: number;
   reason: string;
@@ -11,7 +11,7 @@ export interface VoteTransaction {
 }
 
 export interface VoteAccount {
-  orgId: string;
+  leagueId: string;
   userId: string;
   balance: number;
   version: number;

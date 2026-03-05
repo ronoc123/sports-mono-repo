@@ -132,9 +132,9 @@ export class MarketplaceFacade {
     }
   }
 
-  async loadAvailableBalance(userId: string, orgId: string): Promise<void> {
+  async loadAvailableBalance(userId: string, leagueId: string): Promise<void> {
     try {
-      const res = await firstValueFrom(this.api.getAvailableBalance(userId, orgId));
+      const res = await firstValueFrom(this.api.getAvailableBalance(userId, leagueId));
       if (res.data != null) this.store.setAvailableBalance(res.data);
     } catch {
       // non-critical — balance will just show 0

@@ -16,7 +16,7 @@ namespace Application.Profiles
     {
       // Map VoteAccount → VoteAccountDto
       CreateMap<VoteAccount, VoteAccountDto>()
-        .ForMember(d => d.OrgId, opt => opt.MapFrom(s => s.OrgId.Value))
+        .ForMember(d => d.LeagueId, opt => opt.MapFrom(s => s.LeagueId.Value))
         .ForMember(d => d.UserId, opt => opt.MapFrom(s => s.UserId.Value))
         .ForMember(d => d.Transactions, opt => opt.MapFrom(s => s.Transactions));
     }

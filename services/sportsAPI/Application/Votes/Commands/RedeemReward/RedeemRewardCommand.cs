@@ -5,5 +5,5 @@ using MediatR;
 
 namespace Application.Votes.Commands.RedeemReward
 {
-  public sealed record RedeemRewardCommand(UserId UserId, string PromoCode) : IRequest<ServiceResponse<VoteAccountDto>>;
+  public sealed record RedeemRewardCommand(UserId UserId, string PromoCode, LeagueId LeagueId) : IRequest<ServiceResponse<VoteAccountDto>>;
 }

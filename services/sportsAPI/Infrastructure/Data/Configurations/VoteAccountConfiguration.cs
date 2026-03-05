@@ -1,3 +1,4 @@
+using Domain.Leagues;
 using Domain.Shared_kernel;
 using Domain.ValueObjects.ConcreteTypes;
 using Domain.VoteAccount;
@@ -10,14 +11,13 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
 {
   public void Configure(EntityTypeBuilder<VoteAccount> builder)
   {
-
         builder.Ignore(x => x.Id);
 
-        builder.HasKey(x => new { x.OrgId, x.UserId });
+        builder.HasKey(x => new { x.LeagueId, x.UserId });
 
-        builder.Property(c => c.OrgId).HasConversion(
+        builder.Property(c => c.LeagueId).HasConversion(
             x => x.Value,
-            v => OrganizationId.Of(v));
+            v => LeagueId.Of(v));
 
         builder.Property(c => c.UserId).HasConversion(
             x => x.Value,
@@ -29,9 +29,13 @@ public sealed class VoteAccountConfiguration : IEntityTypeConfiguration<VoteAcco
         builder.Property(x => x.CreatedAt).HasColumnType("datetime2");
         builder.Property(x => x.UpdatedAt).HasColumnType("datetime2");
 
+        builder.HasOne<League>()
+            .WithMany()
+            .HasForeignKey(x => x.LeagueId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Navigation(x => x.Transactions)
             .UsePropertyAccessMode(PropertyAccessMode.Field)
             .AutoInclude();
-
   }
 }

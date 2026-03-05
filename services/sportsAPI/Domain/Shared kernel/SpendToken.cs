@@ -9,20 +9,20 @@ namespace Domain.Shared_kernel
   public sealed record SpendToken
   {
     public VoteAccountId AccountId { get; }
-    public OrganizationId OrgId { get; }
+    public LeagueId LeagueId { get; }
     public PlayerOptionId PlayerOptionId { get; }
     public long Amount { get; }
     public string SpendId { get; }
 
     internal SpendToken(
         VoteAccountId accountId,
-        OrganizationId orgId,
+        LeagueId leagueId,
         PlayerOptionId playerOptionId,
         long amount,
         string spendId)
     {
       AccountId = accountId;
-      OrgId = orgId;
+      LeagueId = leagueId;
       PlayerOptionId = playerOptionId;
       Amount = amount;
       SpendId = spendId;
