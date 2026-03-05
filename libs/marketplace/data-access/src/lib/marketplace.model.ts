@@ -6,7 +6,7 @@ export interface ListingDto {
   id: string;
   userCardId: string;
   sellerId: string;
-  playerName: string;
+  cardName: string;
   position: string;
   overallRating: number;
   rarityTier: RarityTier;

@@ -76,7 +76,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   readonly filteredListings = computed(() => {
     let result = this.listings();
     const q = this.searchQuery().toLowerCase();
-    if (q) result = result.filter(l => l.playerName.toLowerCase().includes(q));
+    if (q) result = result.filter(l => l.cardName.toLowerCase().includes(q));
     const tf = this.timeFilter();
     if (tf !== 'all') {
       const hours = tf === '1h' ? 1 : tf === '6h' ? 6 : 24;
@@ -216,6 +216,20 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
       Legendary: '#b45309',
     };
     return map[rarity] ?? '#64748b';
+  }
+
+  getRarityBadgeStyle(rarity: string): { background: string; color: string } {
+    const map: Record<string, { background: string; color: string }> = {
+      Common:    { background: '#f1f5f9', color: '#475569' },
+      Rare:      { background: '#dbeafe', color: '#1d4ed8' },
+      Epic:      { background: '#ede9fe', color: '#7c3aed' },
+      Legendary: { background: '#ffedd5', color: '#b45309' },
+    };
+    return map[rarity] ?? { background: '#f1f5f9', color: '#475569' };
+  }
+
+  getListingTimeLabel(expiresAt: string): string {
+    return formatTimeRemaining(expiresAt);
   }
 
   getCardArtGradient(rarity: string): string {

@@ -11,6 +11,8 @@ import {
   OrganizationDto,
 } from "./organization.model";
 
+const SELECTED_ORG_KEY = "sports-selected-org-id";
+
 @Injectable({ providedIn: "root" })
 export class OrganizationFeatureService {
   private readonly store = inject(OrganizationStore);
@@ -34,7 +36,9 @@ export class OrganizationFeatureService {
 
       this.store.setOrganizations(items);
       if (items.length > 0) {
-        this.store.setSelectedOrg(items[0]);
+        const savedId = localStorage.getItem(SELECTED_ORG_KEY);
+        const restored = savedId ? items.find((o) => o.id === savedId) : null;
+        this.store.setSelectedOrg(restored ?? items[0]);
       }
     } catch (e: any) {
       this.store.setError(e?.message ?? "Failed to load organizations");
@@ -95,6 +99,7 @@ export class OrganizationFeatureService {
   }
 
   selectOrganization(org: OrganizationDto) {
+    localStorage.setItem(SELECTED_ORG_KEY, org.id);
     this.store.setSelectedOrg(org);
   }
 }

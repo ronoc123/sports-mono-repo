@@ -95,39 +95,60 @@
               [class.selected]="selectedListing()?.id === listing.id"
               (click)="selectListing(listing)"
             >
-              <!-- Card art -->
-              <div class="card-art" [style.background]="getCardArtGradient(listing.rarityTier)">
-                <div class="card-ovr-badge">{{ listing.overallRating }}</div>
-                <div class="card-rarity-badge" [style.background]="getRarityColor(listing.rarityTier)">
-                  {{ listing.rarityTier }}
+              <!-- Card header: name + rarity badge -->
+              <div class="card-header">
+                <span class="card-name">{{ listing.cardName }}</span>
+                <span class="card-rarity-tag"
+                  [style.background]="getRarityBadgeStyle(listing.rarityTier).background"
+                  [style.color]="getRarityBadgeStyle(listing.rarityTier).color"
+                >{{ listing.rarityTier }}</span>
+              </div>
+
+              <!-- Image area with OVR block -->
+              <div class="card-image-area">
+                <div class="card-ovr-block" [style.background]="getCardArtGradient(listing.rarityTier)">
+                  <span class="card-ovr-number">{{ listing.overallRating }}</span>
+                  <span class="card-ovr-label">OVR</span>
+                </div>
+                <!-- Player name overlay at bottom -->
+                <div class="card-art-name-bar">
+                  <span class="card-art-name">{{ listing.cardName }}</span>
+                  <span class="card-art-pos">{{ listing.position }}</span>
                 </div>
               </div>
 
-              <!-- Card info -->
-              <div class="card-info">
-                <div class="card-name">{{ listing.playerName }}</div>
-                <div class="card-position">{{ listing.position }}</div>
-
-                <div class="card-bid-row">
-                  <div>
-                    <div class="card-bid-label">Current Bid</div>
-                    <div class="card-bid-value">{{ listing.currentBid | number }} pts</div>
+              <!-- Info rows -->
+              <div class="card-rows">
+                <div class="card-row">
+                  <span class="material-icons row-icon">gavel</span>
+                  <span class="row-label">Current Bid</span>
+                  <span class="row-value row-bid">{{ listing.currentBid | number }} pts</span>
+                </div>
+                @if (listing.buyNowPrice) {
+                  <div class="card-row">
+                    <span class="material-icons row-icon row-icon-brand">sell</span>
+                    <span class="row-label">Buy Now</span>
+                    <span class="row-value row-buynow">{{ listing.buyNowPrice | number }} pts</span>
                   </div>
-                  @if (listing.buyNowPrice) {
-                    <div class="card-buynow-pill">
-                      <span class="material-icons" style="font-size:0.75rem">flash_on</span>
-                      {{ listing.buyNowPrice | number }}
-                    </div>
+                }
+                <div class="card-row card-row-footer">
+                  <span class="material-icons row-icon">timer</span>
+                  <span class="row-time">{{ getListingTimeLabel(listing.expiresAt) }}</span>
+                  @if (listing.bidCount >= 3) {
+                    <span class="card-hot">🔥</span>
                   }
+                  <span class="row-bids">{{ listing.bidCount }} bid{{ listing.bidCount !== 1 ? 's' : '' }}</span>
                 </div>
+              </div>
 
-                <div class="card-footer">
-                  <span class="card-bids">
-                    <span class="material-icons" style="font-size:0.85rem">gavel</span>
-                    {{ listing.bidCount }} bid{{ listing.bidCount !== 1 ? 's' : '' }}
-                  </span>
-                  <span class="card-cta">Bid now →</span>
-                </div>
+              <!-- CTA bar -->
+              <div class="card-cta-bar" [class.cta-selected]="selectedListing()?.id === listing.id">
+                @if (selectedListing()?.id === listing.id) {
+                  <span class="material-icons cta-icon">check_circle</span>
+                  Selected — see panel →
+                } @else {
+                  Click to bid
+                }
               </div>
             </div>
           }
@@ -136,52 +157,108 @@
     </div>
 
     <!-- ── Detail panel (always rendered) ───────────────────────────────── -->
-    <div class="detail-panel">
+    <div class="detail-panel" [class.detail-panel-empty]="!selectedListing()">
 
       @if (!selectedListing()) {
+
         <!-- Empty state -->
-        <div class="detail-empty">
-          <div class="detail-empty-art"></div>
-          <div class="detail-empty-body">
-            <span class="material-icons detail-empty-icon">touch_app</span>
-            <h3>Select a Card</h3>
-            <p>Click any listing to view details, place a bid, or buy now.</p>
+        <div class="detail-panel-header">
+          <span class="detail-panel-title detail-title-muted">Auction</span>
+          <div class="panel-close-skeleton"></div>
+        </div>
+        <div class="detail-empty-art">
+          <div class="detail-empty-icon-wrap">
+            <span class="material-icons">gavel</span>
           </div>
+          <p class="detail-empty-label">No card selected</p>
+          <p class="detail-empty-hint">Click any listing to start bidding</p>
+        </div>
+        <div class="detail-skeleton-section">
+          <div class="skeleton-line skel-w60"></div>
+          <div class="skeleton-line skel-w40"></div>
+        </div>
+        <div class="detail-skeleton-section">
+          <div class="skeleton-block skel-h16"></div>
+          <div class="skeleton-2col">
+            <div class="skeleton-block skel-h14"></div>
+            <div class="skeleton-block skel-h14"></div>
+          </div>
+          <div class="skeleton-block skel-h12"></div>
+          <div class="skeleton-block skel-h11"></div>
         </div>
 
       } @else {
 
-        <!-- Art header -->
-        <div class="detail-art-header" [style.background]="getCardArtGradient(selectedListing()!.rarityTier)">
-          <button class="back-btn" (click)="closeDetail()">
-            <span class="material-icons">arrow_back</span>
+        <!-- Panel header -->
+        <div class="detail-panel-header">
+          <span class="detail-panel-title">Auction</span>
+          <button class="detail-close-btn" (click)="closeDetail()">
+            <span class="material-icons">close</span>
           </button>
-          <div class="detail-art-ovr">{{ selectedListing()!.overallRating }}</div>
-          <div class="detail-rarity-badge" [style.background]="getRarityColor(selectedListing()!.rarityTier)">
-            {{ selectedListing()!.rarityTier }}
+        </div>
+
+        <!-- Card image area: gray gradient + OVR block + rarity badge + name -->
+        <div class="detail-card-art">
+          <div class="detail-ovr-block" [style.background]="getCardArtGradient(selectedListing()!.rarityTier)">
+            <span class="detail-ovr-number">{{ selectedListing()!.overallRating }}</span>
+            <span class="detail-ovr-label">OVR</span>
+          </div>
+          <span class="detail-rarity-tag"
+            [style.background]="getRarityBadgeStyle(selectedListing()!.rarityTier).background"
+            [style.color]="getRarityBadgeStyle(selectedListing()!.rarityTier).color"
+          >{{ selectedListing()!.rarityTier }}</span>
+          <!-- Player name overlay at bottom -->
+          <div class="detail-art-name-bar">
+            <span class="detail-art-player-name">{{ selectedListing()!.cardName }}</span>
+            <span class="detail-art-player-pos">{{ selectedListing()!.position }}</span>
           </div>
         </div>
 
         <!-- Player info -->
         <div class="detail-player-info">
-          <h2 class="detail-name">{{ selectedListing()!.playerName }}</h2>
+          <h3 class="detail-name">{{ selectedListing()!.cardName }}</h3>
           <span class="detail-position">{{ selectedListing()!.position }}</span>
         </div>
 
-        <!-- Current bid -->
-        <div class="detail-current-bid">
-          <div class="current-bid-label">Current Bid</div>
-          <div class="current-bid-value">{{ selectedListing()!.currentBid | number }} pts</div>
-          <div class="current-bid-meta">
-            <span class="material-icons" style="font-size:0.9rem">timer</span>
-            {{ timeRemaining() }} remaining
-            &nbsp;·&nbsp;
-            {{ selectedListing()!.bidCount }} bid{{ selectedListing()!.bidCount !== 1 ? 's' : '' }}
-          </div>
-        </div>
+        <!-- Bidding area -->
+        <div class="detail-bid-area">
 
-        @if (!isOwnListing()) {
-          <div class="bid-section">
+          <!-- Current bid block -->
+          <div class="detail-current-bid">
+            <div class="current-bid-label">Current Bid</div>
+            <div class="current-bid-main">
+              <div class="current-bid-amount-row">
+                <span class="material-icons current-bid-icon">paid</span>
+                <span class="current-bid-value">{{ selectedListing()!.currentBid | number }}</span>
+                <span class="current-bid-unit">pts</span>
+              </div>
+              <div class="current-bid-right">
+                <div class="current-bid-count">{{ selectedListing()!.bidCount }} bid{{ selectedListing()!.bidCount !== 1 ? 's' : '' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time + Buy Now 2-col grid -->
+          <div class="detail-info-grid">
+            <div class="detail-info-cell">
+              <span class="detail-info-label">
+                <span class="material-icons" style="font-size:0.7rem">timer</span>
+                Time Left
+              </span>
+              <span class="detail-info-value">{{ timeRemaining() }}</span>
+            </div>
+            @if (selectedListing()!.buyNowPrice) {
+              <div class="detail-info-cell">
+                <span class="detail-info-label">
+                  <span class="material-icons" style="font-size:0.7rem">sell</span>
+                  Buy Now
+                </span>
+                <span class="detail-info-value detail-buynow-val">{{ selectedListing()!.buyNowPrice | number }}</span>
+              </div>
+            }
+          </div>
+
+          @if (!isOwnListing()) {
 
             @if (bidError()) {
               <div class="bid-error">
@@ -196,83 +273,87 @@
               </div>
             }
 
-            <div class="bid-label-row">
-              <span class="bid-section-label">Your Bid</span>
-              <span class="bid-min-hint">Min: {{ minBid() | number }} pts</span>
-            </div>
-
-            <input
-              class="bid-input"
-              type="number"
-              [min]="minBid()"
-              placeholder="Enter amount..."
-              [ngModel]="bidAmount()"
-              (ngModelChange)="bidAmount.set($event); bidValidationError.set(null)"
-            />
-
-            <!-- Quick bid buttons -->
-            <div class="quick-bid-row">
-              <button class="quick-bid-btn" (click)="quickBid('min')">+Min</button>
-              <button class="quick-bid-btn" (click)="quickBid(50)">+50</button>
-              <button class="quick-bid-btn" (click)="quickBid(100)">+100</button>
-              <button class="quick-bid-btn" (click)="quickBid(250)">+250</button>
-            </div>
-
-            <!-- Action buttons -->
-            <div class="detail-actions" [class.single-action]="!selectedListing()!.buyNowPrice">
-              <button
-                class="btn-place-bid"
-                [disabled]="isBidding()"
-                (click)="placeBid()"
-              >
-                @if (isBidding()) { Placing… } @else { Place Bid }
-              </button>
-              @if (selectedListing()!.buyNowPrice) {
-                <button class="btn-buy-now" (click)="showBuyNowConfirm.set(true)" [disabled]="showBuyNowConfirm()">
-                  <span class="material-icons">flash_on</span>
-                  Buy Now
-                </button>
-              }
-            </div>
-
-            <!-- Buy Now confirmation -->
-            @if (showBuyNowConfirm()) {
-              <div class="buynow-confirm">
-                <span>Confirm <strong>{{ selectedListing()!.buyNowPrice | number }} pts</strong>?</span>
-                <div class="confirm-btns">
-                  <button class="btn-confirm-buy" [disabled]="isBidding()" (click)="confirmBuyNow()">
-                    @if (isBidding()) { Processing… } @else { Confirm }
-                  </button>
-                  <button class="btn-cancel-buy" (click)="showBuyNowConfirm.set(false)">Cancel</button>
-                </div>
+            <!-- Bid input -->
+            <div class="bid-input-wrap">
+              <label class="bid-input-label">Your Bid Amount</label>
+              <input
+                class="bid-input"
+                type="number"
+                [min]="minBid()"
+                [placeholder]="'Min ' + minBid()"
+                [ngModel]="bidAmount()"
+                (ngModelChange)="bidAmount.set($event); bidValidationError.set(null)"
+              />
+              <div class="quick-bid-row">
+                <button class="quick-bid-btn" (click)="quickBid('min')">Min</button>
+                <button class="quick-bid-btn" (click)="quickBid(50)">+50</button>
+                <button class="quick-bid-btn" (click)="quickBid(100)">+100</button>
+                <button class="quick-bid-btn" (click)="quickBid(250)">+250</button>
               </div>
+            </div>
+
+            <!-- Place Bid -->
+            <button class="btn-place-bid" [disabled]="isBidding()" (click)="placeBid()">
+              <span class="material-icons">gavel</span>
+              @if (isBidding()) {
+                Placing…
+              } @else {
+                Place Bid @if (bidAmount()) { · {{ bidAmount() | number }} pts }
+              }
+            </button>
+
+            <!-- Buy Now -->
+            @if (selectedListing()!.buyNowPrice) {
+              @if (!showBuyNowConfirm()) {
+                <button class="btn-buy-now" (click)="showBuyNowConfirm.set(true)">
+                  <span class="material-icons">shopping_cart</span>
+                  Buy Now · {{ selectedListing()!.buyNowPrice | number }} pts
+                </button>
+              } @else {
+                <div class="buynow-confirm">
+                  <span>Confirm <strong>{{ selectedListing()!.buyNowPrice | number }} pts</strong>?</span>
+                  <div class="confirm-btns">
+                    <button class="btn-confirm-buy" [disabled]="isBidding()" (click)="confirmBuyNow()">
+                      @if (isBidding()) { Processing… } @else { Confirm }
+                    </button>
+                    <button class="btn-cancel-buy" (click)="showBuyNowConfirm.set(false)">Cancel</button>
+                  </div>
+                </div>
+              }
             }
 
-          </div>
-        } @else {
-          <div class="own-listing-note">
-            <span class="material-icons">info</span>
-            This is your listing.
-          </div>
-        }
+            <!-- Balance hint -->
+            <div class="detail-balance-hint">
+              <span class="material-icons">paid</span>
+              {{ availableBalance() | number }} pts available
+            </div>
 
-        <!-- Bid history -->
-        <div class="bid-history">
-          <h3>Bid History</h3>
-          @if (isLoadingDetail()) {
-            <div class="bid-skeleton"></div>
-          } @else if (selectedListing()!.bidHistory.length === 0) {
-            <p class="no-bids">No bids yet. Be the first!</p>
           } @else {
-            <div class="bid-list">
-              @for (bid of selectedListing()!.bidHistory; track bid.timestamp) {
-                <div class="bid-row">
-                  <span class="bid-amount">{{ bid.amount | number }} pts</span>
-                  <span class="bid-time">{{ bid.timestamp | date:'short' }}</span>
-                </div>
-              }
+            <div class="own-listing-note">
+              <span class="material-icons">info</span>
+              This is your listing.
             </div>
           }
+
+          <!-- Bid history -->
+          <div class="bid-history">
+            <h3>Bid History</h3>
+            @if (isLoadingDetail()) {
+              <div class="bid-skeleton"></div>
+            } @else if (selectedListing()!.bidHistory.length === 0) {
+              <p class="no-bids">No bids yet. Be the first!</p>
+            } @else {
+              <div class="bid-list">
+                @for (bid of selectedListing()!.bidHistory; track bid.timestamp) {
+                  <div class="bid-row">
+                    <span class="bid-amount">{{ bid.amount | number }} pts</span>
+                    <span class="bid-time">{{ bid.timestamp | date:'short' }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
         </div>
 
       }
