@@ -1,7 +1,8 @@
 .audit-log {
   padding: 1.5rem;
-  max-width: 1100px;
+  max-width: 2000px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .page-header {
@@ -132,16 +133,46 @@
   color: #818cf8;
 }
 
-.reason-pack_purchase { background: rgba(234, 179, 8, 0.15); color: #fbbf24; }
-.reason-h2h_wager    { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-.reason-h2h_win      { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-.reason-auction_sale { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-.reason-bid_escrow   { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.reason-bid_release  { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
-.reason-buy_now      { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-.reason-adjust       { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
-.reason-vote_spend   { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
-.reason-reward_redeem { background: rgba(20, 184, 166, 0.15); color: #2dd4bf; }
+.reason-pack_purchase {
+  background: rgba(234, 179, 8, 0.15);
+  color: #fbbf24;
+}
+.reason-h2h_wager {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+.reason-h2h_win {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+.reason-auction_sale {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+.reason-bid_escrow {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+.reason-bid_release {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+.reason-buy_now {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+.reason-adjust {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+}
+.reason-vote_spend {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+}
+.reason-reward_redeem {
+  background: rgba(20, 184, 166, 0.15);
+  color: #2dd4bf;
+}
 
 .empty-row {
   text-align: center;
