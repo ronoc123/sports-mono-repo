@@ -3,8 +3,10 @@
   <!-- Welcome Banner -->
   <div class="welcome-banner">
     <div class="welcome-text">
-      <h1 class="welcome-heading">Welcome back, {{ currentUser()?.firstName || currentUser()?.email || 'User' }}!</h1>
-      <p class="welcome-sub">Here's what's happening in your organization today.</p>
+      <h1 class="welcome-heading">
+        Welcome back, {{ currentUser()?.firstName || currentUser()?.email || 'Fan' }}!
+      </h1>
+      <p class="welcome-sub">See what's trending in your franchise today.</p>
     </div>
     <div class="welcome-deco" aria-hidden="true">
       <div class="deco-grid">
@@ -16,48 +18,83 @@
     </div>
   </div>
 
-  <!-- Overview -->
-  <section class="section">
-    <h2 class="section-heading">Overview</h2>
-    <div class="stats-grid">
-      <div
-        *ngFor="let card of statsCards"
-        class="stat-card"
-        [class]="'stat-card stat-card--' + card.color"
-      >
-        <div class="stat-body">
-          <div class="stat-top">
-            <div class="stat-icon-wrap">
-              <span class="material-icons">{{ card.icon }}</span>
-            </div>
-          </div>
-          <p class="stat-label">{{ card.title }}</p>
-          <h3 class="stat-value">{{ card.value }}</h3>
-          <p class="stat-sub" *ngIf="card.subtitle">{{ card.subtitle }}</p>
-        </div>
-        <div class="stat-footer" *ngIf="card.action">
-          <button class="stat-link" (click)="navigateTo(card.action.route)">
-            {{ card.action.label }}
-            <span class="material-icons stat-link-arrow">arrow_forward</span>
-          </button>
-        </div>
-      </div>
+  <!-- Loading -->
+  @if (dashboard.status() === 'loading') {
+    <div class="dashboard-loading">
+      <div class="spinner"></div>
+      <p>Loading your dashboard...</p>
     </div>
-  </section>
+  }
 
-  <!-- Quick Actions -->
-  <section class="section">
-    <h2 class="section-heading">Quick Actions</h2>
-    <div class="actions-grid">
-      <button
-        *ngFor="let action of quickActions"
-        class="action-btn"
-        (click)="navigateTo(action.route)"
-      >
-        <span class="material-icons action-icon">{{ action.icon }}</span>
-        <span class="action-label">{{ action.label }}</span>
-      </button>
+  <!-- Error -->
+  @if (dashboard.status() === 'error') {
+    <div class="dashboard-error">
+      <span class="material-icons">error_outline</span>
+      <p>{{ dashboard.error() || 'Failed to load dashboard. Please try again.' }}</p>
     </div>
-  </section>
+  }
+
+  <!-- Content -->
+  @if (dashboard.status() === 'success') {
+
+    <!-- Trending Player Options -->
+    <section class="section">
+      <h2 class="section-heading">
+        <span class="material-icons section-icon">trending_up</span>
+        Trending Player Options
+      </h2>
+      <lib-trending-feed [options]="dashboard.trendingPlayerOptions()" />
+    </section>
+
+    <!-- Active Trivia Questions — Epic 3 -->
+    @if (dashboard.activeTriviaQuestions().length > 0) {
+      <section class="section">
+        <h2 class="section-heading">
+          <span class="material-icons section-icon">quiz</span>
+          Trivia
+        </h2>
+        @if (dashboard.triviaSubmitError()) {
+          <div class="trivia-error">{{ dashboard.triviaSubmitError() }}</div>
+        }
+        <div class="trivia-list">
+          @for (q of dashboard.activeTriviaQuestions(); track q.questionId) {
+            <lib-trivia-card
+              [question]="q"
+              [submitting]="dashboard.triviaSubmitting()"
+              (answerSubmitted)="onTriviaAnswerSubmitted($event)"
+            />
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Active Poll — Epic 5 -->
+    @if (dashboard.activePoll()) {
+      <section class="section">
+        <h2 class="section-heading">
+          <span class="material-icons section-icon">poll</span>
+          Fan Poll
+        </h2>
+        @if (dashboard.pollSubmitError()) {
+          <div class="poll-error">{{ dashboard.pollSubmitError() }}</div>
+        }
+        <lib-poll-card
+          [poll]="dashboard.activePoll()!"
+          [submitting]="dashboard.pollSubmitting()"
+          (voteSubmitted)="onPollVoteSubmitted($event)"
+        />
+      </section>
+    }
+
+    <!-- Empty state when nothing is active -->
+    @if (!dashboard.hasContent()) {
+      <div class="dashboard-empty">
+        <span class="material-icons dashboard-empty-icon">sports</span>
+        <h3>Nothing active right now</h3>
+        <p>Check back soon — your GM will have new content posted shortly.</p>
+      </div>
+    }
+
+  }
 
 </div>

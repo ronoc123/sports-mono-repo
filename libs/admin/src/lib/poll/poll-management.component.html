@@ -1,0 +1,117 @@
+<div class="poll-management">
+  <div class="page-header">
+    <h2>Poll Management</h2>
+    <button class="btn btn-primary" (click)="showCreateForm.set(!showCreateForm())">
+      + Create Poll
+    </button>
+  </div>
+
+  @if (saveError()) {
+    <div class="alert alert-error">{{ saveError() }}</div>
+  }
+
+  <!-- Create poll form -->
+  @if (showCreateForm()) {
+    <div class="card form-card">
+      <h3>Create Poll</h3>
+
+      <div class="form-group">
+        <label>Question</label>
+        <textarea
+          rows="2"
+          [value]="newQuestionText()"
+          (input)="newQuestionText.set($any($event.target).value)"
+          placeholder="e.g. Who should start at QB this week?"
+          maxlength="1000"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Options (min 2, max 6)</label>
+        @for (opt of newOptions(); track $index) {
+          <div class="option-row">
+            <input
+              type="text"
+              [value]="opt"
+              (input)="updateOption($index, $any($event.target).value)"
+              [placeholder]="'Option ' + ($index + 1)"
+            />
+            @if (newOptions().length > 2) {
+              <button class="btn btn-ghost btn-sm" (click)="removeOption($index)">✕</button>
+            }
+          </div>
+        }
+        @if (newOptions().length < 6) {
+          <button class="btn btn-ghost btn-sm add-option-btn" (click)="addOption()">
+            + Add option
+          </button>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn btn-primary"
+          [disabled]="isSaving() || !newQuestionText().trim()"
+          (click)="submitCreatePoll()"
+        >
+          @if (isSaving()) { Saving... } @else { Create Poll }
+        </button>
+        <button class="btn btn-ghost" (click)="resetForm()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading / error states -->
+  @if (isLoading()) {
+    <div class="loading">Loading polls...</div>
+  } @else if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  } @else if (polls().length === 0) {
+    <div class="empty-state">No polls yet. Create one to engage your fans.</div>
+  } @else {
+    <div class="polls-list">
+      @for (poll of polls(); track trackByPollId($index, poll)) {
+        <div class="poll-card" [class.archived]="poll.status === 'Archived'">
+          <div class="poll-card-header">
+            <div class="poll-info">
+              <span class="poll-question">{{ poll.questionText }}</span>
+              <span class="poll-meta">{{ poll.totalVotes }} vote(s)</span>
+            </div>
+            <div class="poll-actions">
+              <span class="status-badge status-{{ poll.status.toLowerCase() }}">
+                {{ poll.status }}
+              </span>
+              @if (poll.status === 'Active') {
+                <button
+                  class="btn btn-sm btn-danger"
+                  [disabled]="isSaving()"
+                  (click)="archivePoll(poll.pollId)"
+                >
+                  Archive
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Options breakdown -->
+          <div class="poll-options">
+            @for (opt of poll.options; track opt.pollOptionId) {
+              <div class="poll-option-row">
+                <span class="option-label">{{ opt.optionText }}</span>
+                <div class="progress-bar-wrap">
+                  <div
+                    class="progress-bar"
+                    [style.width.%]="votePercent(opt.voteCount, poll.totalVotes)"
+                  ></div>
+                </div>
+                <span class="option-count">
+                  {{ opt.voteCount }} ({{ votePercent(opt.voteCount, poll.totalVotes) }}%)
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

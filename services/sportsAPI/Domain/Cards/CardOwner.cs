@@ -1,5 +1,4 @@
 using BuildingBlocks.Exceptions;
-using Domain.Abstractions;
 
 namespace Domain.Cards;
 

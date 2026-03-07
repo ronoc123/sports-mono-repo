@@ -1,5 +1,7 @@
 using Domain.Leagues;
 using Domain.Organizations;
+using Domain.Poll;
+using Domain.Trivia;
 using System.Linq.Expressions;
 
 namespace Domain.Repositories
@@ -69,4 +71,12 @@ namespace Domain.Repositories
   //  Task UpdateLeagueAsync(League league, CancellationToken ct = default);
   //  Task DeleteLeagueAsync(LeagueId leagueId, CancellationToken ct = default);
   //}
+
+  public interface ITriviaSeriesRepository : IRepository<TriviaSeries, TriviaSeriesId>
+  {
+  }
+
+  public interface IPollRepository : IRepository<Domain.Poll.Poll, PollId>
+  {
+  }
 }

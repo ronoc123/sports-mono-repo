@@ -29,6 +29,8 @@ export class ShellComponent {
     { name: "Profile", icon: "person", route: "profile" },
     { name: "Economy Admin", icon: "tune", route: "admin/economy" },
     { name: "Audit Log", icon: "receipt_long", route: "admin/audit-log" },
+    { name: "Trivia", icon: "quiz", route: "admin/trivia-management" },
+    { name: "Polls", icon: "poll", route: "admin/poll-management" },
     {
       name: "Create Player Option",
       icon: "how_to_vote",

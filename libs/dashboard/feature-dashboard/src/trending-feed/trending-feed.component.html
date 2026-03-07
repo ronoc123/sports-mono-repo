@@ -1,0 +1,25 @@
+<div class="trending-feed">
+  @if (options().length === 0) {
+    <div class="trending-empty">
+      <span class="material-icons trending-empty-icon">trending_up</span>
+      <p>No active player options right now. Check back soon!</p>
+    </div>
+  } @else {
+    <ol class="trending-list">
+      @for (option of options(); track option.playerOptionId; let i = $index) {
+        <li class="trending-card" (click)="navigate(option.playerOptionId)" role="button" tabindex="0"
+            (keydown.enter)="navigate(option.playerOptionId)">
+          <span class="trending-rank">{{ i + 1 }}</span>
+          <div class="trending-info">
+            <span class="trending-name">{{ option.playerName }}</span>
+            <span class="trending-position">{{ option.positionLabel }}</span>
+          </div>
+          <div class="trending-votes">
+            <span class="material-icons vote-icon">how_to_vote</span>
+            <span class="vote-count">{{ option.voteCount | number }}</span>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+</div>

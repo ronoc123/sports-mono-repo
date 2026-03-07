@@ -178,12 +178,13 @@
         <span class="cc-ovr-badge">{{ card.overallRating }}</span>
         <span class="cc-pos-badge">{{ card.position }}</span>
       </div>
-
-      <div
-        class="cc-card-avatar"
-        [style.background]="rarityGradient(card.rarityTier)"
-      >
-        {{ initials(card.name) }}
+      <div class="cc-card-avatar-container">
+        <div
+          class="cc-card-avatar"
+          [style.background]="rarityGradient(card.rarityTier)"
+        >
+          {{ initials(card.name) }}
+        </div>
       </div>
 
       <div class="cc-card-info">

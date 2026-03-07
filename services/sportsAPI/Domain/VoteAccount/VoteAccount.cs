@@ -144,5 +144,14 @@ namespace Domain.VoteAccount
             UpdatedAt = DateTime.UtcNow;
             _transactions.Add(VoteTransaction.ForH2HWin(LeagueId, UserId, amount, matchId));
         }
+
+        /// <summary>Credit vote reward when a fan answers a trivia question correctly.</summary>
+        public void CreditTriviaReward(long amount, string triviaQuestionId)
+        {
+            if (amount <= 0) throw new DomainException("Trivia reward must be positive.");
+            Balance += amount;
+            UpdatedAt = DateTime.UtcNow;
+            _transactions.Add(VoteTransaction.ForRewardCredit(LeagueId, UserId, amount, triviaQuestionId));
+        }
     }
 }

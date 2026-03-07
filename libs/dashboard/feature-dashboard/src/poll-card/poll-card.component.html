@@ -1,0 +1,46 @@
+<div class="poll-card">
+  <p class="poll-question">{{ poll().questionText }}</p>
+
+  <div class="poll-options">
+    @for (opt of displayOptions(); track opt.pollOptionId) {
+      <button
+        class="poll-option"
+        [class.selected]="isSelected(opt.pollOptionId)"
+        [class.voted]="poll().votedByMe"
+        [disabled]="poll().votedByMe || submitting()"
+        (click)="select(opt.pollOptionId)"
+        type="button"
+      >
+        <span class="option-text">{{ opt.optionText }}</span>
+        @if (poll().votedByMe) {
+          <span class="option-pct">{{ opt.pct }}%</span>
+        }
+        @if (poll().votedByMe) {
+          <div class="option-bar" [style.width.%]="opt.pct"></div>
+        }
+      </button>
+    }
+  </div>
+
+  @if (!poll().votedByMe) {
+    <div class="poll-footer">
+      <button
+        class="btn-submit"
+        [disabled]="!pendingOptionId() || submitting()"
+        (click)="submit()"
+        type="button"
+      >
+        @if (submitting()) {
+          <span class="material-icons spin">refresh</span>
+        } @else {
+          Submit Vote
+        }
+      </button>
+    </div>
+  } @else {
+    <p class="poll-voted-msg">
+      <span class="material-icons">check_circle</span>
+      Your vote has been recorded — {{ totalVotes() }} total vote{{ totalVotes() !== 1 ? 's' : '' }}.
+    </p>
+  }
+</div>

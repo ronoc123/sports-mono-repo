@@ -15,6 +15,8 @@ using Infrastructure.Store;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Domain.Poll;
+using Domain.Trivia;
 
 
 namespace Infrastructure
@@ -52,6 +54,10 @@ namespace Infrastructure
               cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyMarker).Assembly));
 
             services.AddScoped<IRepository, Repository>();
+
+            // Dashboard Engagement
+            services.AddScoped<ITriviaSeriesRepository, TriviaSeriesRepository>();
+            services.AddScoped<IPollRepository, PollRepository>();
 
             services.Configure<StripeOptions>(configuration.GetSection(StripeOptions.SectionName));
             services.AddScoped<IPaymentProvider, StripePaymentProvider>();

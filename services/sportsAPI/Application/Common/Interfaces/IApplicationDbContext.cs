@@ -6,6 +6,8 @@ using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Player;
 using Domain.PlayerOption;
+using DomainPoll = Domain.Poll;
+using Domain.Trivia;
 using Domain.Users;
 using Domain.VoteAccount;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +41,14 @@ public interface IApplicationDbContext
     // Fan Economy — H2H
     DbSet<H2HMatch> H2HMatches { get; }
     DbSet<H2HSquadCard> H2HSquadCards { get; }
+
+    // Dashboard Engagement — Trivia
+    DbSet<TriviaSeries> TriviaSeries { get; }
+    DbSet<TriviaAnswer> TriviaAnswers { get; }
+
+    // Dashboard Engagement — Polls
+    DbSet<DomainPoll.Poll> Polls { get; }
+    DbSet<DomainPoll.PollVote> PollVotes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

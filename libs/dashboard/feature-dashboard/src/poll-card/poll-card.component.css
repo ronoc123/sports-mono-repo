@@ -1,0 +1,133 @@
+.poll-card {
+  background: var(--card-bg, #1e1e2e);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.poll-question {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1.25rem;
+  color: var(--text-primary, #fff);
+  line-height: 1.4;
+}
+
+.poll-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.poll-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--option-bg, rgba(255,255,255,0.04));
+  border: 2px solid transparent;
+  border-radius: 8px;
+  color: var(--text-primary, #fff);
+  font-size: 0.95rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+
+.poll-option:hover:not(:disabled):not(.voted) {
+  background: var(--option-hover-bg, rgba(255,255,255,0.08));
+}
+
+.poll-option.selected {
+  border-color: var(--accent, #6c63ff);
+  background: var(--option-selected-bg, rgba(108,99,255,0.15));
+}
+
+.poll-option:disabled {
+  cursor: default;
+}
+
+.option-text {
+  position: relative;
+  z-index: 1;
+}
+
+.option-pct {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary, rgba(255,255,255,0.6));
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.option-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--accent, #6c63ff);
+  opacity: 0.18;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.poll-option.selected .option-bar {
+  opacity: 0.28;
+}
+
+.poll-footer {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.5rem;
+  background: var(--accent, #6c63ff);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-submit:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.poll-voted-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary, rgba(255,255,255,0.6));
+}
+
+.poll-voted-msg .material-icons {
+  font-size: 1.1rem;
+  color: #4caf50;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

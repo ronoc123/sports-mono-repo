@@ -9,10 +9,12 @@ using Domain.Organizations;
 using Domain.Organizations.Entities;
 using Domain.Player;
 using Domain.PlayerOption;
+using Domain.Poll;
 using Domain.Product;
 using Domain.Purchase;
 using Domain.Rewards;
 using Domain.Shared_kernel;
+using Domain.Trivia;
 using Domain.VoteAccount;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -54,6 +56,14 @@ namespace Infrastructure.Data
         // Fan Economy — H2H
         public DbSet<H2HMatch> H2HMatches => Set<H2HMatch>();
         public DbSet<H2HSquadCard> H2HSquadCards => Set<H2HSquadCard>();
+
+        // Dashboard Engagement — Trivia
+        public DbSet<TriviaSeries> TriviaSeries => Set<TriviaSeries>();
+        public DbSet<TriviaAnswer> TriviaAnswers => Set<TriviaAnswer>();
+
+        // Dashboard Engagement — Polls
+        public DbSet<Poll> Polls => Set<Poll>();
+        public DbSet<PollVote> PollVotes => Set<PollVote>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

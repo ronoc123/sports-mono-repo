@@ -1,958 +1,738 @@
 ---
-stepsCompleted: ['step-01-init', 'step-02-context', 'step-03-starter', 'step-04-decisions', 'step-05-patterns', 'step-06-structure', 'step-07-validation', 'step-08-complete']
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
+inputDocuments:
+  - '_bmad-output/planning-artifacts/prd.md'
+  - 'docs/architecture.md'
+  - 'docs/api-contracts-backend.md'
+  - 'docs/data-models-backend.md'
+  - 'docs/state-management-frontend.md'
+  - 'docs/component-inventory-frontend.md'
+  - 'docs/integration-architecture.md'
+  - 'docs/source-tree-analysis.md'
+  - 'docs/development-guide.md'
+workflowType: 'architecture'
 lastStep: 8
 status: 'complete'
-completedAt: '2026-03-01'
-inputDocuments:
-  - "_bmad-output/planning-artifacts/prd.md"
-  - "docs/architecture.md"
-  - "docs/integration-architecture.md"
-  - "docs/api-contracts-backend.md"
-  - "docs/data-models-backend.md"
-  - "docs/component-inventory-frontend.md"
-  - "docs/state-management-frontend.md"
-  - "docs/source-tree-analysis.md"
-workflowType: 'architecture'
+completedAt: '2026-03-06'
 project_name: 'sports-ui'
 user_name: 'Kampe'
-date: '2026-03-01'
+date: '2026-03-06'
 ---
 
 # Architecture Decision Document
 
 _This document builds collaboratively through step-by-step discovery. Sections are appended as we work through each architectural decision together._
 
----
-
 ## Project Context Analysis
 
 ### Requirements Overview
 
-**42 Functional Requirements across 8 capability areas:**
+**Functional Requirements:**
 
-| Capability Area | FRs | Architectural Implication |
+32 FRs across 6 capability areas drive the following net-new architectural components:
+
+| Capability Area | FR Count | Architectural Implication |
 |---|---|---|
-| Currency & Points Management | FR1–4 | Extend existing `VoteAccount` with escrow tracking |
-| Card Catalog Administration | FR5–10 | New `CardPlayer` entity — independent of existing `Player` |
-| Card Pack System | FR11–16 | Server-side probabilistic pull engine (rarity weights) |
-| Card Collection | FR17–18 | `UserCard` inventory per user/league |
-| Auction Marketplace | FR19–28 | Full auction lifecycle with atomic bid/escrow state machine |
-| Real-Time Notifications | FR29–31 | SignalR hub — new infrastructure for the platform |
-| H2H Competition | FR32–40 | Bot match resolution engine, wager escrow |
-| Economy Admin & Monitoring | FR41–42 | GM dashboard — read-side aggregation queries |
+| Dashboard (fan) | 5 | New query: PlayerOptions sorted by vote count; dashboard aggregation endpoint |
+| Trivia — fan experience | 6 | New read model + answer submission + idempotency guard |
+| Polls — fan experience | 3 | New read model + vote submission + idempotency guard |
+| GM trivia management | 9 | New domain aggregate: `TriviaSeries` + `TriviaQuestion` with status state machine |
+| GM poll management | 4 | New domain aggregate: `Poll` + `PollOption` |
+| Vote economy — trivia earning | 3 | Integration with existing `VoteAccount`/`VoteTransaction`; new credit trigger |
+| Player options feed | 2 | Sort extension on existing `PlayerOption` query |
 
-**Non-Functional Requirements driving architecture:**
+**Non-Functional Requirements:**
 
-| NFR | Architectural Forcing Function |
+| NFR | Architectural Impact |
 |---|---|
-| NFR-R1: Zero escrow failures | Database transactions for all escrow ops — no optimistic updates |
-| NFR-P1: 500ms outbid notification | SignalR push (not polling); hub scoped per listing |
-| NFR-R2: 0.1% pull accuracy | Deterministic, auditable RNG; every pull logged |
-| NFR-S1: Server-side escrow validation | Client never touches balance state directly |
-| NFR-S2: Self-bid prevention | Server-side bidder ≠ owner check |
-| NFR-I3: CardPlayer ≠ Player AR | New entity — no FK dependency on existing `Player` |
-| NFR-SC2: H2H extensible to real players | Match/wager resolution designed for future participant types |
+| Dashboard load <2s | Dashboard endpoint must be a single aggregated query, not N+1 fetches |
+| Trivia/poll submission <500ms | Answer and vote commands must be lightweight (no heavy domain graph loading) |
+| Trivia idempotency | `TriviaAnswer` table keyed on `(UserId, TriviaQuestionId)` — unique constraint + upsert-safe |
+| Poll idempotency | `PollVote` table keyed on `(UserId, PollId)` — unique constraint |
+| Vote credit server-side only | Credit amount stored on `TriviaQuestion`; client cannot influence reward value |
+| GMOnly policy enforcement | New controllers use `[Authorize(Policy = "GMOnly")]`; fan endpoints use `[Authorize]` |
+| DB scalability | New tables need composite indexes on `(OrgId, Status)` for dashboard queries and `(UserId, QuestionId/PollId)` for idempotency checks |
 
-**Scale:** High complexity. 3 new bounded contexts, 1 new real-time infrastructure layer, 1 background service for auction expiry, multiple new aggregate roots.
+**Scale & Complexity:**
 
-### Existing Stack (Inherited — Non-Negotiable)
+- Primary domain: Full-stack brownfield (Angular 20 SPA + .NET 8 Clean Architecture)
+- Complexity level: Medium — new domain aggregates, vote economy integration, status state machine
+- Net-new backend entities: 6 (TriviaSeries, TriviaQuestion, TriviaAnswer, Poll, PollOption, PollVote)
+- Net-new API controllers: 2–3 (Dashboard, Trivia, Poll)
+- Net-new Angular libs: 2–3 (trivia-data-access, poll-data-access, dashboard rework)
 
-| Layer | Technology |
-|---|---|
-| Frontend | Angular 20, standalone components, NgRx Signals Store (`signalStore()`), Nx monorepo |
-| State | `withState / withMethods / withComputed / rxMethod` pattern — all stores follow this |
-| API Client | NSwag auto-generated TypeScript client (`libs/core/clients/sports-api.client.ts`) |
-| Backend | .NET 8, Clean Architecture, CQRS/MediatR, FluentValidation pipeline |
-| Data Access | `IRepository` interface — all handlers inject this; zero `_db.[Table]` direct access |
-| Entities | All aggregates extend `Aggregate<Guid>` or `Entity` base |
-| DB | SQL Server / EF Core 8 code-first migrations via `SportsDbAppContext` |
-| Auth | JWT (IdentityService), `authGuard`, `apiBaseUrlInterceptor` |
-| Messaging | RabbitMQ / MassTransit (existing notification pipeline) |
-| Apps | `sports-ui` (fans), `sports-admin` (admin), `sports-gm` (GMs) |
+### Technical Constraints & Dependencies
 
-### New Infrastructure Required
+- **Existing vote economy**: Trivia credits must flow through `VoteTransaction.ForRewardCredit()` factory method — no direct balance mutation
+- **Existing org-scoping pattern**: All new entities scoped to `OrganizationId`; routes follow `/:organizationId` convention
+- **EF Core code-first**: New entities require a migration (`AddDashboardEngagementFeatures` or similar)
+- **Clean Architecture layers**: Domain → Application → Infrastructure → WebAPI; no layer skipping
+- **Angular Nx monorepo**: New features go in `libs/<domain>/` following `data-access` / `feature-*` / `ui` slice pattern
+- **SignalR not required for MVP**: Dashboard features poll on load; live push deferred to Phase 2
 
-**SignalR** — Not currently in the stack. Required for FR29–31 (real-time outbid notifications). Needs: ASP.NET Core SignalR hub in `sportsAPI/WebAPI/Hubs/`, Angular `@microsoft/signalr` client library, hub registration in `Program.cs`.
+### Cross-Cutting Concerns Identified
 
-**Auction Expiry Background Service** — Auctions have a duration (FR19). When they expire, settlement must trigger automatically: winner gets card, seller gets points, all escrowed bids release. Requires a .NET `BackgroundService` polling for `AuctionListing.ExpiresAt <= now`.
+1. **Auth/Authorization**: GM management endpoints (`GMOnly`), fan submission endpoints (`[Authorize]` + org membership), read-only dashboard endpoints (`[Authorize]`)
+2. **Idempotency**: Both trivia answers and poll votes require server-side deduplication tables with unique constraints — critical for vote economy integrity
+3. **Vote economy integration**: `TriviaQuestion` carries `VoteRewardAmount`; answer command handler reads it and credits via existing `VoteAccount` aggregate
+4. **Org scoping**: Every new query and command carries `OrganizationId`; repositories filter by it
+5. **Status state machine**: `TriviaQuestion` has three states (Pending → Active → Archived); only Active questions surface in fan dashboard queries
+6. **Dashboard aggregation**: Fan dashboard needs one efficient endpoint returning trending player options + active trivia questions + active poll — avoid N+1 and chatty API patterns
 
-**RNG/Pull Engine** — Probabilistic card draw (FR13). Must be deterministic-per-pull (auditable) and configuration-driven per rarity tier. Server-side only (NFR-S3).
-
-### New Domain Entities Required
-
-| Entity | Type | Notes |
-|---|---|---|
-| `CardPlayer` | New Aggregate | Rating + auto-assigned rarity tier; league-scoped; no FK to existing `Player` |
-| `UserCard` | New Entity | Instance of a pulled card owned by a user |
-| `CardPack` | New Aggregate | Pack purchase record; 5 pulls per pack |
-| `RarityTier` | Value Object / Config | Threshold ranges → rarity name + pull weight |
-| `AuctionListing` | New Aggregate | Start bid, buy now, expiry; full state machine |
-| `Bid` | New Entity | Bid amount + bidder; child of `AuctionListing` |
-| `PointsEscrow` | New Entity / Extension | Track escrowed points per user per auction |
-| `H2HMatch` | New Aggregate | Wager, teams, outcome, settlement |
-
-### Cross-Cutting Concerns
-
-- **Org scoping** — All new entities scoped to `organizationId` (existing pattern — mandatory)
-- **Points escrow atomicity** — EF Core transactions required for bid placement, outbid release, auction settlement, H2H wager — database-level, not application-level
-- **Transaction audit trail** — FR3 requires every point movement logged with timestamp/user/action/entity. The existing `VoteTransaction` pattern is the foundation — extend or mirror it
-- **Auth boundary** — All Fan Economy endpoints require `[Authorize]` (NFR-S4); no anonymous endpoints in this feature
-- **NSwag regeneration** — Every new controller endpoint requires NSwag client regeneration before frontend work begins
-
-### Technical Complexity Assessment
-
-- **Complexity:** High
-- **Primary domain:** Full-stack brownfield extension
-- **New bounded contexts:** 3 (Cards, Marketplace, H2H)
-- **New Angular library groups:** 3 (`libs/cards/`, `libs/marketplace/`, `libs/h2h/`)
-- **New infrastructure:** SignalR hub, auction expiry background service, pull engine
-- **Architectural risk areas:** Escrow atomicity, SignalR connection lifecycle, auction expiry race conditions
-
----
-
-## Starter Template Evaluation
+## Technical Foundation
 
 ### Primary Technology Domain
 
-**Brownfield Full-Stack Extension** — No new project scaffolding. The Fan Economy extends the existing Nx + Angular 20 + .NET 10 monorepo using established conventions.
+Full-stack brownfield extension — Angular 20 SPA (frontend) + .NET 8 Clean Architecture (backend). All new features extend the existing codebase; no new project initialization required.
 
-### Foundation: Existing Monorepo
+### Existing Stack (Established — Non-Negotiable)
 
-**Selected Foundation:** Existing Nx monorepo (brownfield extension — no `create` command needed)
+**Backend:**
 
-**Rationale:** The project provides Angular 20 standalone components, NgRx Signals Store, NSwag API client generation, .NET 10 Clean Architecture with MediatR/CQRS, EF Core with SQL Server, JWT auth middleware, and RabbitMQ messaging. All Fan Economy components slot directly into these established patterns.
-
-**Note:** Project docs reference .NET 8; actual runtime is **.NET 10.0.102** — SignalR performance and improvements are better in .NET 10.
-
-### New Packages Required
+| Layer | Technology | Version |
+|---|---|---|
+| Runtime | .NET / C# | 8 |
+| Web framework | ASP.NET Core | 8 |
+| ORM | EF Core code-first | 8 |
+| CQRS | MediatR | latest |
+| Validation | FluentValidation | latest |
+| Message broker | MassTransit + RabbitMQ | latest |
+| Database | SQL Server | 2022 |
+| Auth | JWT Bearer (IdentityService) | — |
+| Real-time | SignalR (existing hub) | — |
 
 **Frontend:**
 
-```bash
-npm install @microsoft/signalr@10.0.0
-```
-
-| Package | Version | Purpose |
+| Layer | Technology | Version |
 |---|---|---|
-| `@microsoft/signalr` | 10.0.0 | Angular SignalR client — real-time auction outbid notifications |
+| Framework | Angular | 20 |
+| State management | NgRx Signals Store | 19 |
+| Component library | Angular Material | — |
+| Monorepo tooling | Nx | 21 |
+| Language | TypeScript | 5.8 |
+| Testing | Jest + Playwright | — |
+| Change detection | Zoneless | — |
 
-**Backend:** SignalR is built into ASP.NET Core — enabled via `builder.Services.AddSignalR()` in `Program.cs`. No additional NuGet package required.
+### Architectural Patterns New Features Must Follow
 
-### New Nx Library Structure
+**Backend:**
+- New domain entities extend `Entity` base class; aggregates implement `IAggregate`
+- All business logic through MediatR `ICommand` / `IQuery` handlers
+- Repository pattern via `IRepository<TAgg, TId>` — `GetByIdAsync`, `Query()`, `AddAsync()`, `SaveChangesAsync()`
+- Controllers inject `IMediator` only; return `ServiceResponse<T>`
+- Authorization via policy attributes: `[Authorize(Policy = "GMOnly")]` / `[Authorize]`
+- EF Core migration for every schema change
 
-```
-libs/
-  cards/
-    data-access/          ← CardStore, card HTTP service
-    feature-cards/        ← Pack purchase + card reveal UI
-    feature-collection/   ← Card inventory view
-  marketplace/
-    data-access/          ← MarketplaceStore, auction HTTP service, SignalR service
-    feature-marketplace/  ← Browse, list, bid UI
-  h2h/
-    data-access/          ← H2HStore, match HTTP service
-    feature-h2h/          ← Squad builder + match resolution UI
-```
-
-**Scaffold commands:**
-```bash
-nx g @nx/angular:library cards/data-access --standalone
-nx g @nx/angular:library cards/feature-cards --standalone
-nx g @nx/angular:library cards/feature-collection --standalone
-nx g @nx/angular:library marketplace/data-access --standalone
-nx g @nx/angular:library marketplace/feature-marketplace --standalone
-nx g @nx/angular:library h2h/data-access --standalone
-nx g @nx/angular:library h2h/feature-h2h --standalone
-```
-
-### New Backend Bounded Context Structure
-
-```
-services/sportsAPI/
-  Domain/Cards/              ← CardPlayer, UserCard, CardPack entities
-  Domain/Marketplace/        ← AuctionListing, Bid, PointsEscrow entities
-  Domain/H2H/                ← H2HMatch, H2HSquad entities
-  Application/Cards/         ← Commands/queries for pack purchase, card pull
-  Application/Marketplace/   ← Commands/queries for listing, bidding, settlement
-  Application/H2H/           ← Commands/queries for match creation, resolution
-  Infrastructure/Cards/      ← RarityEngine, EF configs
-  Infrastructure/Marketplace/← AuctionExpiryService (BackgroundService), EF configs
-  Infrastructure/SignalR/    ← AuctionHub
-  WebAPI/Hubs/               ← AuctionHub endpoint registration
-  WebAPI/Controllers/        ← CardsController, MarketplaceController, H2HController
-```
-
-### Architectural Decisions Provided by Foundation
-
-- **Language & Runtime:** TypeScript (frontend), C# / .NET 10 (backend) — unchanged
-- **Styling:** Component-scoped CSS — matches all existing `libs/ui` components
-- **Build Tooling:** Nx 21 with Angular CLI; existing `project.json` targets apply to new libraries
-- **Testing:** Jest (frontend unit), Playwright (e2e), xUnit (backend) — inherited
-- **Code Organization:** Feature-sliced Nx libraries; Clean Architecture backend layers
-
----
+**Frontend:**
+- New feature libs at `libs/<domain>/<type>/` following `data-access` / `feature-*` / `ui` slices
+- Signal stores use `status: 'idle' | 'loading' | 'success' | 'error'` shape
+- Async methods use `rxMethod` + `switchMap` + `tapResponse`
+- HTTP services extend/use `ApiService` from `@sports-ui/http-client`
+- API URL pattern: `${environment.sportsApi}controller/action`
 
 ## Core Architectural Decisions
 
 ### Decision Priority Analysis
 
-**Critical Decisions (Block Implementation):**
-- Escrow atomicity: EF Core `IDbContextTransaction` per operation
-- SignalR auth: JWT via `?access_token=` query string
-- SignalR hub topology: Per-listing groups
+**Critical Decisions (block implementation):**
+- Domain aggregate boundaries for Trivia and Poll
+- Dashboard API design (aggregated vs. separate endpoints)
+- Idempotency enforcement mechanism
+- Vote credit integration point
 
-**Important Decisions (Shape Architecture):**
-- Pull engine: `System.Random` (seeded, seed persisted) + weighted rarity config table
-- Rarity config: Database-driven `RarityTierConfig` table
-- Store composition: Separate `signalStore()` per domain
-- Auction expiry: .NET `BackgroundService` with polling
+**Important Decisions (shape architecture):**
+- Controller routing structure
+- Frontend lib organization
+- TriviaQuestion status state machine placement
 
-**Deferred Decisions (Post-MVP):**
-- SignalR Redis backplane (scale-out path when multi-server deployment needed)
-- Hangfire/Quartz for advanced job scheduling
+**Deferred (Post-MVP):**
+- SignalR push for live vote counts and poll results
+- Dashboard caching strategy
 
 ### Data Architecture
 
-**Escrow Atomicity**
-- Decision: EF Core `IDbContextTransaction` wraps all escrow operations
-- Rationale: NFR-R1 zero-failure guarantee; existing `SportsDbAppContext` is the transaction boundary
-- Affects: `PlaceBidCommandHandler`, `SettleAuctionCommandHandler`, `H2HWagerCommandHandler`
+**Domain Aggregate Boundaries**
 
-**Pull Engine**
-- Decision: `System.Random` seeded per pull (seed persisted in pull log) + Fisher-Yates weighted selection over `RarityTierConfig`
-- Rationale: Auditable (seed + outcome stored), deterministic-per-pull, sufficient entropy for entertainment use
-- Every pull log record: `(userId, cardPlayerId, rarityTier, seed, timestamp, packId)`
-- Affects: `Infrastructure/Cards/RarityEngine.cs`, `Domain/Cards/CardPack.cs`
+| Aggregate | Root | Child Entities | Standalone Tables |
+|---|---|---|---|
+| `TriviaSeries` | `TriviaSeriesId` | `TriviaQuestion` (list, each with status + reward) | — |
+| `Poll` | `PollId` | `PollOption` (list) | — |
+| — | — | — | `TriviaAnswer` (userId + questionId + isCorrect) |
+| — | — | — | `PollVote` (userId + pollId + optionId) |
 
-**Rarity Tier Configuration**
-- Decision: Database-driven `RarityTierConfig` table (`ratingMin`, `ratingMax`, `rarityName`, `pullWeightBps`)
-- Rationale: FR6 requires GM control over thresholds without redeploys; ties into FR41/42 GM dashboard
-- Provided by Starter: No — new entity requiring migration
-- Affects: `CardsController` (admin endpoints), `Infrastructure/Cards/` EF config
+`TriviaSeries` owns its questions (same lifecycle, GM manages them together). `TriviaAnswer` and `PollVote` are standalone tables — they cross aggregate boundaries and exist purely for idempotency and participation counting.
 
-### Authentication & Security
+**Idempotency Enforcement**
 
-**SignalR Authentication**
-- Decision: JWT via `?access_token=` query string on hub connection (ASP.NET Core built-in pattern)
-- Hub reads: `context.GetHttpContext().Request.Query["access_token"]`
-- Rationale: Standard SPA SignalR auth pattern; WebSocket connections cannot carry `Authorization` header
-- Affects: `Infrastructure/SignalR/AuctionHub.cs`, Angular `AuctionSignalRService`
+Unique constraints at the DB level:
+- `TriviaAnswer`: `UNIQUE (UserId, TriviaQuestionId)` — first insert wins; command handler checks existence before crediting votes
+- `PollVote`: `UNIQUE (UserId, PollId)` — first insert wins
 
-**Self-Bid Prevention & Server-Side Escrow Validation**
-- Decision: Command handler layer — `PlaceBidCommandHandler` validates `bidderId ≠ listing.sellerId` before touching DB
-- Rationale: NFR-S1/S2; Clean Architecture — validation at application layer produces meaningful error response
-- Affects: `Application/Marketplace/Commands/PlaceBidCommandHandler.cs`
+**Vote Credit Integration**
 
-**Fan Economy Auth Boundary**
-- Decision: All `CardsController`, `MarketplaceController`, and `H2HController` endpoints require `[Authorize]`
-- Rationale: NFR-S4 — no anonymous endpoints in Fan Economy
-- Provided by Starter: No — must be applied explicitly to every new controller
+`SubmitTriviaAnswerCommand` handler flow:
+1. Load `TriviaQuestion` via `TriviaSeries` aggregate
+2. Check if `TriviaAnswer` already exists for `(userId, questionId)` → reject if exists
+3. Evaluate answer correctness
+4. Persist `TriviaAnswer` (captures result regardless of correctness)
+5. If correct: load `VoteAccount` by `(userId, orgId)` → call `VoteTransaction.ForRewardCredit(question.VoteRewardAmount)` → `SaveChangesAsync()`
 
-### API & Communication Patterns
+**EF Core Migration**
 
-**SignalR Hub Topology**
-- Decision: Per-listing hub groups — `Groups.AddToGroupAsync(connectionId, $"auction-{listingId}")`
-- Hub sends `OutbidNotification` only to users watching the relevant listing
-- Rationale: NFR-P1 (500ms notification SLA); minimal broadcast surface; group lifecycle tied to listing expiry
-- Affects: `WebAPI/Hubs/AuctionHub.cs`, Angular `AuctionSignalRService`
+Single migration: `AddDashboardEngagementFeatures`
+Adds: `TriviaSeries`, `TriviaQuestions`, `TriviaAnswers`, `Polls`, `PollOptions`, `PollVotes` tables with all indexes and unique constraints.
 
-**REST API Design**
-- Decision: 3 new controllers following existing pattern (`[ApiController]`, `[Route("api/[controller]")]`, MediatR `ISender`):
-  - `CardsController` — pack purchase, pull reveal, collection view
-  - `MarketplaceController` — list card, place bid, buy now, view listings
-  - `H2HController` — create match, set squad, resolve match, history
-- NSwag regeneration required after each new endpoint before frontend HTTP service work begins
+### API & Communication
 
-**Error Handling**
-- Decision: Existing FluentValidation pipeline handles 400 responses; custom `DomainException` → 422 for escrow/business rule failures (insufficient balance, self-bid, already sold)
-- Rationale: Consistent with existing error handling; escrow failures need distinct HTTP status from input validation failures
+**Dashboard Endpoint Design**
+
+Single aggregated endpoint: `GET /api/dashboard/{organizationId}`
+
+Returns one DTO containing:
+- `TrendingPlayerOptions[]` — top N active options sorted by vote count descending
+- `ActiveTriviaQuestions[]` — all Active questions with series label, answered state per user
+- `ActivePoll` — current active poll with options, voted state per user
+
+Single roundtrip satisfies <2s NFR; fan answered/voted state joined server-side against `userId` from JWT.
+
+**Controller Routing**
+
+| Controller | Base Route | Auth | Responsibility |
+|---|---|---|---|
+| `DashboardController` | `/api/dashboard` | `[Authorize]` | Fan dashboard aggregation |
+| `TriviaController` | `/api/trivia` | Mixed | Fan answer submission + GM management |
+| `PollController` | `/api/poll` | Mixed | Fan vote submission + GM management |
+
+GM management actions use `[Authorize(Policy = "GMOnly")]`; fan submission actions use `[Authorize]`.
 
 ### Frontend Architecture
 
-**NgRx Signal Store Composition**
-- Decision: 3 separate `signalStore()` instances in their respective `data-access` libraries:
-  - `CardStore` (`libs/cards/data-access/`) — `{ cards: UserCard[], packs: CardPack[], pullStatus: 'idle'|'pulling'|'success', pullResult: UserCard | null }`
-  - `MarketplaceStore` (`libs/marketplace/data-access/`) — `{ listings: AuctionListing[], myBids: Bid[], watchedListingId: string | null, signalRConnected: boolean }`
-  - `H2HStore` (`libs/h2h/data-access/`) — `{ squad: UserCard[], opponents: BotProfile[], matchResult: H2HResult | null, matchStatus: 'idle'|'pending'|'resolved' }`
-- Rationale: Matches existing pattern (`VoteAccountFacade`, `StoreService` are separate); Nx library isolation; independently loadable
+**Nx Library Structure**
 
-**SignalR → Store Integration**
-- Decision: `AuctionSignalRService` (Angular service in `marketplace/data-access`) connects to hub; feeds events into `MarketplaceStore` via `rxMethod`
-- Pattern: `signalR.on('OutbidNotification', msg => this.store.handleOutbid(msg))`
-- Rationale: `rxMethod` is the NgRx Signals pattern for async/event-driven state updates
+| Lib | Path | Contents |
+|---|---|---|
+| `trivia-data-access` | `libs/trivia/trivia-data-access/` | `TriviaStore`, `TriviaApiService`, trivia API types |
+| `poll-data-access` | `libs/poll/poll-data-access/` | `PollStore`, `PollApiService`, poll API types |
+| Dashboard rework | `libs/dashboard/feature-dashboard/` | Rework existing dashboard feature component |
+| GM trivia management | `apps/sports-gm/` (new route) | Trivia/poll CRUD pages in GM app |
 
-**Routing**
-- Decision: New lazy-loaded routes added to shell — `/store/cards`, `/store/marketplace`, `/store/h2h`
-- Each route loads the feature library component; auth guard applied at shell level
+**Dashboard Store Shape**
 
-### Infrastructure & Deployment
-
-**Auction Expiry Background Service**
-- Decision: .NET `BackgroundService` polling `AuctionListing WHERE ExpiresAt <= UTC_NOW() AND Status = 'Active'` every 30 seconds; dispatches `SettleAuctionCommand` via MediatR `ISender`
-- Polling interval configurable via `appsettings.json` (`AuctionExpiry:PollIntervalSeconds`)
-- Rationale: No new dependencies; single-server deployment; straightforward lifecycle via `IHostedService`
-- Affects: `Infrastructure/Marketplace/AuctionExpiryService.cs`, `Program.cs` (`builder.Services.AddHostedService<AuctionExpiryService>()`)
-
-**SignalR Backplane (MVP)**
-- Decision: Single-server in-memory backplane (ASP.NET Core default)
-- Scale-out path: Redis backplane (`StackExchange.Redis` + `Microsoft.AspNetCore.SignalR.StackExchangeRedis`) for multi-server deployment — deferred post-MVP
-- Rationale: Current deployment is single-server; Redis adds operational complexity not yet warranted
-
-### Decision Impact Analysis
-
-**Implementation Sequence:**
-1. `RarityTierConfig` table + seed migration — unblocks pull engine and GM dashboard
-2. `CardPlayer`, `UserCard`, `CardPack` entities + migrations — unblocks card features
-3. Pull engine + `CardsController` + NSwag regen — unblocks frontend card work
-4. `AuctionListing`, `Bid`, `PointsEscrow` entities + migrations — unblocks marketplace
-5. SignalR hub registration + `AuctionHub` — unblocks real-time frontend
-6. `AuctionExpiryService` registration — unblocks full auction lifecycle
-7. `H2HMatch`, `H2HSquad` entities + `H2HController` — last bounded context
-8. Angular stores + feature libs — can parallel with backend after each NSwag regen
-
-**Cross-Component Dependencies:**
-- `MarketplaceStore` depends on SignalR hub being live → hub must ship before real-time bids work in UI
-- `AuctionExpiryService` depends on `PointsEscrow` entity → migrations must run before service starts
-- Pull engine depends on `RarityTierConfig` table being seeded → GM must configure tiers before packs go live
-- NSwag regeneration is a hard gate between backend controller work and frontend HTTP service work
-
----
-
-## Implementation Patterns & Consistency Rules
-
-### Critical Conflict Points Identified
-
-18 areas where AI agents could make different choices — all resolved by existing codebase conventions or Fan Economy-specific decisions below.
-
-### Naming Patterns
-
-**Database Naming Conventions:**
-- Table names: PascalCase (EF Core default, matches existing — `VoteTransactions`, `Players`)
-- Column names: PascalCase property names (EF Core default — `OrganizationId`, `ExpiresAt`)
-- Foreign keys: `{EntityName}Id` — e.g., `AuctionListingId`, `CardPlayerId`
-- New Fan Economy tables: `CardPlayers`, `UserCards`, `CardPacks`, `RarityTierConfigs`, `AuctionListings`, `Bids`, `PointsEscrows`, `H2HMatches`
-- Anti-pattern: `card_players`, `cardplayers`, `tbl_CardPlayers` — none of these
-
-**API Naming Conventions:**
-- Endpoints: plural kebab-case — `/api/cards`, `/api/marketplace`, `/api/h2h`
-- Route params: `{id}` format (ASP.NET Core convention)
-- Query params: camelCase — `?organizationId=`, `?listingId=`
-- Controller actions: verb-noun — `GetCollection`, `PurchasePack`, `PlaceBid`, `CreateMatch`
-- Anti-pattern: `/api/card`, `/api/get-cards`, `/api/CardPlayers`
-
-**Code Naming — Backend (C#):**
-- Entities: PascalCase — `CardPlayer`, `AuctionListing`, `PointsEscrow`
-- Commands: `{Verb}{Noun}Command` — `PurchasePackCommand`, `PlaceBidCommand`, `SettleAuctionCommand`
-- Queries: `Get{Noun}Query` — `GetCollectionQuery`, `GetListingsQuery`
-- Handlers: `{CommandOrQuery}Handler` — `PurchasePackCommandHandler`
-- Repository methods: `GetByIdAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`
-
-**Code Naming — Frontend (TypeScript/Angular):**
-- Components: PascalCase class, kebab-case selector — `CardRevealComponent`, `lib-card-reveal`
-- Services: `{Domain}Service` or `{Domain}Store` — `CardService`, `MarketplaceStore`
-- Store files: `{domain}.store.ts` — `card.store.ts`, `marketplace.store.ts`, `h2h.store.ts`
-- Signal store methods: camelCase verbs — `loadListings`, `placeBid`, `handleOutbid`
-- Files: kebab-case — `card-reveal.component.ts`, `auction-signalr.service.ts`
-- Anti-pattern: `CardRevealComp`, `cardRevealComponent`, `card_reveal.component.ts`
-
-**SignalR Event Names:**
-- PascalCase hub method names — `OutbidNotification`, `AuctionExpired`, `BidPlaced`
-- Angular `.on('OutbidNotification', ...)` must exactly match hub `Clients.Group(...).SendAsync("OutbidNotification", ...)`
-- Anti-pattern: `outbidNotification`, `outbid_notification`, `OUTBID_NOTIFICATION`
-
-### Structure Patterns
-
-**Backend Project Organization:**
-```
-Domain/{BoundedContext}/          ← Pure entities, value objects, no dependencies
-Application/{BoundedContext}/
-  Commands/                       ← {Verb}{Noun}Command.cs + Handler
-  Queries/                        ← Get{Noun}Query.cs + Handler
-Infrastructure/{BoundedContext}/  ← EF configs, RarityEngine, AuctionExpiryService
-WebAPI/Controllers/               ← Thin controllers; only ISender.Send() calls
-WebAPI/Hubs/                      ← SignalR hub registration
-```
-- Rule: Handlers NEVER inject `SportsDbAppContext` directly — always `IRepository<T>`
-- Rule: Domain entities have NO reference to Application or Infrastructure namespaces
-- Anti-pattern: Putting business logic in controllers or EF config classes
-
-**Frontend Library Organization (Nx):**
-```
-libs/{domain}/data-access/        ← signalStore(), HTTP service, SignalR service
-libs/{domain}/feature-{name}/     ← Routable page components (smart)
-libs/{domain}/ui/                 ← Presentational components (dumb), if needed
-```
-- Rule: Feature components inject stores/services from their `data-access` sibling only
-- Rule: `data-access` libraries are never imported by other `data-access` libraries
-- Anti-pattern: Feature components calling HTTP directly; stores in feature libraries
-
-**Test File Location:**
-- Frontend: co-located `*.spec.ts` alongside source file (Jest)
-- Backend: `sportsAPI.Tests/` project, mirroring source namespace structure (xUnit)
-- Anti-pattern: `__tests__/` folder, separate `tests/` directory at lib root
-
-### Format Patterns
-
-**API Response Formats:**
-- Success: Direct typed response object (no wrapper) — NSwag generates client from OpenAPI schema
-- Validation failure (400): FluentValidation default format — `{ errors: { field: ['message'] } }`
-- Business rule failure (422): `{ error: string, code: string }` — e.g., `{ error: "Insufficient balance", code: "INSUFFICIENT_BALANCE" }`
-- Escrow failure codes: `INSUFFICIENT_BALANCE`, `SELF_BID`, `AUCTION_EXPIRED`, `ALREADY_SOLD`, `OUTBID_AMOUNT_TOO_LOW`
-- Anti-pattern: Wrapping all responses in `{ data: ..., success: true }`, returning 200 for errors
-
-**Date/Time Formats:**
-- All API timestamps: ISO 8601 UTC — `"2026-03-01T14:30:00Z"`
-- EF Core storage: `DateTime` with `DateTimeKind.Utc`
-- Frontend display: Angular `DatePipe` with user locale; never raw ISO strings in templates
-- Anti-pattern: Unix timestamps, local time in API responses, `DateTime.Now` (use `DateTime.UtcNow`)
-
-**JSON Field Naming:**
-- System.Text.Json default in .NET → camelCase serialization (`PropertyNamingPolicy.CamelCase`)
-- Matches existing — Angular NSwag client already expects camelCase
-- Anti-pattern: PascalCase JSON (`"OrganizationId": ...`), snake_case (`"organization_id": ...`)
-
-### Communication Patterns
-
-**SignalR Hub Patterns:**
-- Hub group key: `$"auction-{listingId}"` (lowercase prefix, hyphen separator)
-- Client joins group on `WatchListing(listingId)`, leaves on `UnwatchListing(listingId)`
-- Hub sends typed DTO records — `record OutbidNotification(Guid ListingId, decimal NewHighBid, Guid NewHighBidderId)`
-- Angular service manages connection lifecycle: connect on marketplace route init, disconnect on destroy
-- Anti-pattern: Broadcast to all connections, string-only payloads, managing hub state in components
-
-**NgRx Signal Store Patterns:**
-- State shape: flat where possible — avoid nested mutable objects
-- Status literals: `'idle' | 'loading' | 'success' | 'error'` — matches existing stores
-- Method naming: `load{Noun}`, `set{Noun}`, `clear{Noun}`, `handle{Event}` for SignalR events
-- Async methods use `rxMethod` — never `async/await` directly in store methods
-- Computed signals: descriptive noun — `activeListings`, `myBidTotal`, `canBid`
-- Anti-pattern: `isLoading: boolean` (use status literal), `fetchData()`, `setIsLoading(true)`
-
-**MassTransit Event Patterns (inherited):**
-- Event class names: past tense noun — `PackPurchased`, `AuctionSettled`, `BidPlaced`
-- Publish via MassTransit `IPublishEndpoint` in command handlers (not in domain entities)
-- Anti-pattern: Publishing events from domain entities, string-based event routing
-
-### Process Patterns
-
-**Loading State Patterns:**
-- All async store operations set `status` to `'loading'` before HTTP call, `'success'` or `'error'` on completion
-- Component templates gate on `status() === 'loading'` for spinners, `status() === 'error'` for error UI
-- Pull reveal uses dedicated `pullStatus: 'idle' | 'pulling' | 'success'` with `pullResult: UserCard | null`
-- Anti-pattern: `isLoading` boolean, component-level loading state, no error state
-
-**Error Recovery Patterns:**
-- HTTP errors caught in store `rxMethod` — set `status` to `'error'`, log to console
-- Escrow failures (422): display user-facing message from `error.code` lookup in Angular
-- SignalR disconnection: `MarketplaceStore.signalRConnected` flips to `false`; UI shows reconnect banner
-- Anti-pattern: Swallowing errors silently, `alert()` for user errors
-
-**Auth Flow Patterns:**
-- Backend: Every Fan Economy endpoint has `[Authorize]` attribute — no exceptions
-- Frontend: Shell-level `authGuard` covers `/store/*` routes; no component-level auth checks
-- SignalR: `AuctionSignalRService` reads JWT from `AuthFacade.token()` and passes as `?access_token=`
-- Anti-pattern: `[AllowAnonymous]` on escrow endpoints
-
-**Escrow Operation Patterns:**
-- ALL point debits/credits occur inside `IDbContextTransaction` scope
-- Transaction scope: open → validate balance → debit → record → commit (rollback on any failure)
-- Never read balance outside transaction then write inside — TOCTOU race condition
-- Pattern: Read + validate + write atomically within a single transaction
-
-### Enforcement Guidelines
-
-**All AI Agents MUST:**
-- Follow `IRepository<T>` pattern — zero direct `_db.Table` access in handlers
-- Use `DateTime.UtcNow` — never `DateTime.Now`
-- Wrap ALL escrow operations in `IDbContextTransaction`
-- Log every card pull: `(userId, cardPlayerId, rarityTier, seed, timestamp, packId)`
-- Apply `[Authorize]` to every Fan Economy controller action
-- Scope every new entity to `organizationId`
-- Run NSwag regen after adding any new controller endpoint before writing Angular HTTP service
-- Use status literal `'idle' | 'loading' | 'success' | 'error'` — not `isLoading: boolean`
-- Name SignalR events in PascalCase — match exactly between hub `SendAsync` and Angular `.on()`
-
-**Pattern Verification:**
-- EF Core migrations: review generated migration for correct table/column naming before applying
-- Frontend: `nx lint` enforces module boundaries (feature libs cannot import other feature libs)
-- SignalR: integration test confirming hub group join/leave + `OutbidNotification` delivery
-- Escrow: unit test confirming transaction rollback on balance validation failure
-
-### Pattern Examples
-
-**Correct — Signal store async method:**
 ```typescript
-readonly loadListings = rxMethod<string>(
-  pipe(
-    tap(() => patchState(this, { status: 'loading' })),
-    switchMap(orgId => this.marketplaceService.getListings(orgId).pipe(
-      tapResponse({
-        next: listings => patchState(this, { listings, status: 'success' }),
-        error: () => patchState(this, { status: 'error' })
-      })
-    ))
-  )
-);
-```
-
-**Anti-pattern — async/await in store (forbidden):**
-```typescript
-// WRONG — never use async/await in signalStore methods
-async loadListings(orgId: string) {
-  this.status.set('loading');
-  const listings = await this.service.getListings(orgId); // ❌
+DashboardStore {
+  status: 'idle' | 'loading' | 'success' | 'error'
+  trendingPlayerOptions: PlayerOptionSummary[]
+  activeTriviaQuestions: TriviaQuestionViewModel[]  // includes answeredByMe, selectedAnswer
+  activePoll: PollViewModel | null                  // includes votedByMe, selectedOptionId
 }
 ```
 
-**Correct — Escrow command handler (atomic transaction):**
-```csharp
-await using var tx = await _db.Database.BeginTransactionAsync();
-var escrow = await _repo.GetEscrowAsync(request.UserId, request.ListingId);
-if (escrow.Balance < request.BidAmount) throw new DomainException("INSUFFICIENT_BALANCE");
-escrow.Debit(request.BidAmount);
-await _repo.UpdateAsync(escrow);
-await tx.CommitAsync();
+Single store for the dashboard aggregation response. GM management views get their own stores.
+
+### Infrastructure & Deployment
+
+No new infrastructure decisions required. Existing Docker Compose stack, SQL Server, and deployment patterns cover all new features. SignalR push for live updates deferred to Phase 2.
+
+## Implementation Patterns & Consistency Rules
+
+### Naming Conventions
+
+**Backend:**
+
+| Artifact | Convention | Example |
+|---|---|---|
+| Domain entity class | PascalCase noun | `TriviaQuestion`, `PollVote` |
+| Strongly-typed ID | `{Entity}Id` struct | `TriviaSeriesId`, `PollId` |
+| Command | `{Verb}{Noun}Command` | `SubmitTriviaAnswerCommand`, `CreatePollCommand` |
+| Query | `Get{Noun}Query` | `GetDashboardQuery`, `GetTriviaSereisQuery` |
+| Handler | `{CommandOrQuery}Handler` | `SubmitTriviaAnswerCommandHandler` |
+| DTO (response) | `{Noun}Response` | `DashboardResponse`, `TriviaQuestionResponse` |
+| DTO (request param) | `{Noun}Request` | `CreateTriviaSeriesRequest` |
+| Controller | `{Domain}Controller` | `DashboardController`, `TriviaController` |
+| Repository interface | `I{Aggregate}Repository` | `ITriviaSeriesRepository`, `IPollRepository` |
+
+**Frontend:**
+
+| Artifact | Convention | Example |
+|---|---|---|
+| Signal store class | `{Domain}Store` | `TriviaStore`, `PollStore`, `DashboardStore` |
+| HTTP service class | `{Domain}ApiService` | `TriviaApiService`, `PollApiService` |
+| Feature component | `{Domain}Component` | `TriviaCardComponent`, `PollCardComponent` |
+| API type interface | `{Noun}` (no suffix) | `TriviaQuestion`, `Poll`, `DashboardData` |
+| Store state interface | `{Domain}State` | `DashboardState` |
+
+### Structure Patterns
+
+**New Backend Entity Checklist:**
+
+1. `Domain/` — entity class extending `Entity<TId>` (or `Aggregate<TId>` for aggregate roots)
+2. `Domain/` — strongly-typed ID struct
+3. `Domain/Repositories/` — repository interface declaration in `Repositories.cs`
+4. `Application/` — command(s) + query(ies) with handlers
+5. `Application/` — FluentValidation validators for each command
+6. `Application/` — response DTO(s)
+7. `Infrastructure/Data/` — `DbSet<T>` in `SportsDbAppContext`
+8. `Infrastructure/Data/` — `IApplicationDbContext` interface update
+9. `Infrastructure/Repositories/` — concrete repository implementation
+10. `Infrastructure/Migrations/` — EF Core migration
+11. `WebAPI/Controllers/` — controller action(s)
+12. `WebAPI/` — DI registration if needed
+
+**New CQRS Handler Checklist:**
+
+- Implement `ICommandHandler<TCommand, TResponse>` or `IQueryHandler<TQuery, TResponse>`
+- Inject only the repository interfaces needed
+- Validate preconditions (idempotency check, status check) before mutations
+- Load via aggregate root (never bypass via direct table access)
+- `SaveChangesAsync()` once at end — no mid-handler saves unless required by transaction semantics
+
+**Angular Signal Store Template:**
+
+```typescript
+export const DomainStore = signalStore(
+  { providedIn: 'root' },
+  withState<DomainState>({
+    status: 'idle' as Status,
+    // domain state fields
+  }),
+  withComputed((store) => ({
+    // derived signals
+  })),
+  withMethods((store, apiService = inject(DomainApiService)) => ({
+    load: rxMethod<LoadParams>(
+      pipe(
+        tap(() => patchState(store, { status: 'loading' })),
+        switchMap((params) =>
+          apiService.get(params).pipe(
+            tapResponse({
+              next: (data) => patchState(store, { status: 'success', ...data }),
+              error: () => patchState(store, { status: 'error' }),
+            })
+          )
+        )
+      )
+    ),
+  }))
+);
 ```
 
-**Anti-pattern — Optimistic escrow (TOCTOU race):**
-```csharp
-// WRONG — read outside transaction; another request can debit between read and write
-var balance = await _repo.GetBalanceAsync(userId); // ❌
-if (balance >= amount)
-    await _repo.DebitAsync(userId, amount); // ❌ not atomic
+### Format Patterns
+
+**API Response Envelope:**
+
+All controller actions return `ServiceResponse<T>`:
+```json
+{ "data": { ... }, "success": true, "message": null }
+{ "data": null, "success": false, "message": "Error description" }
 ```
 
----
+- JSON property names: `camelCase` (configured globally)
+- Enums: serialized as strings (e.g., `"Active"`, `"Pending"`, `"Archived"`)
+- Dates: ISO 8601 strings
+
+### Process Patterns
+
+**Error Handling:**
+- Domain violations: throw `DomainException` (caught by global middleware → 400)
+- Not found: return `ServiceResponse.Failure("not found")` or throw `NotFoundException`
+- Auth failures: handled by ASP.NET Core policy middleware (403/401)
+- Frontend: `tapResponse` `error` branch sets `status: 'error'`; `ErrorHandlerStore` handles global HTTP errors
+
+**Idempotency Check-First Pattern:**
+
+```csharp
+// In command handler
+var existing = await _triviaAnswerRepository.Query()
+    .FirstOrDefaultAsync(a => a.UserId == request.UserId && a.TriviaQuestionId == request.TriviaQuestionId);
+if (existing is not null)
+    return ServiceResponse<SubmitAnswerResponse>.Failure("Already answered");
+```
+
+Always check-then-insert at the application layer; DB unique constraint is the safety net, not the primary guard.
+
+**TriviaQuestion Status Transitions:**
+
+```
+Pending → Active    (GM publishes)
+Active  → Archived  (GM archives)
+Pending → Archived  (GM discards without publishing)
+```
+
+No reverse transitions. State machine lives in the `TriviaQuestion` entity as domain methods: `Publish()`, `Archive()`.
+
+### Enforcement Guidelines
+
+**Mandatory rules (hard violations):**
+- Never mutate `VoteAccount.Balance` directly — always via `VoteTransaction` factory methods
+- Never load a child entity outside its aggregate root in command handlers
+- Never skip FluentValidation — every command has a validator
+- Never access `HttpContext` inside application layer — pass userId/orgId via command properties
+- Never trust client-supplied reward amounts — read `VoteRewardAmount` from `TriviaQuestion` domain entity
+
+**Anti-patterns to avoid:**
+- `DbContext` injection in controllers (use repositories)
+- `status: loading` boolean pattern in new stores (use string union)
+- Multiple `SaveChangesAsync()` calls in a single handler
+- N+1 queries in dashboard aggregation — use `.Include()` or projection queries
+- Hardcoded organization IDs in queries — always filter by `OrganizationId` from route/claim
 
 ## Project Structure & Boundaries
 
-### Complete Project Directory Structure
+### Complete Project Directory Structure — Net-New Files
 
-Brownfield extension — only new additions and key integration points shown. Existing structure inherited unchanged.
-
-#### New Backend Structure
+This section shows only the **new and modified** files the Dashboard Engagement features introduce. Existing files are shown with `★ MODIFY` annotations; new files are unmarked.
 
 ```
-services/sportsAPI/
+sports-ui/
 │
-├── Domain/
-│   ├── Cards/
-│   │   ├── CardPlayer.cs               ← Aggregate<Guid>; rating, rarityTierId, orgId
-│   │   ├── UserCard.cs                 ← Entity; owned card instance (userId, cardPlayerId)
-│   │   ├── CardPack.cs                 ← Aggregate<Guid>; 5 pulls; pull log entries
-│   │   └── PullLogEntry.cs             ← Value object; seed, rarityTier, timestamp
-│   ├── Marketplace/
-│   │   ├── AuctionListing.cs           ← Aggregate<Guid>; state machine (Active/Sold/Expired)
-│   │   ├── Bid.cs                      ← Entity; child of AuctionListing
-│   │   └── PointsEscrow.cs             ← Entity; per-user per-auction escrowed balance
-│   └── H2H/
-│       ├── H2HMatch.cs                 ← Aggregate<Guid>; wager, teams, outcome
-│       └── H2HSquad.cs                 ← Entity; 5-card squad per match participant
+├── libs/
+│   │
+│   ├── trivia/                                         ← NEW domain
+│   │   ├── trivia-data-access/
+│   │   │   └── src/
+│   │   │       ├── lib/
+│   │   │       │   ├── trivia.store.ts                 # TriviaStore (GM management)
+│   │   │       │   ├── trivia.api.ts                   # TriviaApiService
+│   │   │       │   └── trivia.models.ts                # TS interfaces (TriviaSeries, TriviaQuestion, etc.)
+│   │   │       └── index.ts
+│   │   └── feature-trivia-management/
+│   │       └── src/
+│   │           ├── lib/
+│   │           │   ├── trivia-management.component.ts  # GM series list + question mgmt
+│   │           │   ├── trivia-series-form.component.ts # Create series modal/page
+│   │           │   └── trivia-question-list.component.ts
+│   │           └── index.ts
+│   │
+│   ├── poll/                                           ← NEW domain
+│   │   ├── poll-data-access/
+│   │   │   └── src/
+│   │   │       ├── lib/
+│   │   │       │   ├── poll.store.ts                   # PollStore (GM management)
+│   │   │       │   ├── poll.api.ts                     # PollApiService
+│   │   │       │   └── poll.models.ts                  # TS interfaces (Poll, PollOption, etc.)
+│   │   │       └── index.ts
+│   │   └── feature-poll-management/
+│   │       └── src/
+│   │           ├── lib/
+│   │           │   ├── poll-management.component.ts    # GM poll list
+│   │           │   └── poll-form.component.ts          # Create/edit poll modal
+│   │           └── index.ts
+│   │
+│   ├── dashboard/
+│   │   ├── dashboard-data-access/src/
+│   │   │   ├── dashboard.store.ts                      # ★ MODIFY — rework state shape
+│   │   │   └── service/dashboard.service.ts            # ★ MODIFY — call new aggregated endpoint
+│   │   └── feature-dashboard/src/
+│   │       ├── dashboard.component.ts                  # ★ MODIFY — rework layout
+│   │       └── components/                             ← NEW sub-components
+│   │           ├── trending-feed/
+│   │           │   └── trending-feed.component.ts
+│   │           ├── trivia-card/
+│   │           │   └── trivia-card.component.ts        # Fan-facing: answer submission + answered-state
+│   │           └── poll-card/
+│   │               └── poll-card.component.ts          # Fan-facing: vote + result display
+│   │
+│   └── core/
+│       └── api-types/src/lib/
+│           ├── trivia.types.ts                         ← NEW
+│           ├── poll.types.ts                           ← NEW
+│           └── dashboard.types.ts                      # ★ MODIFY — extend DashboardData interface
 │
-├── Application/
-│   ├── Cards/
-│   │   ├── Commands/
-│   │   │   ├── PurchasePackCommand.cs      ← FR12: buy pack, debit points, trigger 5 pulls
-│   │   │   ├── CreateCardPlayerCommand.cs  ← FR5: GM creates card catalog entry
-│   │   │   └── UpdateCardPlayerCommand.cs  ← FR7: GM updates rating/availability
-│   │   └── Queries/
-│   │       ├── GetCollectionQuery.cs       ← FR17: fan views owned cards
-│   │       ├── GetCardCatalogQuery.cs      ← FR9: browse available card players
-│   │       └── GetEconomySummaryQuery.cs   ← FR41: GM dashboard aggregate stats
-│   ├── Marketplace/
-│   │   ├── Commands/
-│   │   │   ├── ListCardCommand.cs          ← FR19: fan lists UserCard for auction
-│   │   │   ├── PlaceBidCommand.cs          ← FR22: fan places bid + escrow debit
-│   │   │   ├── BuyNowCommand.cs            ← FR25: instant purchase
-│   │   │   └── SettleAuctionCommand.cs     ← FR27: expiry settlement (BackgroundService)
-│   │   └── Queries/
-│   │       ├── GetListingsQuery.cs         ← FR20: browse active listings
-│   │       └── GetMyBidsQuery.cs           ← FR26: fan's active bid history
-│   └── H2H/
-│       ├── Commands/
-│       │   ├── CreateMatchCommand.cs       ← FR32: initiate H2H match + wager escrow
-│       │   ├── SetSquadCommand.cs          ← FR35: fan selects 5 cards
-│       │   └── ResolveMatchCommand.cs      ← FR36: bot resolution + settlement
-│       └── Queries/
-│           └── GetMatchHistoryQuery.cs     ← FR40: fan's H2H history
+├── apps/
+│   └── sports-gm/src/app/
+│       ├── app.routes.ts                               # ★ MODIFY — add trivia + poll management routes
+│       └── shell/shell.component.ts                    # ★ MODIFY — add nav links
 │
-├── Infrastructure/
-│   ├── Cards/
-│   │   ├── RarityEngine.cs                 ← Weighted pull (System.Random + RarityTierConfig)
-│   │   ├── CardPlayerConfiguration.cs
-│   │   ├── UserCardConfiguration.cs
-│   │   ├── CardPackConfiguration.cs
-│   │   └── RarityTierConfigConfiguration.cs
-│   ├── Marketplace/
-│   │   ├── AuctionExpiryService.cs         ← BackgroundService; polls + dispatches SettleAuctionCommand
-│   │   ├── AuctionListingConfiguration.cs
-│   │   ├── BidConfiguration.cs
-│   │   └── PointsEscrowConfiguration.cs
-│   ├── H2H/
-│   │   ├── BotResolutionEngine.cs          ← FR36: bot team generation + match outcome
-│   │   ├── H2HMatchConfiguration.cs
-│   │   └── H2HSquadConfiguration.cs
-│   └── Data/
-│       └── SportsDbAppContext.cs           ← EXISTING — new DbSets added here
-│
-└── WebAPI/
-    ├── Controllers/
-    │   ├── CardsController.cs              ← [Authorize] FR5–18 endpoints
-    │   ├── MarketplaceController.cs        ← [Authorize] FR19–28 endpoints
-    │   └── H2HController.cs               ← [Authorize] FR32–40 endpoints
-    ├── Hubs/
-    │   └── AuctionHub.cs                  ← SignalR hub; WatchListing/UnwatchListing/OutbidNotification
-    └── appsettings.json                   ← EXISTING — add AuctionExpiry:PollIntervalSeconds
-```
-
-#### New EF Core Migrations
-
-```
-services/sportsAPI/Infrastructure/Data/Migrations/
-├── ..._AddFanEconomy_RarityTierConfig.cs
-├── ..._AddFanEconomy_Cards.cs          ← CardPlayers, UserCards, CardPacks, PullLogEntries
-├── ..._AddFanEconomy_Marketplace.cs    ← AuctionListings, Bids, PointsEscrows
-└── ..._AddFanEconomy_H2H.cs            ← H2HMatches, H2HSquads
-```
-
-#### New Frontend Library Structure
-
-```
-libs/
-├── cards/
-│   ├── data-access/
-│   │   └── src/lib/
-│   │       ├── card.store.ts               ← signalStore(); CardStore
-│   │       ├── card.service.ts             ← NSwag-typed HTTP calls
-│   │       └── index.ts                    ← Public API barrel
-│   ├── feature-cards/
-│   │   └── src/lib/
-│   │       ├── feature-cards.component.ts  ← Pack purchase page (routable)
-│   │       ├── feature-cards.component.html
-│   │       ├── feature-cards.component.css
-│   │       └── card-reveal/
-│   │           ├── card-reveal.component.ts
-│   │           ├── card-reveal.component.html
-│   │           └── card-reveal.component.css
-│   └── feature-collection/
-│       └── src/lib/
-│           ├── feature-collection.component.ts
-│           ├── feature-collection.component.html
-│           └── feature-collection.component.css
-│
-├── marketplace/
-│   ├── data-access/
-│   │   └── src/lib/
-│   │       ├── marketplace.store.ts            ← signalStore(); MarketplaceStore
-│   │       ├── marketplace.service.ts          ← NSwag-typed HTTP calls
-│   │       ├── auction-signalr.service.ts      ← @microsoft/signalr connection + event relay
-│   │       └── index.ts
-│   └── feature-marketplace/
-│       └── src/lib/
-│           ├── feature-marketplace.component.ts
-│           ├── listing-card/
-│           │   └── listing-card.component.ts
-│           └── bid-panel/
-│               └── bid-panel.component.ts
-│
-└── h2h/
-    ├── data-access/
-    │   └── src/lib/
-    │       ├── h2h.store.ts                ← signalStore(); H2HStore
-    │       ├── h2h.service.ts              ← NSwag-typed HTTP calls
-    │       └── index.ts
-    └── feature-h2h/
-        └── src/lib/
-            ├── feature-h2h.component.ts
-            ├── squad-builder/
-            │   └── squad-builder.component.ts
-            └── match-result/
-                └── match-result.component.ts
-```
-
-#### Shell Routing Integration (Existing File Modified)
-
-```typescript
-// apps/sports-ui/src/app/shell/shell.component.ts — ADD these routes
-{ path: 'store/cards',       loadComponent: () => import('@sports-ui/cards-feature-cards').then(m => m.FeatureCardsComponent),                  canActivate: [authGuard] },
-{ path: 'store/collection',  loadComponent: () => import('@sports-ui/cards-feature-collection').then(m => m.FeatureCollectionComponent),          canActivate: [authGuard] },
-{ path: 'store/marketplace', loadComponent: () => import('@sports-ui/marketplace-feature-marketplace').then(m => m.FeatureMarketplaceComponent),  canActivate: [authGuard] },
-{ path: 'store/h2h',         loadComponent: () => import('@sports-ui/h2h-feature-h2h').then(m => m.FeatureH2hComponent),                         canActivate: [authGuard] }
-```
-
-#### Nx tsconfig Path Aliases (tsconfig.base.json — ADD)
-
-```json
-"@sports-ui/cards-data-access":               ["libs/cards/data-access/src/index.ts"],
-"@sports-ui/cards-feature-cards":              ["libs/cards/feature-cards/src/index.ts"],
-"@sports-ui/cards-feature-collection":         ["libs/cards/feature-collection/src/index.ts"],
-"@sports-ui/marketplace-data-access":          ["libs/marketplace/data-access/src/index.ts"],
-"@sports-ui/marketplace-feature-marketplace":  ["libs/marketplace/feature-marketplace/src/index.ts"],
-"@sports-ui/h2h-data-access":                  ["libs/h2h/data-access/src/index.ts"],
-"@sports-ui/h2h-feature-h2h":                 ["libs/h2h/feature-h2h/src/index.ts"]
+└── services/
+    └── sportsAPI/
+        │
+        ├── Domain/
+        │   ├── Trivia/                                 ← NEW subdirectory
+        │   │   ├── TriviaSeries.cs                     # Aggregate root — owns TriviaQuestions list
+        │   │   ├── TriviaQuestion.cs                   # Child entity — Publish() / Archive() methods
+        │   │   ├── TriviaAnswer.cs                     # Standalone idempotency entity
+        │   │   ├── TriviaSeriesId.cs
+        │   │   ├── TriviaQuestionId.cs
+        │   │   ├── TriviaAnswerId.cs
+        │   │   └── TriviaQuestionStatus.cs             # Enum: Pending | Active | Archived
+        │   ├── Poll/                                   ← NEW subdirectory
+        │   │   ├── Poll.cs                             # Aggregate root — owns PollOptions list
+        │   │   ├── PollOption.cs                       # Child entity
+        │   │   ├── PollVote.cs                         # Standalone idempotency entity
+        │   │   ├── PollId.cs
+        │   │   ├── PollOptionId.cs
+        │   │   ├── PollVoteId.cs
+        │   │   └── PollStatus.cs                       # Enum: Active | Archived
+        │   └── Repositories/
+        │       └── Repositories.cs                     # ★ MODIFY — add ITriviaSeriesRepository, IPollRepository
+        │
+        ├── Application/
+        │   ├── Trivia/                                 ← NEW
+        │   │   ├── Commands/
+        │   │   │   ├── CreateTriviaSeriesCommand.cs    # + Handler + Validator
+        │   │   │   ├── AddTriviaQuestionCommand.cs     # + Handler + Validator
+        │   │   │   ├── PublishTriviaQuestionCommand.cs # + Handler
+        │   │   │   ├── ArchiveTriviaQuestionCommand.cs # + Handler
+        │   │   │   └── SubmitTriviaAnswerCommand.cs    # + Handler + Validator (idempotency + credit)
+        │   │   ├── Queries/
+        │   │   │   ├── GetTriviaSeriesQuery.cs         # + Handler (GM management view)
+        │   │   │   └── GetActiveTriviaQuestionsQuery.cs # + Handler (called by dashboard handler)
+        │   │   └── Dto/
+        │   │       ├── TriviaSeriesResponse.cs
+        │   │       ├── TriviaQuestionResponse.cs
+        │   │       └── SubmitTriviaAnswerResponse.cs
+        │   ├── Poll/                                   ← NEW
+        │   │   ├── Commands/
+        │   │   │   ├── CreatePollCommand.cs            # + Handler + Validator
+        │   │   │   ├── PublishPollCommand.cs           # + Handler
+        │   │   │   ├── ArchivePollCommand.cs           # + Handler
+        │   │   │   └── SubmitPollVoteCommand.cs        # + Handler + Validator (idempotency)
+        │   │   ├── Queries/
+        │   │   │   ├── GetPollsQuery.cs                # + Handler (GM view)
+        │   │   │   └── GetActivePollQuery.cs           # + Handler (called by dashboard handler)
+        │   │   └── Dto/
+        │   │       ├── PollResponse.cs
+        │   │       └── SubmitPollVoteResponse.cs
+        │   ├── Dashboard/                              ← NEW
+        │   │   ├── Queries/
+        │   │   │   └── GetDashboardQuery.cs            # + Handler (aggregates all 3 data sources)
+        │   │   └── Dto/
+        │   │       ├── DashboardResponse.cs
+        │   │       ├── TrendingPlayerOptionDto.cs
+        │   │       ├── TriviaQuestionViewModel.cs      # includes answeredByMe, selectedAnswer
+        │   │       └── PollViewModel.cs                # includes votedByMe, selectedOptionId
+        │   └── Common/Interfaces/
+        │       └── IApplicationDbContext.cs            # ★ MODIFY — add new DbSet declarations
+        │
+        ├── Infrastructure/
+        │   ├── Data/
+        │   │   ├── SportsDbAppContext.cs               # ★ MODIFY — add 6 new DbSets
+        │   │   ├── Configurations/
+        │   │   │   ├── TriviaSeriesConfiguration.cs    ← NEW
+        │   │   │   ├── TriviaAnswerConfiguration.cs    ← NEW (UNIQUE UserId+TriviaQuestionId)
+        │   │   │   ├── PollConfiguration.cs            ← NEW
+        │   │   │   └── PollVoteConfiguration.cs        ← NEW (UNIQUE UserId+PollId)
+        │   │   └── Migrations/
+        │   │       └── [timestamp]_AddDashboardEngagementFeatures.cs  ← NEW
+        │   └── Repositories/
+        │       ├── TriviaSeriesRepository.cs           ← NEW
+        │       └── PollRepository.cs                   ← NEW
+        │
+        └── WebAPI/
+            ├── Controllers/
+            │   ├── DashboardController.cs              ← NEW
+            │   ├── TriviaController.cs                 ← NEW
+            │   └── PollController.cs                   ← NEW
+            └── Program.cs                              # ★ MODIFY — register new repositories
 ```
 
 ### Architectural Boundaries
 
 **API Boundaries:**
-- `/api/cards/*` — `[Authorize]`; fan + GM endpoints; `CardsController`
-- `/api/marketplace/*` — `[Authorize]`; fan endpoints; `MarketplaceController`
-- `/api/h2h/*` — `[Authorize]`; fan endpoints; `H2HController`
-- `/hubs/auction` — `[Authorize]` via JWT query string; SignalR WebSocket
-- GM admin actions in `CardsController`: `[Authorize(Roles = "GM")]`
+
+| Boundary | Detail |
+|---|---|
+| Public fan endpoints | `GET /api/dashboard/{orgId}`, `POST /api/trivia/answer`, `POST /api/poll/vote` — `[Authorize]` |
+| GM management endpoints | `POST/PUT/DELETE /api/trivia/series/*`, `POST/PUT/DELETE /api/poll/*` — `[Authorize(Policy="GMOnly")]` |
+| Vote economy boundary | `SubmitTriviaAnswerCommandHandler` is the ONLY entry point to `VoteTransaction.ForRewardCredit()` for trivia credits |
+| Idempotency boundary | DB unique constraints are the final gate; application layer checks first to return clean errors |
 
 **Component Boundaries:**
-- `cards/data-access` → consumed by `feature-cards` and `feature-collection` only
-- `marketplace/data-access` → consumed by `feature-marketplace` only
-- `h2h/data-access` → consumed by `feature-h2h` only
-- `libs/ui` (existing) → consumed by all new feature libraries for shared UI primitives
-- Cross-domain `data-access` imports forbidden — enforced by Nx module boundary rules
 
-**Service Boundaries:**
-- `RarityEngine` — internal to `Infrastructure/Cards/`; called only by `PurchasePackCommandHandler`
-- `BotResolutionEngine` — internal to `Infrastructure/H2H/`; called only by `ResolveMatchCommandHandler`
-- `AuctionExpiryService` — `IHostedService`; communicates only via MediatR `ISender`; no direct repo access
-- `AuctionHub` — receives client connections; dispatches notifications; no direct domain logic
+| Boundary | Rule |
+|---|---|
+| Dashboard feature ↔ Trivia/Poll data | `DashboardStore` consumes the aggregated `/api/dashboard/{orgId}` response — does NOT call trivia or poll stores directly |
+| Fan-facing trivia card | Answer submission calls `TriviaApiService.submitAnswer()` directly (not via `TriviaStore`, which is GM-focused) |
+| Fan-facing poll card | Vote submission calls `PollApiService.submitVote()` directly |
+| GM trivia management | `TriviaStore` + `TriviaApiService` — isolated from fan dashboard state |
+| GM poll management | `PollStore` + `PollApiService` — isolated from fan dashboard state |
 
 **Data Boundaries:**
-- All new entities registered in `SportsDbAppContext` — single DB context (existing pattern)
-- `PointsEscrow` reads `VoteAccount.Balance` — crosses bounded context; must be inside same `IDbContextTransaction`
-- `CardPlayer` has zero FK to `Player` table (NFR-I3) — enforced at EF config level
+
+| Boundary | Rule |
+|---|---|
+| `TriviaSeries` aggregate | Load via `ITriviaSeriesRepository` — includes `TriviaQuestions` via `.Include()` |
+| `TriviaAnswer` | Queried directly by application handlers — NOT part of the `TriviaSeries` aggregate |
+| `Poll` aggregate | Load via `IPollRepository` — includes `PollOptions` via `.Include()` |
+| `PollVote` | Queried directly by application handlers — NOT part of the `Poll` aggregate |
+| Dashboard aggregation | `GetDashboardQuery` handler joins three data sources in one DB roundtrip via projection queries |
 
 ### Requirements to Structure Mapping
 
-| FR Group | Backend Files | Frontend Files |
-|---|---|---|
-| FR1–4 Currency/Points | `VoteAccount` extension, all escrow commands | `libs/core/vote-account-data-access` (existing) |
-| FR5–10 Card Catalog Admin | `CreateCardPlayerCommand`, `CardsController` admin actions | `sports-admin` / `sports-gm` app |
-| FR11–16 Card Pack System | `PurchasePackCommand`, `RarityEngine` | `libs/cards/feature-cards/`, card-reveal component |
-| FR17–18 Card Collection | `GetCollectionQuery` | `libs/cards/feature-collection/` |
-| FR19–28 Marketplace | `ListCard/PlaceBid/BuyNow/SettleAuction` commands | `libs/marketplace/feature-marketplace/` |
-| FR29–31 Real-Time | `AuctionHub` | `auction-signalr.service.ts`, `MarketplaceStore.handleOutbid` |
-| FR32–40 H2H | `CreateMatch/SetSquad/ResolveMatch`, `BotResolutionEngine` | `libs/h2h/feature-h2h/` |
-| FR41–42 Economy Admin | `GetEconomySummaryQuery` | `sports-gm` app GM dashboard |
+| FR Category | FRs | Frontend Location | Backend Location |
+|---|---|---|---|
+| Dashboard (fan) | FR1–FR5 | `libs/dashboard/feature-dashboard/` + sub-components | `Application/Dashboard/`, `DashboardController.cs` |
+| Trivia fan experience | FR6–FR11 | `trivia-card.component.ts` in dashboard | `Application/Trivia/Commands/SubmitTriviaAnswerCommand.cs` |
+| Polls fan experience | FR12–FR14 | `poll-card.component.ts` in dashboard | `Application/Poll/Commands/SubmitPollVoteCommand.cs` |
+| GM trivia management | FR15–FR23 | `libs/trivia/feature-trivia-management/` in sports-gm | `Application/Trivia/Commands/*` + `Queries/*` |
+| GM poll management | FR24–FR27 | `libs/poll/feature-poll-management/` in sports-gm | `Application/Poll/Commands/*` + `Queries/*` |
+| Vote economy — trivia earning | FR28–FR30 | `VoteAccountStore` balance refresh after answer | `SubmitTriviaAnswerCommandHandler` vote credit logic |
+| Player options feed | FR31–FR32 | `trending-feed.component.ts` | `GetDashboardQuery` handler (sort PlayerOptions by VoteCount DESC) |
 
-### Integration Points & Data Flows
+**Cross-Cutting Concern → Location:**
 
-**Pack Purchase Flow:**
-```
-Fan → PurchasePackCommand → open tx → debit VoteAccount → create CardPack
-     → RarityEngine × 5 → persist UserCards + PullLogEntries → commit tx
-     → Response: 5 UserCard DTOs → CardStore.pullResult → CardReveal animation
-```
+| Concern | Location |
+|---|---|
+| Idempotency enforcement | `TriviaAnswerConfiguration.cs` + `PollVoteConfiguration.cs` (DB unique constraints); checked in command handlers |
+| Org scoping | All commands/queries carry `OrganizationId`; all repositories filter by it |
+| Status state machine | `TriviaQuestion.cs` domain entity — `Publish()` and `Archive()` domain methods |
+| GM auth policy | `[Authorize(Policy="GMOnly")]` on management actions in `TriviaController` and `PollController` |
+| API type sharing | `libs/core/api-types/src/lib/trivia.types.ts` + `poll.types.ts` — imported by all Angular apps |
 
-**Bid Placement Flow:**
-```
-Fan → PlaceBidCommand → open tx → validate bidderId ≠ sellerId → validate amount > high bid
-     → debit PointsEscrow → create Bid → commit tx
-     → AuctionHub.SendAsync("OutbidNotification") to group "auction-{listingId}"
-     → AuctionSignalRService → MarketplaceStore.handleOutbid() → listings signal updates
-```
+### Integration Points
 
-**Auction Expiry Flow:**
+**Data Flow — Dashboard Load:**
+
 ```
-AuctionExpiryService (every 30s) → query expired Active listings
-→ SettleAuctionCommand per listing → open tx → transfer UserCard to winner
-→ credit seller VoteAccount → release losing PointsEscrows → set Status=Settled → commit
-→ AuctionHub.SendAsync("AuctionExpired") to group "auction-{listingId}"
+DashboardComponent → DashboardStore.load(orgId)
+  → GET /api/dashboard/{orgId}
+  → GetDashboardQuery handler
+      ├── PlayerOption query (Status=Active, sorted by VoteCount DESC, top N)
+      ├── TriviaQuestion query (Status=Active, with answered state for userId from JWT)
+      └── Poll query (Status=Active, with voted state for userId from JWT)
+  → DashboardResponse → store state updated → components render
 ```
 
-**H2H Match Flow:**
+**Data Flow — Vote Credit:**
+
 ```
-Fan → CreateMatchCommand → open tx → escrow wager → create H2HMatch → commit
-→ SetSquadCommand → store fan's 5 UserCards
-→ ResolveMatchCommand → BotResolutionEngine generates bot squad → calculate outcome
-→ open tx → transfer wager to winner VoteAccount → set match status → commit
+Fan submits correct trivia answer
+  → POST /api/trivia/answer
+  → SubmitTriviaAnswerCommandHandler
+      → Idempotency check (TriviaAnswer table)
+      → Load TriviaSeries → TriviaQuestion (VoteRewardAmount)
+      → Persist TriviaAnswer
+      → If correct: VoteAccount.AddTransaction(ForRewardCredit(amount)) → SaveChangesAsync()
+  → Response: { isCorrect, votesEarned }
+  → Frontend: VoteAccountStore.load() → balance refreshed
 ```
-
-### Development Workflow
-
-**NSwag Regeneration Gate:**
-1. Add/modify endpoint in `WebAPI/Controllers/`
-2. `dotnet build services/sportsAPI/WebAPI`
-3. NSwag CLI regenerates `libs/core/clients/sports-api.client.ts`
-4. Write Angular HTTP service methods against new typed client
-
-**Nx Library Scaffold (one-time setup):**
-```bash
-nx g @nx/angular:library cards/data-access --standalone
-nx g @nx/angular:library cards/feature-cards --standalone
-nx g @nx/angular:library cards/feature-collection --standalone
-nx g @nx/angular:library marketplace/data-access --standalone
-nx g @nx/angular:library marketplace/feature-marketplace --standalone
-nx g @nx/angular:library h2h/data-access --standalone
-nx g @nx/angular:library h2h/feature-h2h --standalone
-```
-
-**EF Core Migration Sequence:**
-```bash
-dotnet ef migrations add AddFanEconomy_RarityTierConfig --project Infrastructure --startup-project WebAPI
-dotnet ef migrations add AddFanEconomy_Cards --project Infrastructure --startup-project WebAPI
-dotnet ef migrations add AddFanEconomy_Marketplace --project Infrastructure --startup-project WebAPI
-dotnet ef migrations add AddFanEconomy_H2H --project Infrastructure --startup-project WebAPI
-dotnet ef database update --project Infrastructure --startup-project WebAPI
-```
-
----
 
 ## Architecture Validation Results
 
 ### Coherence Validation ✅
 
-**Decision Compatibility:** All technology choices are mutually compatible.
-- Angular 20 + `@microsoft/signalr@10.0.0` + Nx 21: no conflicts
-- .NET 10 + ASP.NET Core SignalR (built-in) + EF Core 8: no version conflicts
-- `IDbContextTransaction` + `IRepository<T>` + `SportsDbAppContext`: valid transactional pattern
-- `System.Random` pull engine + `RarityTierConfig` DB table: no dependencies
-- `BackgroundService` + MediatR `ISender`: standard .NET DI, no circular references
+**Decision Compatibility:**
+All technology choices are the existing established stack — no version conflicts possible. New domain aggregates (`TriviaSeries`, `Poll`) follow the same `Aggregate<TId>` base class pattern as `VoteAccount`. Standalone tables (`TriviaAnswer`, `PollVote`) mirror the existing `VoteTransaction` pattern (crosses aggregate boundaries for side-effects). No contradictory decisions found.
 
-**Pattern Consistency:** Confirmed uniform across all 3 bounded contexts.
-- All stores: `rxMethod` for async, `'idle'|'loading'|'success'|'error'` status literals
-- All handlers: `IRepository<T>` — zero direct `_db.Table` access
-- All endpoints: `[Authorize]` — no exceptions
-- SignalR events: PascalCase, matched exactly between hub `SendAsync` and Angular `.on()`
+**Pattern Consistency:**
+Naming conventions are consistent end-to-end: backend `{Verb}{Noun}Command` handlers → controller actions → Angular `{Domain}ApiService` methods → `{Domain}Store` state. The `status: 'idle'|'loading'|'success'|'error'` signal store shape is applied uniformly to all new stores. CQRS handler checklists are comprehensive and match the existing patterns observed in `Application/VoteAccount/`, `Application/Players/`, etc.
 
-**Architecture Clarification — VoteAccount vs PointsEscrow:**
-FR1–4 specified "extend VoteAccount with escrow tracking." The architecture uses `PointsEscrow` as a separate entity (per-user, per-auction) rather than a field extension on `VoteAccount`. This is intentional: `VoteAccount.Balance` is the canonical balance (debited atomically on bid placement); `PointsEscrow` tracks locked amounts per listing (released to losing bidders on outbid/expiry, credited to seller on settlement). The separation maintains single-responsibility and enables multi-auction bidding without corrupting the primary balance.
+**Structure Alignment:**
+New Nx libs at `libs/trivia/` and `libs/poll/` follow the established `libs/<domain>/<type>/` slice pattern exactly. Backend layers respect Clean Architecture dependency direction (Domain → Application → Infrastructure → WebAPI). Integration boundaries (fan vs. GM API endpoints, dashboard-only store vs. domain-specific stores) are clearly separated.
+
+**Coherence Note:**
+`GetDashboardQuery` handler must build trivia and poll projections **inline** (direct EF queries) rather than dispatching sub-queries via MediatR. MediatR sub-dispatch from within a handler adds overhead and defeats the single-roundtrip goal. Separate query handlers (`GetActiveTriviaQuestionsQuery`, `GetActivePollQuery`) exist for GM views and can share projection logic via private methods — not through MediatR dispatch from the dashboard handler.
 
 ### Requirements Coverage Validation ✅
 
-**All 42 Functional Requirements covered:**
+**All 32 Functional Requirements Covered:**
 
-| FR Group | Architectural Coverage |
+| FR | Coverage |
 |---|---|
-| FR1–4 Currency/Points | `VoteAccount` debited in transactions; `PointsEscrow` tracks locked amounts |
-| FR5–10 Card Catalog Admin | `CreateCardPlayerCommand`, `UpdateCardPlayerCommand`, `CardsController` admin actions |
-| FR11–16 Card Pack System | `PurchasePackCommand`, `RarityEngine`, `PullLogEntry`; pull weights hidden server-side (NFR-S3) |
-| FR17–18 Card Collection | `GetCollectionQuery`, `libs/cards/feature-collection/` |
-| FR19–28 Marketplace | `ListCard/PlaceBid/BuyNow/SettleAuction` commands + `GetListings/GetMyBids` queries |
-| FR29–31 Real-Time | `AuctionHub`, `AuctionSignalRService`, `MarketplaceStore.handleOutbid` |
-| FR32–40 H2H | `CreateMatch/SetSquad/ResolveMatch`, `BotResolutionEngine`, `libs/h2h/feature-h2h/` |
-| FR41–42 Economy Admin | `GetEconomySummaryQuery`, `sports-gm` GM dashboard page |
+| FR1–FR2 | `GetDashboardQuery` sorts PlayerOptions by VoteCount DESC; `TrendingPlayerOptionDto` includes ID for navigation |
+| FR3 | `GetDashboardQuery` filters `TriviaQuestions` by `Status=Active` for the org |
+| FR4 | `GetDashboardQuery` returns single active `Poll` with options |
+| FR5 | `DashboardResponse` allows null/empty lists; frontend components handle gracefully |
+| FR6–FR7 | `SubmitTriviaAnswerCommand` handler + `ForRewardCredit()` integration |
+| FR8 | `TriviaQuestionViewModel` includes `seriesLabel` from parent `TriviaSeries.Name` |
+| FR9–FR10 | `TriviaQuestionViewModel.answeredByMe` + `selectedAnswer`; idempotency reject on re-submit |
+| FR11 | `SubmitTriviaAnswerResponse.isCorrect` field |
+| FR12 | `SubmitPollVoteCommand` — no VoteAccount deduction |
+| FR13 | `SubmitPollVoteResponse` returns updated option vote counts — no re-fetch required |
+| FR14 | `PollVote` UNIQUE (UserId, PollId) constraint + handler idempotency check |
+| FR15–FR16 | `CreateTriviaSeriesCommand` + `AddTriviaQuestionCommand` |
+| FR17–FR18 | `TriviaQuestion.CorrectAnswer` field + `VoteRewardAmount` field |
+| FR19–FR21 | `PublishTriviaQuestionCommand` + `ArchiveTriviaQuestionCommand`; domain methods `Publish()` / `Archive()` |
+| FR22 | `TriviaSeriesResponse` includes `participationCount` per question (COUNT of `TriviaAnswer` rows per `TriviaQuestionId`) |
+| FR23 | `GetTriviaSeriesQuery` returns all statuses; GM view filters/displays Archived |
+| FR24–FR25 | `CreatePollCommand` + `PublishPollCommand` |
+| FR26 | `ArchivePollCommand` |
+| FR27 | `PollResponse` includes `PollOptionResponse.voteCount` (COUNT of PollVotes per PollOptionId) |
+| FR28–FR30 | `ForRewardCredit()` in handler; idempotency prevents double credit; frontend balance refresh via `VoteAccountStore` |
+| FR31–FR32 | PlayerOptions sorted by VoteCount DESC in `GetDashboardQuery`; reflects current counts on dashboard load |
 
-**All 9 NFRs covered:**
+**Non-Functional Requirements — All Covered:**
 
-| NFR | Covered By |
+| NFR | Coverage |
 |---|---|
-| NFR-R1: Zero escrow failures | `IDbContextTransaction` on all escrow ops |
-| NFR-P1: 500ms outbid notification | SignalR push, per-listing hub groups |
-| NFR-R2: 0.1% pull accuracy | Seeded `System.Random` + pull log with seed |
-| NFR-S1: Server-side escrow | All balance ops in command handlers only |
-| NFR-S2: Self-bid prevention | `PlaceBidCommandHandler` validates `bidderId ≠ sellerId` |
-| NFR-S3: Pull weights hidden | `RarityEngine` server-side; weights never in API responses |
-| NFR-S4: All endpoints `[Authorize]` | Enforcement guideline + pattern verification |
-| NFR-I3: CardPlayer ≠ Player | No FK, enforced at EF config level |
-| NFR-SC2: H2H extensible | `H2HMatch`/`H2HSquad` not hardcoded to bot participant type |
+| Dashboard <2s | Single aggregated endpoint; inline EF projections (not MediatR sub-dispatches) |
+| Submissions <500ms | Lightweight commands — idempotency check is a single indexed lookup |
+| Trivia idempotency | UNIQUE (UserId, TriviaQuestionId) + check-first in handler |
+| Poll idempotency | UNIQUE (UserId, PollId) + check-first in handler |
+| Vote credit server-side | `VoteRewardAmount` read from domain entity; client passes only `questionId` and answer |
+| GMOnly enforcement | `[Authorize(Policy="GMOnly")]` on all management actions |
+| DB scalability | Composite indexes on `(OrgId, Status)` for dashboard; `(UserId, QuestionId/PollId)` for idempotency |
 
 ### Implementation Readiness Validation ✅
 
-**Decision Completeness:** All critical decisions documented with versions and rationale. Deferred decisions (Redis backplane, Hangfire) explicitly tagged post-MVP.
+**Decision Completeness:** All 6 net-new domain entities have defined aggregate boundaries, ID types, and repository interfaces. All controllers have defined routes and auth policies. No ambiguous decisions remain.
 
-**Structure Completeness:** File-level directory tree for all 3 bounded contexts (backend + frontend). Shell routing additions, tsconfig aliases, EF migration sequence, and Nx scaffold commands all specified.
+**Structure Completeness:** Every file needed to implement the MVP is enumerated in the directory structure with `★ MODIFY` vs. new distinctions. EF Core migration is named and scoped. All Angular library paths and path aliases are specified.
 
-**Pattern Completeness:** 18 conflict points identified and resolved. Correct/anti-pattern code examples provided for store methods and escrow handlers.
+**Pattern Completeness:** The 12-step backend entity checklist and CQRS handler checklist cover the full lifecycle. Angular signal store template is concrete. Error handling, idempotency guard, and status transition patterns are documented with code examples.
 
 ### Gap Analysis Results
 
-**Critical Gaps: NONE**
+**Critical Gaps: None**
 
-**Important Gap Addressed — `Program.cs` Registrations:**
-Three mandatory registrations not previously made explicit. Must be added to `WebAPI/Program.cs`:
-```csharp
-// Builder section:
-builder.Services.AddSignalR();
-builder.Services.AddHostedService<AuctionExpiryService>();
+**Important Gaps (noted for implementation):**
 
-// App section (after UseAuthorization):
-app.MapHub<AuctionHub>("/hubs/auction");
-```
+1. **Dashboard handler projection**: `GetDashboardQuery` must use inline EF projections, not MediatR sub-dispatch — noted in coherence section above.
+2. **Poll result on vote response**: `SubmitPollVoteCommand` should return updated `PollOptionResponse[]` with vote counts so the frontend can display results without a re-fetch (FR13).
+3. **Balance refresh trigger**: `trivia-card.component.ts` must call `VoteAccountStore.load()` on successful answer response to update the displayed balance.
 
-**Nice-to-Have (deferred):** `BotResolutionEngine` internal algorithm left to implementation — architecture constrains the interface, not the scoring logic.
+**Nice-to-Have (deferred):**
+- Pagination for GM trivia/poll management views (up to 500 archived questions per org)
+- `TriviaSeriesResponse` aggregate `totalParticipations` across all questions
 
 ### Architecture Completeness Checklist
 
 **✅ Requirements Analysis**
-- [x] 42 FRs across 8 capability areas analyzed and mapped
-- [x] 9 NFRs mapped to architectural forcing functions
-- [x] Existing stack constraints identified as non-negotiable
-- [x] New infrastructure scoped (SignalR, BackgroundService, RarityEngine)
-- [x] Cross-cutting concerns mapped (org scoping, escrow atomicity, audit trail, NSwag gate)
+- [x] Project context analyzed (brownfield, 32 FRs, 6 capability areas)
+- [x] Scale and complexity assessed (Medium — 6 new entities, 3 controllers, 4 new Angular libs)
+- [x] Technical constraints identified (vote economy, org scoping, EF code-first, layer rules)
+- [x] Cross-cutting concerns mapped (auth, idempotency, state machine, dashboard aggregation)
 
 **✅ Architectural Decisions**
-- [x] Escrow atomicity: `IDbContextTransaction`
-- [x] Pull engine: seeded `System.Random` + weighted `RarityTierConfig`
-- [x] Rarity config: database-driven (GM-configurable without redeploy)
-- [x] SignalR auth: JWT via `?access_token=` query string
-- [x] Hub topology: per-listing groups
-- [x] Auction expiry: .NET `BackgroundService` + MediatR dispatch
-- [x] Store composition: 3 separate `signalStore()` instances
-- [x] SignalR→store integration: `rxMethod` event relay pattern
+- [x] Domain aggregate boundaries decided
+- [x] Dashboard API design decided (single aggregated endpoint)
+- [x] Idempotency mechanism decided (DB unique constraints + check-first)
+- [x] Vote credit integration point decided (ForRewardCredit, server-side only)
+- [x] Controller routing structure decided
+- [x] Frontend lib organization decided
 
 **✅ Implementation Patterns**
-- [x] 18 conflict points identified and resolved
-- [x] Naming conventions: DB tables, API endpoints, C# classes, TypeScript files, SignalR events
-- [x] Structure patterns: Clean Architecture layers, Nx module boundary rules
-- [x] Format patterns: API responses (422 for escrow failures), UTC ISO 8601 dates, camelCase JSON
-- [x] Communication patterns: SignalR hub groups, NgRx `rxMethod`, MassTransit events
-- [x] Process patterns: loading states, error recovery, auth flow, escrow atomicity
-- [x] Enforcement guidelines + correct/anti-pattern code examples
+- [x] Naming conventions (backend + frontend)
+- [x] Backend entity checklist (12 steps)
+- [x] CQRS handler checklist
+- [x] Angular signal store template
+- [x] Error handling, idempotency, and status transition patterns
+- [x] Mandatory rules + anti-patterns
 
 **✅ Project Structure**
-- [x] Backend file-level tree: Domain/Application/Infrastructure/WebAPI × 3 bounded contexts
-- [x] Frontend file-level tree: 7 new Nx libraries with component breakdown
-- [x] EF migration sequence (4 migrations, dependency-ordered)
-- [x] Nx scaffold commands (7 libraries)
-- [x] Shell routing additions (4 lazy-loaded routes with `authGuard`)
-- [x] tsconfig path aliases (7 new aliases)
-- [x] NSwag regen workflow documented as hard gate
-- [x] `Program.cs` SignalR + BackgroundService registrations specified
+- [x] Complete directory structure (all new/modified files enumerated)
+- [x] Component boundaries (fan dashboard vs. GM management, store isolation)
+- [x] Integration points and data flow
+- [x] All 32 FRs mapped to specific files/directories
 
 ### Architecture Readiness Assessment
 
 **Overall Status: READY FOR IMPLEMENTATION**
 
-**Confidence Level: High**
+**Confidence Level: High** — Brownfield extension of established stack. All patterns proven in existing codebase. Vote economy integration path is single and well-defined.
 
 **Key Strengths:**
-- Brownfield extension — all patterns inherited from proven existing stack; zero greenfield scaffolding risk
-- Escrow atomicity enforced at pattern level — not left to implementation discretion
-- Implementation sequence is dependency-ordered — no bounded context can start out-of-order
-- NSwag regen gate explicitly documented — prevents frontend/backend type drift
-- SignalR→NgRx integration pattern specified with concrete code shape — eliminates agent variation
-- All 18 AI agent conflict points pre-resolved with examples
+- Single-roundtrip dashboard endpoint eliminates N+1 risk
+- Two-layer idempotency (application check + DB constraint) — vote economy integrity guaranteed
+- Fan dashboard and GM management stores fully isolated
+- Status state machine lives in domain entity — clean encapsulation
 
-**Areas for Future Enhancement (Post-MVP):**
-- Redis SignalR backplane for multi-server horizontal scaling
-- Hangfire or Quartz.NET for advanced auction expiry scheduling with retry policies
-- CQRS read-model projection for GM economy dashboard as data volume grows
-- `BotResolutionEngine` algorithm tuning based on real H2H engagement data
+**Areas for Future Enhancement:**
+- SignalR push for live vote counts and poll results (Phase 2)
+- Dashboard caching strategy (Phase 2)
+- Pagination for large GM trivia archives
 
 ### Implementation Handoff
 
-**First Implementation Steps (in order):**
-```bash
-# 1. Install SignalR Angular client
-npm install @microsoft/signalr@10.0.0
-
-# 2. Scaffold Nx libraries (see Project Structure section)
-nx g @nx/angular:library cards/data-access --standalone
-# ... (all 7 libraries)
-
-# 3. Add Program.cs registrations
-# builder.Services.AddSignalR()
-# builder.Services.AddHostedService<AuctionExpiryService>()
-# app.MapHub<AuctionHub>("/hubs/auction")
-
-# 4. First EF migration (unblocks pull engine + GM dashboard)
-dotnet ef migrations add AddFanEconomy_RarityTierConfig --project Infrastructure --startup-project WebAPI
-dotnet ef database update --project Infrastructure --startup-project WebAPI
-
-# 5. Implement CardsController → NSwag regen → unblocks all frontend card work
-```
-
-**AI Agent Guidelines:**
-- Follow all architectural decisions exactly as documented — no local optimization without explicit approval
-- Use implementation patterns consistently — anti-pattern examples are firm prohibitions
-- Respect Nx module boundaries — `nx lint` enforces; violations are build failures
-- Run NSwag regen after EVERY new backend endpoint before writing Angular HTTP service code
-- Reference this document for all architectural questions before making local decisions
+**First Implementation Priority:**
+Backend domain layer first: `Domain/Trivia/` entities and IDs → `Domain/Poll/` → EF migration → Application CQRS handlers → Infrastructure repositories → WebAPI controllers → Angular libs.

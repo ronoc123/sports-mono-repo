@@ -1,0 +1,184 @@
+<div class="trivia-management">
+  <div class="page-header">
+    <h2>Trivia Management</h2>
+    <button class="btn btn-primary" (click)="showCreateSeriesForm.set(!showCreateSeriesForm())">
+      + New Series
+    </button>
+  </div>
+
+  @if (saveError()) {
+    <div class="alert alert-error">{{ saveError() }}</div>
+  }
+
+  <!-- Create series form -->
+  @if (showCreateSeriesForm()) {
+    <div class="card form-card">
+      <h3>Create Trivia Series</h3>
+      <div class="form-group">
+        <label>Series Name</label>
+        <input
+          type="text"
+          [value]="newSeriesName()"
+          (input)="newSeriesName.set($any($event.target).value)"
+          placeholder="e.g. Week 5 Trivia"
+          maxlength="200"
+        />
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" [disabled]="isSaving() || !newSeriesName().trim()" (click)="submitCreateSeries()">
+          @if (isSaving()) { Saving... } @else { Create }
+        </button>
+        <button class="btn btn-ghost" (click)="showCreateSeriesForm.set(false)">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading / error states -->
+  @if (isLoading()) {
+    <div class="loading">Loading trivia series...</div>
+  } @else if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  } @else if (series().length === 0) {
+    <div class="empty-state">No trivia series yet. Create one to get started.</div>
+  } @else {
+    <!-- Series list -->
+    <div class="series-list">
+      @for (s of series(); track trackBySeriesId($index, s)) {
+        <div class="series-item" [class.selected]="selectedSeriesId() === s.seriesId">
+          <div class="series-header" (click)="selectSeries(s.seriesId)">
+            <div class="series-info">
+              <span class="series-name">{{ s.seriesName }}</span>
+              <span class="series-meta">{{ s.questions.length }} question(s)</span>
+            </div>
+            <span class="chevron">{{ selectedSeriesId() === s.seriesId ? '▲' : '▼' }}</span>
+          </div>
+
+          @if (selectedSeriesId() === s.seriesId) {
+            <div class="series-body">
+              <!-- Questions table -->
+              @if (s.questions.length > 0) {
+                <table class="questions-table">
+                  <thead>
+                    <tr>
+                      <th>Question</th>
+                      <th>Status</th>
+                      <th>Participants</th>
+                      <th>Reward</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (q of s.questions; track trackByQuestionId($index, q)) {
+                      <tr>
+                        <td class="question-text">{{ q.questionText }}</td>
+                        <td>
+                          <span class="status-badge status-{{ q.status.toLowerCase() }}">
+                            {{ statusLabel(q.status) }}
+                          </span>
+                        </td>
+                        <td>{{ q.participationCount }}</td>
+                        <td>{{ q.voteRewardAmount }} pts</td>
+                        <td class="actions">
+                          @if (q.status === 'Pending') {
+                            <button
+                              class="btn btn-sm btn-success"
+                              [disabled]="isSaving()"
+                              (click)="publishQuestion(q.questionId)"
+                            >
+                              Publish
+                            </button>
+                          }
+                          @if (q.status !== 'Archived') {
+                            <button
+                              class="btn btn-sm btn-danger"
+                              [disabled]="isSaving()"
+                              (click)="archiveQuestion(q.questionId)"
+                            >
+                              Archive
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="no-questions">No questions yet.</p>
+              }
+
+              <!-- Add question toggle -->
+              <button
+                class="btn btn-secondary"
+                (click)="showAddQuestionForm.set(!showAddQuestionForm())"
+              >
+                + Add Question
+              </button>
+
+              <!-- Add question form -->
+              @if (showAddQuestionForm()) {
+                <div class="add-question-form">
+                  <h4>Add Question</h4>
+
+                  <div class="form-group">
+                    <label>Question Text</label>
+                    <textarea
+                      rows="2"
+                      [value]="newQuestionText()"
+                      (input)="newQuestionText.set($any($event.target).value)"
+                      placeholder="Enter the question..."
+                      maxlength="1000"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Answer Options (min 2)</label>
+                    @for (opt of newAnswerOptions(); track $index) {
+                      <input
+                        type="text"
+                        [value]="opt"
+                        (input)="updateAnswerOption($index, $any($event.target).value)"
+                        [placeholder]="'Option ' + ($index + 1)"
+                        class="option-input"
+                      />
+                    }
+                  </div>
+
+                  <div class="form-group">
+                    <label>Correct Answer</label>
+                    <input
+                      type="text"
+                      [value]="newCorrectAnswer()"
+                      (input)="newCorrectAnswer.set($any($event.target).value)"
+                      placeholder="Must match one of the options exactly"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Vote Reward (pts)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      [value]="newVoteReward()"
+                      (input)="newVoteReward.set(+$any($event.target).value)"
+                    />
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      class="btn btn-primary"
+                      [disabled]="isSaving() || !newQuestionText().trim() || !newCorrectAnswer().trim()"
+                      (click)="submitAddQuestion()"
+                    >
+                      @if (isSaving()) { Saving... } @else { Add Question }
+                    </button>
+                    <button class="btn btn-ghost" (click)="resetAddQuestionForm()">Cancel</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

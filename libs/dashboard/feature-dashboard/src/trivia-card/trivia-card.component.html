@@ -1,0 +1,53 @@
+<div class="trivia-card">
+  <div class="trivia-header">
+    <span class="series-label">{{ question().seriesLabel }}</span>
+    @if (question().voteRewardAmount > 0) {
+      <span class="reward-badge">+{{ question().voteRewardAmount }} pts</span>
+    }
+  </div>
+
+  <p class="question-text">{{ question().questionText }}</p>
+
+  <!-- Options -->
+  <div class="options">
+    @for (option of question().answerOptions; track option) {
+      <button
+        class="option-btn"
+        [class.selected]="selectedOption() === option && !isAnswered"
+        [class.correct]="isAnswered && result() !== null && option === result()!.correctAnswer"
+        [class.my-answer]="isAnswered && option === answeredOption"
+        [class.wrong]="isAnswered && result() !== null && option === answeredOption && !result()!.isCorrect"
+        [disabled]="isAnswered || submitting()"
+        (click)="selectOption(option)"
+      >
+        {{ option }}
+      </button>
+    }
+  </div>
+
+  <!-- Submit / result area -->
+  @if (!isAnswered) {
+    <button
+      class="submit-btn"
+      [disabled]="!selectedOption() || submitting()"
+      (click)="submit()"
+    >
+      @if (submitting()) { Submitting... } @else { Submit Answer }
+    </button>
+  } @else {
+    <div class="result-area" [class.correct]="result()?.isCorrect" [class.incorrect]="result() !== null && !result()!.isCorrect">
+      @if (result() !== null) {
+        @if (result()!.isCorrect) {
+          <span class="result-icon">✓</span>
+          <span>Correct! +{{ result()!.votesEarned }} votes added to your balance.</span>
+        } @else {
+          <span class="result-icon">✗</span>
+          <span>Incorrect. Correct answer: <strong>{{ result()!.correctAnswer }}</strong></span>
+        }
+      } @else {
+        <span class="result-icon">✓</span>
+        <span>Already answered — your answer: <strong>{{ question().selectedAnswer }}</strong></span>
+      }
+    </div>
+  }
+</div>

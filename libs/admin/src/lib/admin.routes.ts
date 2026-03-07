@@ -11,5 +11,19 @@ export const adminRoutes: Routes = [
     loadComponent: () =>
       import('./audit/audit-log.component').then((m) => m.AuditLogComponent),
   },
+  {
+    path: 'poll-management',
+    loadComponent: () =>
+      import('./poll/poll-management.component').then(
+        (m) => m.PollManagementComponent
+      ),
+  },
+  {
+    path: 'trivia-management',
+    loadComponent: () =>
+      import('./trivia/trivia-management.component').then(
+        (m) => m.TriviaManagementComponent
+      ),
+  },
   { path: '', redirectTo: 'economy', pathMatch: 'full' },
 ];
