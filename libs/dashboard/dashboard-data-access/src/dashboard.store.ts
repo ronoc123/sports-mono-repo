@@ -3,7 +3,7 @@ import { signalStore, withState, withMethods, withComputed, patchState } from '@
 import {
   ActivePollDto,
   ActivePollOptionDto,
-  ActiveTriviaQuestionDto,
+  ActiveTriviaSeriesDto,
   DashboardResponse,
   TrendingPlayerOptionDto,
 } from './dashboard.model';
@@ -12,7 +12,7 @@ export type DashboardStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export interface DashboardState {
   trendingPlayerOptions: TrendingPlayerOptionDto[];
-  activeTriviaQuestions: ActiveTriviaQuestionDto[];
+  activeTriviaSeries: ActiveTriviaSeriesDto[];
   activePoll: ActivePollDto | null;
   status: DashboardStatus;
   error: string | null;
@@ -24,7 +24,7 @@ export interface DashboardState {
 
 const initialState: DashboardState = {
   trendingPlayerOptions: [],
-  activeTriviaQuestions: [],
+  activeTriviaSeries: [],
   activePoll: null,
   status: 'idle',
   error: null,
@@ -43,7 +43,7 @@ export const DashboardStore = signalStore(
     hasContent: computed(
       () =>
         state.trendingPlayerOptions().length > 0 ||
-        state.activeTriviaQuestions().length > 0 ||
+        state.activeTriviaSeries().some(s => s.questions.length > 0) ||
         state.activePoll() != null
     ),
   })),
@@ -55,7 +55,7 @@ export const DashboardStore = signalStore(
     setDashboard(data: DashboardResponse) {
       patchState(store, {
         trendingPlayerOptions: data.trendingPlayerOptions,
-        activeTriviaQuestions: data.activeTriviaQuestions,
+        activeTriviaSeries: data.activeTriviaSeries,
         activePoll: data.activePoll,
         status: 'success',
         error: null,
@@ -65,7 +65,6 @@ export const DashboardStore = signalStore(
       patchState(store, { status: 'error', error });
     },
 
-    // Trivia answer submission state
     setTriviaSubmitting(triviaSubmitting: boolean) {
       patchState(store, { triviaSubmitting, triviaSubmitError: null });
     },
@@ -76,15 +75,17 @@ export const DashboardStore = signalStore(
       patchState(store, {
         triviaSubmitting: false,
         triviaSubmitError: null,
-        activeTriviaQuestions: store.activeTriviaQuestions().map((q) =>
-          q.questionId === questionId
-            ? { ...q, answeredByMe: true, selectedAnswer }
-            : q
-        ),
+        activeTriviaSeries: store.activeTriviaSeries().map(series => ({
+          ...series,
+          questions: series.questions.map(q =>
+            q.questionId === questionId
+              ? { ...q, answeredByMe: true, selectedAnswer }
+              : q
+          ),
+        })),
       });
     },
 
-    // Poll vote submission state
     setPollSubmitting(pollSubmitting: boolean) {
       patchState(store, { pollSubmitting, pollSubmitError: null });
     },

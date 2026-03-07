@@ -11,7 +11,7 @@ export class DashboardFacade {
 
   // Exposed signals
   readonly trendingPlayerOptions = this.store.trendingPlayerOptions;
-  readonly activeTriviaQuestions = this.store.activeTriviaQuestions;
+  readonly activeTriviaSeries = this.store.activeTriviaSeries;
   readonly activePoll = this.store.activePoll;
   readonly status = this.store.status;
   readonly isLoading = this.store.isLoading;

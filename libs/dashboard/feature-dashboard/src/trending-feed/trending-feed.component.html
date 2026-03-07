@@ -5,21 +5,40 @@
       <p>No active player options right now. Check back soon!</p>
     </div>
   } @else {
-    <ol class="trending-list">
+    <div class="news-list">
       @for (option of options(); track option.playerOptionId; let i = $index) {
-        <li class="trending-card" (click)="navigate(option.playerOptionId)" role="button" tabindex="0"
-            (keydown.enter)="navigate(option.playerOptionId)">
-          <span class="trending-rank">{{ i + 1 }}</span>
-          <div class="trending-info">
-            <span class="trending-name">{{ option.playerName }}</span>
-            <span class="trending-position">{{ option.positionLabel }}</span>
+        <div
+          class="news-card"
+          role="button"
+          tabindex="0"
+          (click)="navigate(option.playerOptionId)"
+          (keydown.enter)="navigate(option.playerOptionId)"
+        >
+          <!-- Card Header -->
+          <div class="news-card-header">
+            <div class="player-info">
+              <div class="player-badge">{{ option.positionLabel }}</div>
+              <div class="player-details">
+                <span class="player-name">{{ option.playerName }}</span>
+                <span class="player-pos">{{ option.positionLabel }}</span>
+              </div>
+            </div>
+            <span class="trending-rank">#{{ i + 1 }}</span>
           </div>
-          <div class="trending-votes">
-            <span class="material-icons vote-icon">how_to_vote</span>
-            <span class="vote-count">{{ option.voteCount | number }}</span>
+
+          <!-- Card Footer -->
+          <div class="news-card-footer">
+            <div class="vote-info">
+              <span class="material-icons vote-icon">how_to_vote</span>
+              <span class="vote-count">{{ option.voteCount | number }} votes</span>
+            </div>
+            <span class="view-link">
+              View Option
+              <span class="material-icons arrow-icon">arrow_forward</span>
+            </span>
           </div>
-        </li>
+        </div>
       }
-    </ol>
+    </div>
   }
 </div>

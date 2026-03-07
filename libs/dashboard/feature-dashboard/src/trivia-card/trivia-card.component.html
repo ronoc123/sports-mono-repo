@@ -1,14 +1,18 @@
 <div class="trivia-card">
-  <div class="trivia-header">
-    <span class="series-label">{{ question().seriesLabel }}</span>
-    @if (question().voteRewardAmount > 0) {
-      <span class="reward-badge">+{{ question().voteRewardAmount }} pts</span>
-    }
+  <!-- Colored Header -->
+  <div class="trivia-header-bar">
+    <div class="trivia-header-top">
+      @if (question().voteRewardAmount > 0) {
+        <span class="reward-badge">+{{ question().voteRewardAmount }} pts</span>
+      }
+    </div>
+    <div class="trivia-question-row">
+      <span class="material-icons trivia-bulb">lightbulb</span>
+      <p class="question-text">{{ question().questionText }}</p>
+    </div>
   </div>
 
-  <p class="question-text">{{ question().questionText }}</p>
-
-  <!-- Options -->
+  <!-- Answer Options -->
   <div class="options">
     @for (option of question().answerOptions; track option) {
       <button
@@ -20,20 +24,29 @@
         [disabled]="isAnswered || submitting()"
         (click)="selectOption(option)"
       >
-        {{ option }}
+        <span>{{ option }}</span>
+        @if (isAnswered && result() !== null && option === result()!.correctAnswer) {
+          <span class="material-icons option-state-icon correct-icon">check_circle</span>
+        }
+        @if (isAnswered && result() !== null && option === answeredOption && !result()!.isCorrect) {
+          <span class="material-icons option-state-icon wrong-icon">cancel</span>
+        }
       </button>
     }
   </div>
 
-  <!-- Submit / result area -->
+  <!-- Submit / Result area -->
   @if (!isAnswered) {
-    <button
-      class="submit-btn"
-      [disabled]="!selectedOption() || submitting()"
-      (click)="submit()"
-    >
-      @if (submitting()) { Submitting... } @else { Submit Answer }
-    </button>
+    <div class="trivia-footer">
+      <button
+        class="submit-btn"
+        [disabled]="!selectedOption() || submitting()"
+        (click)="submit()"
+      >
+        @if (submitting()) { Submitting... } @else { Submit Answer }
+      </button>
+      <p class="hint-text">Select an answer to continue</p>
+    </div>
   } @else {
     <div class="result-area" [class.correct]="result()?.isCorrect" [class.incorrect]="result() !== null && !result()!.isCorrect">
       @if (result() !== null) {

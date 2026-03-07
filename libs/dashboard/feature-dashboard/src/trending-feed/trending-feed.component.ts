@@ -1,7 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { inject } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TrendingPlayerOptionDto } from '@sports-ui/dashboard-data-access';
 
 @Component({
@@ -13,11 +12,13 @@ import { TrendingPlayerOptionDto } from '@sports-ui/dashboard-data-access';
 })
 export class TrendingFeedComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   options = input.required<TrendingPlayerOptionDto[]>();
 
   navigate(playerOptionId: string): void {
-    this.router.navigate(['player-option'], {
+    this.router.navigate(['../player-option'], {
+      relativeTo: this.route,
       queryParams: { id: playerOptionId },
     });
   }

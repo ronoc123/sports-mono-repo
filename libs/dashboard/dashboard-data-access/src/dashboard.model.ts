@@ -9,10 +9,15 @@ export interface ActiveTriviaQuestionDto {
   questionId: string;
   questionText: string;
   answerOptions: string[];
-  seriesLabel: string;
   voteRewardAmount: number;
   answeredByMe: boolean;
   selectedAnswer: string | null;
+}
+
+export interface ActiveTriviaSeriesDto {
+  seriesId: string;
+  seriesName: string;
+  questions: ActiveTriviaQuestionDto[];
 }
 
 export interface ActivePollOptionDto {
@@ -31,7 +36,7 @@ export interface ActivePollDto {
 
 export interface DashboardResponse {
   trendingPlayerOptions: TrendingPlayerOptionDto[];
-  activeTriviaQuestions: ActiveTriviaQuestionDto[];
+  activeTriviaSeries: ActiveTriviaSeriesDto[];
   activePoll: ActivePollDto | null;
 }
 

@@ -1,70 +1,87 @@
 .trivia-card {
-  background: var(--surface, #fff);
-  border: 1px solid var(--border, #e2e8f0);
-  border-radius: 10px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
+  border-radius: 12px;
+  border: 2px solid var(--color-tertiary, #007cc3);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 124, 195, 0.15);
 }
 
-.trivia-header {
+/* ── Colored Header ── */
+.trivia-header-bar {
+  background: linear-gradient(135deg, var(--color-tertiary) 0%, var(--color-surface) 100%);
+  padding: 1.25rem;
+  color: #ffffff;
+}
+
+.trivia-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.series-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #2563eb;
+  margin-bottom: 0.75rem;
 }
 
 .reward-badge {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  background: #dcfce7;
-  color: #166534;
-  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
+}
+
+.trivia-question-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.trivia-bulb {
+  font-size: 1.2rem !important;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  opacity: 0.9;
 }
 
 .question-text {
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--text, #0f172a);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #ffffff;
 }
 
+/* ── Answer Options ── */
 .options {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
+  padding: 1.25rem;
+  background: #ffffff;
 }
 
 .option-btn {
-  padding: 0.625rem 0.875rem;
-  border: 2px solid var(--border, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
-  background: transparent;
+  background: #ffffff;
   text-align: left;
   font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  color: #111827;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .option-btn:hover:not(:disabled) {
-  border-color: #2563eb;
-  background: #eff6ff;
+  border-color: var(--color-tertiary, #007cc3);
+  background: rgba(0, 124, 195, 0.04);
 }
 
 .option-btn.selected {
-  border-color: #2563eb;
-  background: #eff6ff;
-  font-weight: 500;
+  border-color: var(--color-tertiary, #007cc3);
+  background: rgba(0, 124, 195, 0.06);
 }
 
 .option-btn.correct {
@@ -80,38 +97,66 @@
   color: #991b1b;
 }
 
-.option-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
-}
-
-.submit-btn {
-  align-self: flex-start;
-  padding: 0.5rem 1.25rem;
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.submit-btn:disabled {
+.option-btn:disabled:not(.correct):not(.my-answer) {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+.option-state-icon {
+  font-size: 1.2rem !important;
+  flex-shrink: 0;
+}
+
+.correct-icon { color: #16a34a; }
+.wrong-icon { color: #dc2626; }
+
+/* ── Footer ── */
+.trivia-footer {
+  padding: 0 1.25rem 1.25rem;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.submit-btn {
+  display: block;
+  width: 100%;
+  padding: 0.625rem;
+  background: linear-gradient(to right, var(--color-tertiary, #007cc3), var(--color-tertiary-dark, #005a8f));
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hint-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Result Area ── */
 .result-area {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: 6px;
+  margin: 0 1.25rem 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   font-size: 0.875rem;
   background: #f8fafc;
-  border: 1px solid var(--border, #e2e8f0);
+  border: 1px solid #e5e7eb;
+  color: #374151;
 }
 
 .result-area.correct {
@@ -129,4 +174,5 @@
 .result-icon {
   font-weight: 700;
   font-size: 1rem;
+  flex-shrink: 0;
 }

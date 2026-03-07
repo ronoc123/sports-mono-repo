@@ -55,10 +55,12 @@ public sealed class GetDashboardQueryHandler
                 _repo.Query<TriviaSeries>().Where(s => s.OrganizationId == orgId),
                 q => q.SeriesId,
                 s => s.Id,
-                (q, s) => new { q, SeriesLabel = s.Name })
+                (q, s) => new { q, SeriesId = s.Id, SeriesName = s.Name, s.CreatedAt })
+            .OrderBy(x => x.CreatedAt)
+            .ThenBy(x => x.q.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        List<ActiveTriviaQuestionDto> triviaQuestions;
+        List<ActiveTriviaSeriesDto> activeSeries;
         if (activeQuestions.Count > 0)
         {
             var questionIds = activeQuestions.Select(x => x.q.Id).ToList();
@@ -67,24 +69,30 @@ public sealed class GetDashboardQueryHandler
                 .Where(a => a.UserId == request.UserId && questionIds.Contains(a.TriviaQuestionId))
                 .ToDictionaryAsync(a => a.TriviaQuestionId, a => a, cancellationToken);
 
-            triviaQuestions = activeQuestions.Select(x =>
-            {
-                myAnswers.TryGetValue(x.q.Id, out var answer);
-                return new ActiveTriviaQuestionDto
+            activeSeries = activeQuestions
+                .GroupBy(x => new { x.SeriesId, x.SeriesName })
+                .Select(g => new ActiveTriviaSeriesDto
                 {
-                    QuestionId = x.q.Id.Value,
-                    QuestionText = x.q.QuestionText,
-                    AnswerOptions = DeserializeOptions(x.q.OptionsJson),
-                    SeriesLabel = x.SeriesLabel,
-                    VoteRewardAmount = x.q.VoteReward,
-                    AnsweredByMe = answer is not null,
-                    SelectedAnswer = answer?.SelectedOption
-                };
-            }).ToList();
+                    SeriesId = g.Key.SeriesId.Value,
+                    SeriesName = g.Key.SeriesName,
+                    Questions = g.Select(x =>
+                    {
+                        myAnswers.TryGetValue(x.q.Id, out var answer);
+                        return new ActiveTriviaQuestionDto
+                        {
+                            QuestionId = x.q.Id.Value,
+                            QuestionText = x.q.QuestionText,
+                            AnswerOptions = DeserializeOptions(x.q.OptionsJson),
+                            VoteRewardAmount = x.q.VoteReward,
+                            AnsweredByMe = answer is not null,
+                            SelectedAnswer = answer?.SelectedOption
+                        };
+                    }).ToList()
+                }).ToList();
         }
         else
         {
-            triviaQuestions = [];
+            activeSeries = [];
         }
 
         // ── Active poll ───────────────────────────────────────────────────────
@@ -138,7 +146,7 @@ public sealed class GetDashboardQueryHandler
         var response = new DashboardResponse
         {
             TrendingPlayerOptions = trending,
-            ActiveTriviaQuestions = triviaQuestions,
+            ActiveTriviaSeries = activeSeries,
             ActivePoll = pollDto
         };
 
