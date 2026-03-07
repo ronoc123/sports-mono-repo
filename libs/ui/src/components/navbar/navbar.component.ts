@@ -21,7 +21,6 @@ export class NavbarComponent {
   readonly toggleNavBar = output<void>();
   readonly logout = output<void>();
   readonly openProfile = output<void>();
-  readonly openSettings = output<void>();
   readonly toggleTheme = output<void>();
   readonly markRead = output<string>();
   readonly buyVotes = output<void>();

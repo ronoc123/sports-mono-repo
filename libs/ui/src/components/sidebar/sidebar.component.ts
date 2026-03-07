@@ -31,18 +31,36 @@ export interface NavItem {
   styleUrls: ["./sidebar.component.css"],
 })
 export class SidebarComponent {
-  readonly navItems    = input.required<NavItem[]>();
-  readonly currentRoute = input<string>("");
+  readonly navItems      = input.required<NavItem[]>();
+  readonly currentRoute  = input<string>("");
   readonly organizations = input<any[]>([]);
   readonly selectedOrganization = input<any>(null);
   readonly user = input<any>(null);
 
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
-  readonly onOrgSelected  = output<any>();
+  readonly onOrgSelected = output<any>();
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
-  readonly onNavSelected  = output<NavItem>();
+  readonly onNavSelected = output<NavItem>();
 
   expandedItems = signal<string[]>([]);
+
+  constructor() {
+    // Auto-expand the group that contains the active route whenever the route changes
+    effect(() => {
+      const route = this.currentRoute();
+      const items = this.navItems();
+      const toExpand = items
+        .filter(item => item.children?.some(child => this.isActive(child)))
+        .map(item => item.name);
+
+      if (toExpand.length > 0) {
+        this.expandedItems.update(current => {
+          const merged = new Set([...current, ...toExpand]);
+          return Array.from(merged);
+        });
+      }
+    });
+  }
 
   isExpanded(name: string): boolean {
     return this.expandedItems().includes(name);
@@ -56,7 +74,11 @@ export class SidebarComponent {
 
   isActive(node: NavItem): boolean {
     if (!node.route) return false;
-    return this.currentRoute().endsWith("/" + node.route) ||
-           this.currentRoute() === node.route;
+    const route = this.currentRoute();
+    return route.endsWith("/" + node.route) || route === node.route;
+  }
+
+  hasActiveChild(item: NavItem): boolean {
+    return item.children?.some(child => this.isActive(child)) ?? false;
   }
 }

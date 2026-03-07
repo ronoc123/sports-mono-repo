@@ -122,11 +122,9 @@ export class LayoutFeatureComponent implements OnInit, OnDestroy {
   }
 
   onOpenProfile() {
-    this.router.navigate(["/profile"]);
-  }
-
-  onOpenSettings() {
-    this.router.navigate(["/settings"]);
+    const org = this.selectedOrganization();
+    if (!org) return;
+    this.router.navigate([org.id, 'profile']);
   }
 
   onSelectOrg(org: any) {

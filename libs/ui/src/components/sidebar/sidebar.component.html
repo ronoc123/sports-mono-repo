@@ -1,5 +1,4 @@
 <div class="sidebar-container">
-
   <!-- Org Selector -->
   <div class="sidebar-top">
     <lib-organization-badge
@@ -11,7 +10,11 @@
     <!-- User snippet -->
     <div class="user-snippet" *ngIf="user()">
       <div class="user-avatar">
-        {{ (user()?.firstName || user()?.email || 'U').substring(0, 1).toUpperCase() }}
+        {{
+          (user()?.firstName || user()?.email || "U")
+            .substring(0, 1)
+            .toUpperCase()
+        }}
       </div>
       <div class="user-detail">
         <span class="user-email">{{ user()?.email }}</span>
@@ -22,8 +25,7 @@
   <!-- Navigation -->
   <nav class="nav-list">
     <ng-container *ngFor="let item of navItems()">
-
-      <!-- Leaf item -->
+      <!-- Leaf item (no children) -->
       <button
         *ngIf="!item.children?.length"
         class="nav-item"
@@ -34,18 +36,24 @@
         <span class="nav-label">{{ item.name }}</span>
       </button>
 
-      <!-- Expandable item -->
+      <!-- Group item (has children) -->
       <div *ngIf="item.children?.length" class="nav-group">
         <button
-          class="nav-item nav-item--expandable"
+          class="nav-item nav-item--group"
+          [class.nav-item--group-active]="hasActiveChild(item)"
+          [class.nav-item--group-open]="isExpanded(item.name)"
           (click)="toggleExpand(item.name)"
         >
           <span class="material-icons nav-icon">{{ item.icon }}</span>
           <span class="nav-label">{{ item.name }}</span>
-          <span class="material-icons expand-arrow" [class.expand-arrow--open]="isExpanded(item.name)">
-            expand_more
+          <span
+            class="material-icons expand-arrow"
+            [class.expand-arrow--open]="isExpanded(item.name)"
+          >
+            chevron_right
           </span>
         </button>
+
         <div class="nav-children" *ngIf="isExpanded(item.name)">
           <button
             *ngFor="let child of item.children"
@@ -53,12 +61,14 @@
             [class.nav-item--active]="isActive(child)"
             (click)="onNavSelected.emit(child)"
           >
-            <span class="material-icons nav-icon">{{ child.icon }}</span>
+            <span class="nav-child-dot"></span>
+            <span class="material-icons nav-icon nav-icon--child">{{
+              child.icon
+            }}</span>
             <span class="nav-label">{{ child.name }}</span>
           </button>
         </div>
       </div>
-
     </ng-container>
   </nav>
 
@@ -66,5 +76,4 @@
   <div class="sidebar-footer">
     <span class="footer-brand">Sportify</span>
   </div>
-
 </div>
