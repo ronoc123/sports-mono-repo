@@ -1,28 +1,32 @@
 export const environment = {
   production: true,
 
-  // API Configuration (production URLs)
-  apiUrl: "https://api.sports-ui.com",
-  apiBaseUrl: "https://api.sports-ui.com/api",
-  identityApiUrl: "https://identity.sports-ui.com",
-  identityApiBaseUrl: "https://identity.sports-ui.com/api",
+  // API Configuration — values injected by CI from GitHub Actions secrets
+  apiUrl: "__SPORTS_API_URL__",
+  sportsApi: "__SPORTS_API_URL__/api/",
+  identityApi: "__IDENTITY_API_URL__/api/",
+
+  // Keep these matching the AppEnvironment interface
+  apiBaseUrl: "__SPORTS_API_URL__/api",
+  identityApiUrl: "__IDENTITY_API_URL__",
+  identityApiBaseUrl: "__IDENTITY_API_URL__/api",
 
   // Feature flags
-  enableMockData: false, // Use real data in production
-  enableRealAuth: true, // Use real auth in production
+  enableMockData: false,
+  enableRealAuth: true,
   enableLogging: false,
 
   // Production settings
-  logLevel: "error",
+  logLevel: "error" as const,
   enableConsoleLogging: false,
 
   // API Configuration
-  apiTimeout: 30000, // 30 seconds
+  apiTimeout: 30000,
   retryAttempts: 3,
-  retryDelay: 2000, // 2 seconds
+  retryDelay: 2000,
 
   // CORS and SSL
-  allowSelfSignedCerts: false, // Never allow in production
+  allowSelfSignedCerts: false,
   corsEnabled: true,
 
   // App-specific settings
@@ -32,8 +36,11 @@ export const environment = {
   // Admin-specific settings
   enableAdvancedFeatures: true,
   enableSystemLogs: true,
-  enableUserImpersonation: false, // Disabled in production
+  enableUserImpersonation: false,
 
-  // Google OAuth (production)
-  googleClientId: "your-prod-google-client-id.apps.googleusercontent.com",
+  // OAuth — injected by CI
+  googleClientId: "__GOOGLE_CLIENT_ID__",
+
+  // Stripe public key — injected by CI
+  stripePublicKey: "__STRIPE_PUBLIC_KEY__",
 };
