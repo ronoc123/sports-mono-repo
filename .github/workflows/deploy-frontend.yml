@@ -55,13 +55,6 @@ jobs:
             ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'yarn.lock') }}-
             ${{ runner.os }}-nx-
 
-      # Inject Stripe publishable key from GitHub Secret before building.
-      # The committed environment.ts has an empty placeholder to satisfy TypeScript.
-      - name: Inject Stripe public key
-        run: |
-          sed -i "s|stripePublicKey: \"\"|stripePublicKey: \"${{ secrets.STRIPE_PUBLIC_KEY }}\"|g" \
-            libs/core/api-types/src/lib/environments/environment.ts
-
       - name: Build Angular app
         run: npx nx build sports-ui --configuration=production
 
