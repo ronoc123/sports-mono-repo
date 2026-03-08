@@ -45,6 +45,11 @@ typings/
 **/Keys/private.pem
 
 # -----------------------------
+# Local environment overrides (contain real API keys)
+# -----------------------------
+**/environment.local.ts
+
+# -----------------------------
 # .NET / Visual Studio
 # -----------------------------
 **/bin/

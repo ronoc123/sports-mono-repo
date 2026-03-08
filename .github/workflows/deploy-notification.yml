@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'services/NotificationAPI/**'
-      - 'services/Messaging/**'
-      - 'services/MessagingService/**'
-      - '.github/workflows/deploy-notification.yml'
+      - "services/NotificationAPI/**"
+      - "services/Messaging/**"
+      - "services/MessagingService/**"
+      - ".github/workflows/deploy-notification.yml"
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: "8.x"
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -46,7 +46,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment: production
     permissions:
       id-token: write
       contents: read
@@ -61,17 +60,13 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # Add these secrets to GitHub once you create the Azure App Service for NotificationAPI:
-          # AZUREAPPSERVICE_CLIENTID_NOTIFICATION
-          # AZUREAPPSERVICE_TENANTID_NOTIFICATION
-          # AZUREAPPSERVICE_SUBSCRIPTIONID_NOTIFICATION
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_NOTIFICATION }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_NOTIFICATION }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_NOTIFICATION }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_45DA0A1D65654E328C74BB12F498140A }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C7564AF1248C492BB7A8ADCC5C152899 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2379C42B26EB40F1AA1C2314A1C4E429 }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           # Create this App Service in Azure — suggested name: sportify-notification
-          app-name: 'sportify-notification'
+          app-name: "sportify-notification"
           package: publish
