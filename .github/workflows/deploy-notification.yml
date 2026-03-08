@@ -5,10 +5,10 @@ on:
     branches:
       - main
     paths:
-      - 'services/NotificationAPI/**'
-      - 'services/Messaging/**'
-      - 'services/MessagingService/**'
-      - '.github/workflows/deploy-notification.yml'
+      - "services/NotificationAPI/**"
+      - "services/Messaging/**"
+      - "services/MessagingService/**"
+      - ".github/workflows/deploy-notification.yml"
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
+          dotnet-version: "8.x"
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -64,13 +64,13 @@ jobs:
           # AZUREAPPSERVICE_CLIENTID_NOTIFICATION
           # AZUREAPPSERVICE_TENANTID_NOTIFICATION
           # AZUREAPPSERVICE_SUBSCRIPTIONID_NOTIFICATION
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_NOTIFICATION }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_NOTIFICATION }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_NOTIFICATION }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_54E60D45F5504EB8972891B865F0B929 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_43B3188FF4EF48218B4BB2C01C86CF51 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AAB9C5D964CA4FB3B5188BB93C2FF254 }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           # Create this App Service in Azure — suggested name: sportify-notification
-          app-name: 'sportify-notification'
+          app-name: "sportify-notification"
           package: publish
