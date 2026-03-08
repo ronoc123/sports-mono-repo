@@ -46,7 +46,9 @@ namespace Infrastructure
 
             services.AddHttpClient<IUserDirectory, UserDirectoryClient>(client =>
             {
-                client.BaseAddress = new Uri("http://identityapi:8080/");
+                var baseUrl = configuration["IdentityService:BaseUrl"] ?? "http://identityapi:8080/";
+                if (!baseUrl.EndsWith("/")) baseUrl += "/";
+                client.BaseAddress = new Uri(baseUrl);
             });
 
 

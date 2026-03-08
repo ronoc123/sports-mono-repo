@@ -13,6 +13,7 @@ services:
       MessageBroker__Host: sports.rabbitmq
       MessageBroker__UserName: guest
       MessageBroker__Password: guest
+      IdentityService__BaseUrl: http://identityapi:8080
     depends_on:
       - sqlserver
       - rabbitmq

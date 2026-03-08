@@ -6,6 +6,11 @@ export const environment = {
   sportsApi: ":5000/api/",
   identityApi: ":5001/api/",
 
+  // Keep these matching the AppEnvironment interface
+  apiBaseUrl: "http://localhost:5000/api",
+  identityApiUrl: "http://localhost:5001",
+  identityApiBaseUrl: "http://localhost:5001/api",
+
   // Feature flags
   enableMockData: true, // Use mock data during development
   enableRealAuth: false, // Use mock auth during development

@@ -12,6 +12,6 @@ export class GoogleSignInComponent {
 
   signInWithGoogle() {
     const returnUrl = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    window.location.href = `${environment.apiUrl}${environment.identityApi}auth/google-login?returnUrl=${returnUrl}`;
+    window.location.href = `${environment.identityApiBaseUrl}/auth/google-login?returnUrl=${returnUrl}`;
   }
 }
