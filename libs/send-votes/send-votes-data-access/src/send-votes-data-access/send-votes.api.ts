@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
 import { ApiService } from "@sports-ui/http-client";
 import { environment } from "@sports-ui/api-types";
 import { Observable } from "rxjs";
@@ -7,9 +8,10 @@ import { SendVotesCommand, SendVotesUserInfo } from "./send-votes.model";
 @Injectable({ providedIn: "root" })
 export class SendVotesApi {
   private readonly http = inject(ApiService);
+  private readonly httpClient = inject(HttpClient);
 
   getUsers(): Observable<SendVotesUserInfo[]> {
-    return this.http.get<SendVotesUserInfo[]>(
+    return this.httpClient.get<SendVotesUserInfo[]>(
       `${environment.identityApi}auth/users`
     );
   }
