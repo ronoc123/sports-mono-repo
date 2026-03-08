@@ -1,12 +1,13 @@
 using IdentityService.Data;
 using IdentityService.Models;
 using IdentityService.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,10 +45,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<IdentityDbContext>()
 .AddDefaultTokenProviders();
 
-// Add JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
-var key = Encoding.ASCII.GetBytes(jwtKey);
+// Load RSA public key for JWT validation (private key is used by TokenService)
+var publicKeyPem = File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Keys", "public.pem"));
+var rsaForValidation = RSA.Create();
+rsaForValidation.ImportFromPem(publicKeyPem);
+var rsaValidationKey = new RsaSecurityKey(rsaForValidation) { KeyId = "sportify-rsa-1" };
 
+// Register TokenKeyProvider singleton (holds RSA key pair for signing + JWKS)
+builder.Services.AddSingleton<TokenKeyProvider>();
+
+// Add JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -60,14 +67,28 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
+        IssuerSigningKey         = rsaValidationKey,
+        ValidateIssuer           = true,
+        ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+        ValidateAudience         = true,
+        ValidAudience            = builder.Configuration["Jwt:Audience"],
+        ValidateLifetime         = true,
+        ClockSkew                = TimeSpan.Zero
     };
+})
+.AddCookie("External", options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    options.SignInScheme = "External";
+    options.CallbackPath = "/signin-google";
+    options.ClaimActions.MapJsonKey("urn:google:picture", "picture", "url");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
 });
 
 // Add CORS

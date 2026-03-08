@@ -6,12 +6,14 @@ using Application.Cards.Queries.GetCollection;
 using Application.Dto.Cards;
 using Contracts.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class CardsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -26,12 +28,10 @@ public class CardsController : ControllerBase
         => await _mediator.Send(new GetCardPlayersQuery(leagueId));
 
     [HttpPost("players")]
-    //[Authorize(Policy = "GMOnly")]
     public async Task<ServiceResponse<CardPlayerDto>> CreateCardPlayer([FromBody] CreateCardPlayerCommand command)
         => await _mediator.Send(command);
 
     [HttpPut("players/{id:guid}")]
-    //[Authorize(Policy = "GMOnly")]
     public async Task<ServiceResponse<CardPlayerDto>> UpdateCardPlayer(
         Guid id,
         [FromBody] UpdateCardPlayerCommand command)
@@ -43,7 +43,6 @@ public class CardsController : ControllerBase
     }
 
     [HttpPost("packs/purchase")]
-    //[Authorize(Policy = "UserOnly")]
     public async Task<ServiceResponse<PackPurchaseResultDto>> PurchasePack(
         [FromBody] PurchasePackCommand command)
         => await _mediator.Send(command);

@@ -1,10 +1,10 @@
 import { Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { GoogleSignInComponent } from "../google-signin/google-signin.component";
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { ToastService } from "@sports-ui/toast";
@@ -14,10 +14,10 @@ import { ToastService } from "@sports-ui/toast";
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     GoogleSignInComponent,
   ],
   templateUrl: "./login.component.html",
@@ -25,23 +25,41 @@ import { ToastService } from "@sports-ui/toast";
 })
 export class LoginComponent {
   facade = inject(AuthFacade);
-  private snack = inject(MatSnackBar);
-  private readonly toastService = inject(ToastService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   mode = signal<"login" | "register">("login");
 
-  async onGoogleCredential(jwt: string) {
-    try {
-      await this.facade.signInWithGoogle(jwt);
-      this.toastService.success("Logged in successfully!");
-      await this.router.navigateByUrl("/league");
-    } catch (error: any) {
-      this.toastService.error(error?.message ?? "Login failed");
-    }
-  }
+  // form fields
+  email = signal("");
+  password = signal("");
+  confirmPassword = signal("");
+  firstName = signal("");
 
-  onGoogleError(msg: any) {
-    this.toastService.error(msg ?? "Login failed");
+  async onSubmit() {
+    if (this.mode() === "login") {
+      try {
+        await this.facade.login(this.email(), this.password());
+        this.router.navigateByUrl("/league");
+      } catch (e: any) {
+        this.toast.error(e?.message ?? "Login failed");
+      }
+    } else {
+      if (this.password() !== this.confirmPassword()) {
+        this.toast.error("Passwords do not match");
+        return;
+      }
+      try {
+        await this.facade.register(
+          this.email(),
+          this.password(),
+          this.confirmPassword(),
+          this.firstName() || undefined
+        );
+        this.router.navigateByUrl("/league");
+      } catch (e: any) {
+        this.toast.error(e?.message ?? "Registration failed");
+      }
+    }
   }
 }

@@ -17,7 +17,8 @@ export class ShellComponent {
 
   navItems: NavItem[] = [
     { name: "Dashboard", icon: "dashboard", route: "dashboard" },
-
+    { name: "collection", icon: "dashboard", route: "collection" },
+    { name: "h2h", icon: "dashboard", route: "h2h" },
     {
       name: "Franchise",
       icon: "sports_football",
@@ -42,9 +43,21 @@ export class ShellComponent {
       icon: "settings_suggest",
       children: [
         { name: "Send Votes", icon: "send", route: "send-votes" },
-        { name: "Create Player Option", icon: "add_circle", route: "create-player-option" },
-        { name: "Trivia Management", icon: "quiz", route: "admin/trivia-management" },
-        { name: "Poll Management", icon: "poll", route: "admin/poll-management" },
+        {
+          name: "Create Player Option",
+          icon: "add_circle",
+          route: "create-player-option",
+        },
+        {
+          name: "Trivia Management",
+          icon: "quiz",
+          route: "admin/trivia-management",
+        },
+        {
+          name: "Poll Management",
+          icon: "poll",
+          route: "admin/poll-management",
+        },
       ],
     },
 

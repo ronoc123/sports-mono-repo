@@ -33,6 +33,7 @@ export type AuthenticationResponse = {
 export type RegisterRequest = {
   email: string;
   password: string;
+  confirmPassword: string;
   firstName?: string;
   lastName?: string;
 };

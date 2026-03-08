@@ -33,8 +33,6 @@
         <div class="google-signin-wrapper">
           <lib-google-signin
             [signingIn]="facade.authenticating()"
-            (credential)="onGoogleCredential($event)"
-            (error)="onGoogleError($event)"
           ></lib-google-signin>
         </div>
 
@@ -48,28 +46,52 @@
         <!-- Name Field (Register Only) -->
         @if (mode() === 'register') {
           <div class="field-group">
-            <label class="field-label">Full Name</label>
-            <input type="text" placeholder="John Doe" class="field-input" />
+            <label class="field-label">First Name</label>
+            <input
+              type="text"
+              placeholder="John"
+              class="field-input"
+              [ngModel]="firstName()"
+              (ngModelChange)="firstName.set($event)"
+            />
           </div>
         }
 
         <!-- Email Field -->
         <div class="field-group">
           <label class="field-label">Email Address</label>
-          <input type="email" placeholder="you@example.com" class="field-input" />
+          <input
+            type="email"
+            placeholder="you@example.com"
+            class="field-input"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+          />
         </div>
 
         <!-- Password Field -->
         <div class="field-group">
           <label class="field-label">Password</label>
-          <input type="password" placeholder="••••••••" class="field-input" />
+          <input
+            type="password"
+            placeholder="••••••••"
+            class="field-input"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+          />
         </div>
 
         <!-- Confirm Password (Register Only) -->
         @if (mode() === 'register') {
           <div class="field-group">
             <label class="field-label">Confirm Password</label>
-            <input type="password" placeholder="••••••••" class="field-input" />
+            <input
+              type="password"
+              placeholder="••••••••"
+              class="field-input"
+              [ngModel]="confirmPassword()"
+              (ngModelChange)="confirmPassword.set($event)"
+            />
           </div>
         }
 
@@ -81,9 +103,17 @@
         }
 
         <!-- Submit Button -->
-        <button class="submit-btn">
-          {{ mode() === 'login' ? 'Sign In' : 'Create Account' }}
-          <mat-icon class="submit-icon">arrow_forward</mat-icon>
+        <button
+          class="submit-btn"
+          [disabled]="facade.authenticating()"
+          (click)="onSubmit()"
+        >
+          @if (facade.authenticating()) {
+            <span>Please wait…</span>
+          } @else {
+            <span>{{ mode() === 'login' ? 'Sign In' : 'Create Account' }}</span>
+            <mat-icon class="submit-icon">arrow_forward</mat-icon>
+          }
         </button>
 
         <!-- Terms (Register Only) -->

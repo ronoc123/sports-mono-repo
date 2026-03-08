@@ -4,6 +4,7 @@ using Application.Poll.Commands.SubmitPollVote;
 using Application.Poll.Queries.GetPolls;
 using Contracts.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
@@ -28,6 +29,7 @@ public class PollController : ControllerBase
     /// POST /api/poll — Create a new poll (immediately Active).
     /// </summary>
     [HttpPost]
+    [Authorize]
     public async Task<ServiceResponse<CreatePollResult>> CreatePoll(
         [FromBody] CreatePollCommand command, CancellationToken ct)
         => await _mediator.Send(command, ct);
@@ -36,6 +38,7 @@ public class PollController : ControllerBase
     /// PUT /api/poll/{pollId}/archive — Archive a poll, removing it from the fan dashboard.
     /// </summary>
     [HttpPut("{pollId:guid}/archive")]
+    [Authorize]
     public async Task<ServiceResponse<bool>> ArchivePoll(
         Guid pollId, CancellationToken ct)
         => await _mediator.Send(new ArchivePollCommand(pollId), ct);
@@ -44,6 +47,7 @@ public class PollController : ControllerBase
     /// POST /api/poll/vote — Submit a fan vote on a poll option.
     /// </summary>
     [HttpPost("vote")]
+    [Authorize]
     public async Task<ServiceResponse<SubmitPollVoteResult>> SubmitPollVote(
         [FromBody] SubmitPollVoteCommand command, CancellationToken ct)
         => await _mediator.Send(command, ct);

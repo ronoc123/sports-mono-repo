@@ -3,12 +3,14 @@ using Application.Players.Commands.UpdatePlayer;
 using Application.Players.Queries.GetAllPlayers;
 using Application.Players.Queries.GetRosterByOrganization;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PlayerController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -48,7 +50,6 @@ namespace sportsAPI.Controllers
             return Ok(result);
         }
 
-        // Delete a Player
         [HttpDelete("delete/{playerId}")]
         public async Task<IActionResult> DeletePlayer(DeletePlayerCommand command)
         {

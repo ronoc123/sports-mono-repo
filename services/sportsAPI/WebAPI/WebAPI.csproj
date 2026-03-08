@@ -35,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Keys\public.pem" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\Infrastructure\Data\player_ratings_2015_2025.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Link>Data\player_ratings_2015_2025.csv</Link>

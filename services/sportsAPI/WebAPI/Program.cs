@@ -1,19 +1,19 @@
 using Application;
+using Application.Common.Interfaces;
+using Application.Marketplace.Services;
 using BuildingBlocks.Messageing.MassTransit;
 using Infrastructure;
 using Infrastructure.Data;
+using Infrastructure.Marketplace.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using Web;
-using Web.Web;
-using Application.Common.Interfaces;
-using Application.Marketplace.Services;
-using Infrastructure.Marketplace.Services;
 using sportsAPI.Hubs;
 using sportsAPI.Services;
+using System.Security.Cryptography;
+using Web;
+using Web.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +55,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add JWT Authentication - configured to validate tokens from Identity Service
+// Load RSA public key — IdentityService holds the private key; SportsAPI only needs the public key to verify
+var publicKeyPem = File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Keys", "public.pem"));
+var rsa = RSA.Create();
+rsa.ImportFromPem(publicKeyPem);
+var rsaKey = new RsaSecurityKey(rsa) { KeyId = "sportify-rsa-1" };
+
+// Add JWT Authentication - validates RS256 tokens issued by IdentityService
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,7 +79,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        IssuerSigningKey = rsaKey,
         ClockSkew = TimeSpan.Zero
     };
     // Allow SignalR to receive JWT via ?access_token= query string
@@ -165,6 +171,7 @@ builder.Services.AddHttpClient<SportsDbImporter>(c =>
 
 
 var app = builder.Build();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -185,9 +192,12 @@ else
 
 // Exclude the Stripe webhook endpoint from HTTPS redirect —
 // the Stripe CLI forwards over HTTP and does not follow 307 redirects.
-app.UseWhen(
-    ctx => !ctx.Request.Path.StartsWithSegments("/api/store/webhook"),
-    a => a.UseHttpsRedirection());
+if (!app.Environment.IsDevelopment())
+{
+    app.UseWhen(
+        ctx => !ctx.Request.Path.StartsWithSegments("/api/store/webhook"),
+        a => a.UseHttpsRedirection());
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

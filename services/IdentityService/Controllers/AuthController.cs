@@ -1,10 +1,14 @@
 using IdentityService.DTOs;
 using IdentityService.Models;
 using IdentityService.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace IdentityService.Controllers;
 
@@ -17,14 +21,49 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IGoogleAuthService _googleAuthService;
     private readonly ILogger<AuthController> _logger;
+    private readonly TokenKeyProvider _keys;
 
-    public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ITokenService tokenService, IGoogleAuthService googleAuthService, ILogger<AuthController> logger)
+    public AuthController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        ITokenService tokenService,
+        IGoogleAuthService googleAuthService,
+        ILogger<AuthController> logger,
+        TokenKeyProvider keys)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _googleAuthService = googleAuthService;
         _logger = logger;
+        _keys = keys;
+    }
+
+    /// <summary>
+    /// JWKS endpoint — exposes the RSA public key so any service can verify our JWTs
+    /// without needing a shared secret.
+    /// </summary>
+    [HttpGet(".well-known/jwks")]
+    [AllowAnonymous]
+    public IActionResult Jwks()
+    {
+        var rsaParams = _keys.PublicKey.ExportParameters(false);
+        var jwk = new
+        {
+            keys = new[]
+            {
+                new
+                {
+                    kty = "RSA",
+                    use = "sig",
+                    kid = _keys.KeyId,
+                    alg = "RS256",
+                    n   = Base64UrlEncoder.Encode(rsaParams.Modulus),
+                    e   = Base64UrlEncoder.Encode(rsaParams.Exponent)
+                }
+            }
+        };
+        return Ok(jwk);
     }
 
     [HttpPost("register")]
@@ -345,6 +384,97 @@ public class AuthController : ControllerBase
             _logger.LogError(ex, "Error fetching all users");
             return StatusCode(500, new { Success = false, Message = "An error occurred while fetching users" });
         }
+    }
+
+    // ── OAuth 2.0 Authorization Code flow ──
+
+    [HttpGet("google-login")]
+    [AllowAnonymous]
+    public IActionResult GoogleLogin([FromQuery] string returnUrl = "http://localhost:4200/auth/callback")
+    {
+        var callbackUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = callbackUrl,
+            Items = { ["returnUrl"] = returnUrl }
+        };
+        return Challenge(properties, "Google");
+    }
+
+    [HttpGet("google-callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GoogleCallback()
+    {
+        const string frontendBase = "http://localhost:4200/auth/callback";
+
+        var result = await HttpContext.AuthenticateAsync("External");
+        if (!result.Succeeded)
+            return Redirect($"{frontendBase}?error=oauth_failed");
+
+        var returnUrl = result.Properties?.Items["returnUrl"] ?? frontendBase;
+        var principal  = result.Principal!;
+
+        var email    = principal.FindFirstValue(ClaimTypes.Email);
+        var googleId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+        var firstName = principal.FindFirstValue(ClaimTypes.GivenName) ?? "";
+        var lastName  = principal.FindFirstValue(ClaimTypes.Surname) ?? "";
+        var picture   = principal.FindFirstValue("urn:google:picture") ?? "";
+
+        if (string.IsNullOrEmpty(email))
+            return Redirect($"{returnUrl}?error=missing_email");
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                UserName      = email,
+                Email         = email,
+                EmailConfirmed = true,
+                GoogleId      = googleId,
+                FirstName     = firstName,
+                LastName      = lastName,
+                ProfilePictureUrl = picture,
+                CreatedAt     = DateTime.UtcNow
+            };
+            var create = await _userManager.CreateAsync(user);
+            if (!create.Succeeded)
+                return Redirect($"{returnUrl}?error=user_creation_failed");
+            await _userManager.AddToRoleAsync(user, "User");
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(user.GoogleId))  user.GoogleId = googleId;
+            user.FirstName        = string.IsNullOrEmpty(user.FirstName) ? firstName : user.FirstName;
+            user.LastName         = string.IsNullOrEmpty(user.LastName)  ? lastName  : user.LastName;
+            user.ProfilePictureUrl = string.IsNullOrEmpty(user.ProfilePictureUrl) ? picture : user.ProfilePictureUrl;
+            user.EmailConfirmed   = true;
+        }
+
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        var accessToken  = await _tokenService.GenerateAccessTokenAsync(user);
+        var refreshToken = _tokenService.GenerateRefreshToken();
+        await _tokenService.SaveRefreshTokenAsync(user, refreshToken);
+
+        var roles     = await _userManager.GetRolesAsync(user);
+        var expiresAt = DateTime.UtcNow.AddMinutes(60).ToString("o");
+
+        await HttpContext.SignOutAsync("External");
+
+        var redirect = new System.Text.StringBuilder(returnUrl)
+            .Append("?accessToken=").Append(Uri.EscapeDataString(accessToken))
+            .Append("&refreshToken=").Append(Uri.EscapeDataString(refreshToken))
+            .Append("&expiresAt=").Append(Uri.EscapeDataString(expiresAt))
+            .Append("&userId=").Append(Uri.EscapeDataString(user.Id))
+            .Append("&email=").Append(Uri.EscapeDataString(email))
+            .Append("&firstName=").Append(Uri.EscapeDataString(firstName))
+            .Append("&lastName=").Append(Uri.EscapeDataString(lastName))
+            .Append("&picture=").Append(Uri.EscapeDataString(picture))
+            .Append("&roles=").Append(Uri.EscapeDataString(string.Join(",", roles)));
+
+        return Redirect(redirect.ToString());
     }
 
     [HttpGet("get")]

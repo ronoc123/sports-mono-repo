@@ -3,13 +3,14 @@ using Application.H2H.Queries.GetMatchDetail;
 using Application.H2H.Queries.GetMatchHistory;
 using Contracts.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
 
 [Route("api/h2h/matches")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class H2HController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -20,7 +21,6 @@ public class H2HController : ControllerBase
     /// POST /api/h2h/matches — Create and immediately resolve an H2H match.
     /// </summary>
     [HttpPost]
-    //[Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<ServiceResponse<CreateMatchResult>>> CreateMatch(
         [FromBody] CreateMatchRequest body)
         => await _mediator.Send(new CreateMatchCommand(

@@ -6,13 +6,14 @@ using Application.Admin.Queries.GetRarityTierConfig;
 using Application.Admin.Queries.GetTransactionAudit;
 using Contracts.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
 
 [Route("api/admin/economy")]
 [ApiController]
-//[Authorize(Policy = "GMOnly")]
+[Authorize]
 public class AdminEconomyController : ControllerBase
 {
     private readonly IMediator _mediator;

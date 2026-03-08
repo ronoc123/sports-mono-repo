@@ -3,13 +3,14 @@ using Application.Store.Queries.GetBundleCatalog;
 using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class StoreController : ControllerBase
 {
     private readonly IMediator _mediator;

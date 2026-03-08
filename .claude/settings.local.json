@@ -26,7 +26,9 @@
       "Bash(cat:*)",
       "Bash(cd \"C:/Users/kampe/OneDrive/Desktop/sports-ui/services/sportsAPI\" && sqlcmd -S localhost,1433 -d SportsDb -U sa -Q \"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'VoteAccounts' ORDER BY ORDINAL_POSITION\" 2>&1)",
       "Bash(ls:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(echo Keys generated successfully:*)"
     ]
   }
 }

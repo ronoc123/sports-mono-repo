@@ -5,12 +5,14 @@ using Application.Votes.Queries.GetVoteAccount;
 using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class VoteAccount : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -38,6 +40,7 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("reward-for-user")]
+        [Authorize()]
         public async Task<ServiceResponse<string>> Send([FromBody] EmailRewardRedemptionCommand command)
         {
             var result = await _mediator.Send(command);

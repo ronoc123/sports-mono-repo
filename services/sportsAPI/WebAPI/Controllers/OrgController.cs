@@ -10,12 +10,14 @@ using Contracts.Contracts;
 using Contracts.Responses;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrgController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -40,7 +42,7 @@ namespace sportsAPI.Controllers
 
             var result = await _mediator.Send(query);
             return result;
-            
+
         }
 
         [HttpPut("updateOrganization")]

@@ -40,6 +40,11 @@ testem.log
 typings/
 
 # -----------------------------
+# RSA Keys (never commit private key)
+# -----------------------------
+**/Keys/private.pem
+
+# -----------------------------
 # .NET / Visual Studio
 # -----------------------------
 **/bin/

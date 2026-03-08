@@ -1,10 +1,9 @@
+using IdentityService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
-using IdentityService.Models;
 
 namespace IdentityService.Services;
 
@@ -12,37 +11,39 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly TokenKeyProvider _keys;
 
-    public TokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
+    public TokenService(
+        IConfiguration configuration,
+        UserManager<ApplicationUser> userManager,
+        TokenKeyProvider keys)
     {
         _configuration = configuration;
         _userManager = userManager;
+        _keys = keys;
     }
 
     public async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"));
-
         var roles = await _userManager.GetRolesAsync(user);
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new("firstName", user.FirstName ?? string.Empty),
-            new("lastName", user.LastName ?? string.Empty),
-            new("fullName", user.FullName),
-            new("profilePicture", user.ProfilePictureUrl ?? string.Empty),
-            new("isGoogleUser", user.IsGoogleUser.ToString()),
-            new("jti", Guid.NewGuid().ToString())
+            new(ClaimTypes.Name,           user.UserName ?? string.Empty),
+            new(ClaimTypes.Email,          user.Email    ?? string.Empty),
+            new("firstName",       user.FirstName        ?? string.Empty),
+            new("lastName",        user.LastName         ?? string.Empty),
+            new("fullName",        user.FullName),
+            new("profilePicture",  user.ProfilePictureUrl ?? string.Empty),
+            new("isGoogleUser",    user.IsGoogleUser.ToString()),
+            new("jti",             Guid.NewGuid().ToString())
         };
 
-        // Add role claims
         foreach (var role in roles)
-        {
             claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+
+        var signingKey = new RsaSecurityKey(_keys.PrivateKey) { KeyId = _keys.KeyId };
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -50,37 +51,37 @@ public class TokenService : ITokenService
             Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:AccessTokenExpirationMinutes"] ?? "60")),
             Issuer = _configuration["Jwt:Issuer"],
             Audience = _configuration["Jwt:Audience"],
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256)
         };
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        var handler = new JwtSecurityTokenHandler();
+        return handler.WriteToken(handler.CreateToken(tokenDescriptor));
     }
 
     public string GenerateRefreshToken()
     {
-        var randomNumber = new byte[64];
+        var bytes = new byte[64];
         using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomNumber);
-        return Convert.ToBase64String(randomNumber);
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes);
     }
 
     public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
     {
-        var tokenValidationParameters = new TokenValidationParameters
+        var validationParams = new TokenValidationParameters
         {
             ValidateAudience = false,
             ValidateIssuer = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"))),
-            ValidateLifetime = false // We don't care about the token's expiration date
+            IssuerSigningKey = new RsaSecurityKey(_keys.PublicKey) { KeyId = _keys.KeyId },
+            ValidateLifetime = false
         };
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+        var handler = new JwtSecurityTokenHandler();
+        var principal = handler.ValidateToken(token, validationParams, out var securityToken);
 
-        if (securityToken is not JwtSecurityToken jwtSecurityToken || 
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        if (securityToken is not JwtSecurityToken jwt ||
+            !jwt.Header.Alg.Equals(SecurityAlgorithms.RsaSha256, StringComparison.OrdinalIgnoreCase))
         {
             throw new SecurityTokenException("Invalid token");
         }
@@ -89,9 +90,7 @@ public class TokenService : ITokenService
     }
 
     public Task<bool> ValidateRefreshTokenAsync(ApplicationUser user, string refreshToken)
-    {
-        return Task.FromResult(user.RefreshToken == refreshToken && user.RefreshTokenExpiryTime > DateTime.UtcNow);
-    }
+        => Task.FromResult(user.RefreshToken == refreshToken && user.RefreshTokenExpiryTime > DateTime.UtcNow);
 
     public async Task SaveRefreshTokenAsync(ApplicationUser user, string refreshToken)
     {

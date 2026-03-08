@@ -27,4 +27,9 @@
     <ProjectReference Include="..\SportifyCore\Web\Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Keys\private.pem" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Keys\public.pem"  CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,77 @@
+name: Build and deploy Notification Service to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'services/NotificationAPI/**'
+      - 'services/Messaging/**'
+      - 'services/MessagingService/**'
+      - '.github/workflows/deploy-notification.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-notification-${{ hashFiles('services/NotificationAPI/**/*.csproj', 'services/Messaging/**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-notification-
+
+      - name: Publish Notification Service
+        run: dotnet publish services/NotificationAPI/NotificationAPI.csproj -c Release -o publish
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notification-api
+          path: publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: notification-api
+          path: publish
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          # Add these secrets to GitHub once you create the Azure App Service for NotificationAPI:
+          # AZUREAPPSERVICE_CLIENTID_NOTIFICATION
+          # AZUREAPPSERVICE_TENANTID_NOTIFICATION
+          # AZUREAPPSERVICE_SUBSCRIPTIONID_NOTIFICATION
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_NOTIFICATION }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_NOTIFICATION }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_NOTIFICATION }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          # Create this App Service in Azure — suggested name: sportify-notification
+          app-name: 'sportify-notification'
+          package: publish

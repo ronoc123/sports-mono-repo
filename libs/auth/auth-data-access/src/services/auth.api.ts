@@ -3,11 +3,11 @@ import { ApiService } from "@sports-ui/http-client";
 import { Observable } from "rxjs";
 import {
   AuthenticationResponse,
-  ServiceResponse,
   RegisterRequest,
   LoginRequest,
   GoogleLoginRequest,
   RefreshTokenRequest,
+  ServiceResponse,
 } from "@sports-ui/api-types";
 
 @Injectable({ providedIn: "root" })
@@ -16,14 +16,14 @@ export class AuthApi {
 
   register(
     payload: RegisterRequest
-  ): Observable<ServiceResponse<AuthenticationResponse>> {
-    return this.http.post("/api/auth/register", payload);
+  ): Observable<AuthenticationResponse> {
+    return this.http.post(":5001/api/auth/register", payload);
   }
 
   login(
     payload: LoginRequest
-  ): Observable<ServiceResponse<AuthenticationResponse>> {
-    return this.http.post("/api/auth/login", payload);
+  ): Observable<AuthenticationResponse> {
+    return this.http.post(":5001/api/auth/login", payload);
   }
 
   loginWithGoogle(googleToken: string): Observable<AuthenticationResponse> {

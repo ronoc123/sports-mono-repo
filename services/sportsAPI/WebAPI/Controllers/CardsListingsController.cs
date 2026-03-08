@@ -7,13 +7,14 @@ using Application.Marketplace.Queries.GetListingDetail;
 using Application.Marketplace.Queries.GetListings;
 using Contracts.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
 
 [Route("api/cards/listings")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class CardsListingsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -22,7 +23,6 @@ public class CardsListingsController : ControllerBase
 
     /// <summary>POST /api/cards/listings — List a card for auction.</summary>
     [HttpPost]
-    //[Authorize(Policy = "UserOnly")]
     public async Task<ActionResult<ServiceResponse<Guid>>> CreateListing(
         [FromBody] CreateListingCommand command)
         => await _mediator.Send(command);
@@ -42,7 +42,6 @@ public class CardsListingsController : ControllerBase
 
     /// <summary>POST /api/cards/listings/{listingId}/bids — Place a bid on an active listing.</summary>
     [HttpPost("{listingId:guid}/bids")]
-    //[Authorize(Policy = "UserOnly")]
     public async Task<ServiceResponse<bool>> PlaceBid(
         Guid listingId,
         [FromBody] PlaceBidRequest body)
@@ -50,7 +49,6 @@ public class CardsListingsController : ControllerBase
 
     /// <summary>POST /api/cards/listings/{listingId}/buy-now — Immediately purchase a card at buy now price.</summary>
     [HttpPost("{listingId:guid}/buy-now")]
-    //[Authorize(Policy = "UserOnly")]
     public async Task<ServiceResponse<bool>> BuyNow(
         Guid listingId,
         [FromBody] BuyNowRequest body)

@@ -6,6 +6,7 @@ using Application.Trivia.Commands.SubmitTriviaAnswer;
 using Application.Trivia.Queries.GetTriviaSeries;
 using Contracts.Contracts;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace sportsAPI.Controllers;
@@ -30,6 +31,7 @@ public class TriviaController : ControllerBase
     /// POST /api/trivia/series — Create a new trivia series.
     /// </summary>
     [HttpPost("series")]
+    [Authorize]
     public async Task<ServiceResponse<CreateTriviaSeriesResult>> CreateSeries(
         [FromBody] CreateTriviaSeriesCommand command, CancellationToken ct)
         => await _mediator.Send(command, ct);
@@ -38,6 +40,7 @@ public class TriviaController : ControllerBase
     /// POST /api/trivia/questions — Add a question to an existing series.
     /// </summary>
     [HttpPost("questions")]
+    [Authorize]
     public async Task<ServiceResponse<AddTriviaQuestionResult>> AddQuestion(
         [FromBody] AddTriviaQuestionCommand command, CancellationToken ct)
         => await _mediator.Send(command, ct);
@@ -46,6 +49,7 @@ public class TriviaController : ControllerBase
     /// PUT /api/trivia/questions/{questionId}/publish — Publish a Pending question (Pending → Active).
     /// </summary>
     [HttpPut("questions/{questionId:guid}/publish")]
+    [Authorize]
     public async Task<ServiceResponse<bool>> PublishQuestion(
         Guid questionId, CancellationToken ct)
         => await _mediator.Send(new PublishTriviaQuestionCommand(questionId), ct);
@@ -54,6 +58,7 @@ public class TriviaController : ControllerBase
     /// PUT /api/trivia/questions/{questionId}/archive — Archive a question (any → Archived).
     /// </summary>
     [HttpPut("questions/{questionId:guid}/archive")]
+    [Authorize]
     public async Task<ServiceResponse<bool>> ArchiveQuestion(
         Guid questionId, CancellationToken ct)
         => await _mediator.Send(new ArchiveTriviaQuestionCommand(questionId), ct);
@@ -62,6 +67,7 @@ public class TriviaController : ControllerBase
     /// POST /api/trivia/answer — Fan submits an answer; awards vote credits if correct.
     /// </summary>
     [HttpPost("answer")]
+    [Authorize]
     public async Task<ServiceResponse<SubmitTriviaAnswerResult>> SubmitAnswer(
         [FromBody] SubmitTriviaAnswerCommand command, CancellationToken ct)
         => await _mediator.Send(command, ct);

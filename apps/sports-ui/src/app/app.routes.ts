@@ -39,6 +39,13 @@ export const appRoutes: Route[] = [
       import("@sports-ui/feature-auth").then((m) => m.LoginComponent),
   },
 
+  // OAuth 2.0 callback — receives tokens from IdentityService after Google auth
+  {
+    path: "auth/callback",
+    loadComponent: () =>
+      import("@sports-ui/feature-auth").then((m) => m.AuthCallbackComponent),
+  },
+
   {
     path: "league",
     canActivate: [authGuard],

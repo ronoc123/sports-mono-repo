@@ -7,6 +7,7 @@ using Application.Leagues.Queries.GetAllLeagues;
 using Contracts.Contracts;
 using Domain.ValueObjects.ConcreteTypes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -14,6 +15,7 @@ namespace sportsAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class LeagueController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -23,7 +25,6 @@ namespace sportsAPI.Controllers
             _mediator = mediator;
         }
 
-        // Add a new League
         [HttpPost("add")]
         public async Task<ServiceResponse<LeagueId>> AddLeague([FromBody] CreateLeagueCommand command)
             => await _mediator.Send(command);
@@ -41,14 +42,12 @@ namespace sportsAPI.Controllers
             return await _mediator.Send(query);
         }
 
-        // Update a League
         [HttpPut("update")]
         public async Task<ServiceResponse<bool>> UpdateLeague([FromBody] UpdateLeagueCommand command)
         {
             return await _mediator.Send(command);
         }
 
-        // Delete a League
         [HttpDelete("delete")]
         public async Task<ServiceResponse<bool>> DeleteLeague(DeleteLeagueCommand command)
         {
