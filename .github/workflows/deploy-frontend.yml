@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       # Cache Nx computation cache — skips rebuilding libs that haven't changed
       - name: Cache Nx build cache
