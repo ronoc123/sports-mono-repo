@@ -35,4 +35,8 @@ export const environment = {
 
   googleClientId:
     "437642911171-5qq4jsh5qvhkh17ua79srdrr16i0p0c4.apps.googleusercontent.com",
+
+  // Stripe — key injected at build time by CI from STRIPE_PUBLIC_KEY secret.
+  // For local development set the real key in environment.local.ts (gitignored).
+  stripePublicKey: "",
 };

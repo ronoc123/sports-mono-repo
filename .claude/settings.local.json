@@ -28,7 +28,8 @@
       "Bash(ls:*)",
       "Bash(head:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(echo Keys generated successfully:*)"
+      "Bash(echo Keys generated successfully:*)",
+      "Bash(cd /c/Users/kampe/OneDrive/Desktop/sports-ui && git push 2>&1)"
     ]
   }
 }
