@@ -55,11 +55,11 @@ jobs:
             ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'yarn.lock') }}-
             ${{ runner.os }}-nx-
 
-      - name: Inject environment secrets
+      - name: Inject environment variables
         run: |
           ENV_FILE="libs/core/api-types/src/lib/environments/environment.prod.ts"
-          sed -i "s|__SPORTS_API_URL__|${{ secrets.SPORTS_API_URL }}|g" $ENV_FILE
-          sed -i "s|__IDENTITY_API_URL__|${{ secrets.IDENTITY_API_URL }}|g" $ENV_FILE
+          sed -i "s|__SPORTS_API_URL__|${{ vars.SPORTS_API_URL }}|g" $ENV_FILE
+          sed -i "s|__IDENTITY_API_URL__|${{ vars.IDENTITY_API_URL }}|g" $ENV_FILE
           sed -i "s|__GOOGLE_CLIENT_ID__|${{ secrets.GOOGLE_CLIENT_ID }}|g" $ENV_FILE
           sed -i "s|__STRIPE_PUBLIC_KEY__|${{ secrets.STRIPE_PUBLIC_KEY }}|g" $ENV_FILE
 
