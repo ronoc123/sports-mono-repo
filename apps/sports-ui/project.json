@@ -20,6 +20,11 @@
             "glob": "**/*",
             "input": "apps/assets",
             "output": "assets"
+          },
+          {
+            "glob": "**/*",
+            "input": "apps/sports-ui/public",
+            "output": "/"
           }
         ],
         "styles": ["libs/theme/src/styles.scss"]
