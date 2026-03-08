@@ -24,17 +24,38 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # Nx affected commands need full git history
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          # Removed cache: 'npm' — we cache node_modules directly below (faster)
+
+      # Cache the entire node_modules folder keyed on package-lock.json.
+      # On a cache hit the install step is skipped completely — saves ~15-20 min.
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
 
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --legacy-peer-deps
+
+      # Cache the Nx computation cache — skips rebuilding libs that haven't changed
+      - name: Cache Nx build cache
+        uses: actions/cache@v4
+        with:
+          path: .nx/cache
+          key: ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'package-lock.json') }}-
+            ${{ runner.os }}-nx-
 
       - name: Build Angular app
         run: npx nx build sports-ui --configuration=production
@@ -43,7 +64,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sports-ui
-          # Nx outputs to dist/apps/sports-ui by default — verify this matches your nx.json outputPath
           path: dist/apps/sports-ui
 
   deploy:
@@ -60,11 +80,6 @@ jobs:
           name: sports-ui
           path: dist/apps/sports-ui
 
-      # Azure Static Web Apps deployment
-      # Prerequisites:
-      #   1. Create an Azure Static Web App in the Azure portal (or via az CLI)
-      #   2. Copy the deployment token from the Static Web App resource
-      #   3. Add it as a GitHub Secret named AZURE_STATIC_WEB_APPS_API_TOKEN
       - name: Deploy to Azure Static Web Apps
         uses: azure/static-web-apps-deploy@v1
         with:
@@ -72,7 +87,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "dist/apps/sports-ui"
-          # Angular handles its own routing — no separate API location
           api_location: ""
           output_location: ""
-          skip_app_build: true # we already built above
+          skip_app_build: true
