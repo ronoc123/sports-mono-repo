@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sports-ui
-          path: dist/apps/sports-ui
+          path: dist/apps/sports-ui/browser
 
   deploy:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: sports-ui
-          path: dist/apps/sports-ui
+          path: dist/apps/sports-ui/browser
 
       - name: Deploy to Azure Static Web Apps
         uses: azure/static-web-apps-deploy@v1
@@ -84,7 +84,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GRAY_SAND_0FCE9DC0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "dist/apps/sports-ui"
+          app_location: "dist/apps/sports-ui/browser"
           api_location: ""
           output_location: ""
           skip_app_build: true
