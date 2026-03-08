@@ -184,25 +184,25 @@ app.MapControllers();
 // Add health check endpoint
 app.MapHealthChecks("/health");
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var services = scope.ServiceProvider;
-//    var logger = services.GetRequiredService<ILogger<Program>>();
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
-//    try
-//    {
-//        var db = services.GetRequiredService<IdentityDbContext>();
+    try
+    {
+        var db = services.GetRequiredService<IdentityDbContext>();
 
-//        logger.LogInformation("Applying Identity database migrations...");
-//        await db.Database.MigrateAsync();
-//        logger.LogInformation("Identity database migrations applied successfully.");
-//    }
-//    catch (Exception ex)
-//    {
-//        logger.LogCritical(ex, "Identity database migration failed.");
-//        throw; // fail fast if schema is broken
-//    }
-//}
+        logger.LogInformation("Applying Identity database migrations...");
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Identity database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "Identity database migration failed.");
+        throw; // fail fast if schema is broken
+    }
+}
 
 
 app.Run();
