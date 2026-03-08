@@ -21,16 +21,26 @@ namespace BuildingBlocks.Messageing.MassTransit
                     config.AddConsumers(assemblies);
                 }
 
-                config.UsingRabbitMq((context, configurator) =>
-              {
-                  configurator.Host(configuration["MessageBroker:Host"], host =>
-                  {
-                      host.Username(configuration["MessageBroker:UserName"]);
-                      host.Password(configuration["MessageBroker:Password"]);
-                  });
-
-                  configurator.ConfigureEndpoints(context);
-              });
+                var host = configuration["MessageBroker:Host"];
+                if (string.IsNullOrWhiteSpace(host))
+                {
+                    config.UsingInMemory((context, configurator) =>
+                    {
+                        configurator.ConfigureEndpoints(context);
+                    });
+                }
+                else
+                {
+                    config.UsingRabbitMq((context, configurator) =>
+                    {
+                        configurator.Host(host, h =>
+                        {
+                            h.Username(configuration["MessageBroker:UserName"]);
+                            h.Password(configuration["MessageBroker:Password"]);
+                        });
+                        configurator.ConfigureEndpoints(context);
+                    });
+                }
             });
             services.AddScoped<IEventPublisher, EventPublisher>();
 
