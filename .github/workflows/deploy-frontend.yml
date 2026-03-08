@@ -8,7 +8,7 @@ on:
       - "apps/**"
       - "libs/**"
       - "package.json"
-      - "package-lock.json"
+      - "yarn.lock"
       - "nx.json"
       - "tsconfig.base.json"
       - ".github/workflows/deploy-frontend.yml"
@@ -30,31 +30,29 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          # Removed cache: 'npm' — we cache node_modules directly below (faster)
 
-      # Cache the entire node_modules folder keyed on package-lock.json.
-      # On a cache hit the install step is skipped completely — saves ~15-20 min.
+      # Cache node_modules keyed on yarn.lock — skips install entirely on cache hit
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
+        run: yarn install --frozen-lockfile
 
-      # Cache the Nx computation cache — skips rebuilding libs that haven't changed
+      # Cache Nx computation cache — skips rebuilding libs that haven't changed
       - name: Cache Nx build cache
         uses: actions/cache@v4
         with:
           path: .nx/cache
-          key: ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'yarn.lock') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'package-lock.json') }}-
+            ${{ runner.os }}-nx-${{ hashFiles('nx.json', 'yarn.lock') }}-
             ${{ runner.os }}-nx-
 
       - name: Build Angular app
