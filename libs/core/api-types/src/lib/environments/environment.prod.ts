@@ -3,7 +3,7 @@ export const environment = {
 
   // API Configuration — values injected by CI from GitHub Actions secrets
   apiUrl: "__SPORTS_API_URL__",
-  sportsApi: "__SPORTS_API_URL__/api/",
+  sportsApi: "/api/",
   identityApi: "__IDENTITY_API_URL__/api/",
 
   // Keep these matching the AppEnvironment interface
