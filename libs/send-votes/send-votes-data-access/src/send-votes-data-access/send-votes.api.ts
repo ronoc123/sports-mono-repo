@@ -12,7 +12,7 @@ export class SendVotesApi {
 
   getUsers(): Observable<SendVotesUserInfo[]> {
     return this.httpClient.get<SendVotesUserInfo[]>(
-      `${environment.identityApi}auth/users`
+      `${environment.identityApiBaseUrl}/auth/users`
     );
   }
 

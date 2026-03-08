@@ -15,7 +15,7 @@ import {
 export class AuthApi {
   private readonly http = inject(HttpClient);
 
-  private readonly base = `${environment.identityApi}auth`;
+  private readonly base = `${environment.identityApiBaseUrl}/auth`;
   private readonly headers = new HttpHeaders({ "Content-Type": "application/json", Accept: "application/json" });
 
   register(payload: RegisterRequest): Observable<AuthenticationResponse> {
