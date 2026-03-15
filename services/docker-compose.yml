@@ -56,6 +56,21 @@ services:
     depends_on:
       - rabbitmq
 
+  tradingjournal:
+    build:
+      context: .
+      dockerfile: ./TradingJournalAPI/WebAPI/Dockerfile
+    ports:
+      - "5280:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Server=sports.database;Database=TradingJournalDb;User Id=sa;Password=Test123!;TrustServerCertificate=True
+      Jwt__Issuer: SportsAPI.IdentityService
+      Jwt__Audience: SportsAPI.Client
+      OpenAI__ApiKey: ${OPENAI_API_KEY:-}
+    depends_on:
+      - sqlserver
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: sports.rabbitmq

@@ -10,7 +10,10 @@
         "webapi": "StartDebugging",
         "identityapi": "StartDebugging",
         "notificationapi": "StartDebugging",
-        "sqlserver": "StartWithoutDebugging"
+        "sqlserver": "StartWithoutDebugging",
+        "rabbitmq": "StartWithoutDebugging",
+        "smtp": "StartWithoutDebugging",
+        "tradingjournal": "StartDebugging"
       }
     }
   }

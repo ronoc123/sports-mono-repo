@@ -1,5 +1,10 @@
 services:
+  # tradingjournal:
+  #   labels:
+  #     com.microsoft.visual-studio.project-name: "WebAPI"
   webapi:
+    # labels:
+    #   com.microsoft.visual-studio.project-name: "Web"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080

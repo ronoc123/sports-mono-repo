@@ -129,6 +129,30 @@
       ],
       "@sports-ui/vote-account-data-access": [
         "libs/vote-account/vote-account-data-access/src/index.ts"
+      ],
+      "@trading/backtest-data-access": [
+        "libs/trading/backtest/data-access/src/index.ts"
+      ],
+      "@trading/backtest-feature": [
+        "libs/trading/backtest/feature-ui/src/index.ts"
+      ],
+      "@trading/trade-journal-data-access": [
+        "libs/trading/trade-journal/data-access/src/index.ts"
+      ],
+      "@trading/trade-journal-feature": [
+        "libs/trading/trade-journal/feature-ui/src/index.ts"
+      ],
+      "@trading/ai-conversation-data-access": [
+        "libs/trading/ai-conversation/data-access/src/index.ts"
+      ],
+      "@trading/ai-conversation-feature": [
+        "libs/trading/ai-conversation/feature-ui/src/index.ts"
+      ],
+      "@trading/review-data-access": [
+        "libs/trading/review/data-access/src/index.ts"
+      ],
+      "@trading/review-feature": [
+        "libs/trading/review/feature-ui/src/index.ts"
       ]
     }
   },
