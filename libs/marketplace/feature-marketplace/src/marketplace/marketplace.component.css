@@ -1180,3 +1180,99 @@
   font-size: 0.875rem;
   line-height: 36px;
 }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .marketplace-layout {
+    grid-template-columns: 1fr 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .marketplace-page {
+    padding: 0.75rem;
+  }
+
+  /* Header: stack vertically */
+  .marketplace-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Filter bar: wrap to multiple lines */
+  .filter-bar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .search-wrap {
+    max-width: 100%;
+    flex: 1 0 100%;
+    order: 1;
+  }
+
+  .time-filters {
+    order: 2;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    flex-shrink: 0;
+  }
+
+  .filter-count {
+    order: 3;
+    margin-left: 0;
+  }
+
+  /* Single column layout */
+  .marketplace-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* When a card is selected, pull the detail panel above the listings */
+  .detail-panel:not(.detail-panel-empty) {
+    order: -1;
+  }
+
+  /* Remove sticky so it doesn't pin inside the column */
+  .detail-panel {
+    position: static;
+  }
+
+  /* 2-column card grid on mobile */
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Shorter card image */
+  .card-image-area {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Single column card grid on very small screens */
+  .listings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-image-area {
+    height: 200px;
+  }
+
+  .marketplace-title {
+    font-size: 1.25rem;
+  }
+
+  .btn-list-card span:not(.material-icons) {
+    display: none;
+  }
+}

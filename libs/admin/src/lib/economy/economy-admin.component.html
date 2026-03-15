@@ -1,79 +1,87 @@
-<div class="economy-admin">
-  <h2 class="page-title">Economy Settings</h2>
+<div class="economy-page">
 
-  <!-- Pack Cost Section -->
-  <section class="config-card">
-    <h3 class="section-title">Card Pack Cost</h3>
+  <!-- ── Pack Cost card ─────────────────────────────────────────────────────── -->
+  <div class="config-card">
+    <h3 class="card-title">Card Pack Cost</h3>
+    <p class="card-subtitle">Points per pack</p>
+
     @if (isLoadingPack()) {
-      <div class="loading-row">Loading pack config…</div>
+      <div class="loading-state">Loading pack config…</div>
     } @else {
-      <div class="pack-cost-row">
-        <label class="field-label">Points per pack</label>
-        <div class="pack-cost-input-group">
-          <input
-            class="input-field"
-            type="number"
-            min="1"
-            [ngModel]="editPackCost()"
-            (ngModelChange)="editPackCost.set($event)"
-          />
-          <button
-            class="btn btn-primary"
-            [disabled]="isSaving()"
-            (click)="savePackConfig()"
-          >
-            {{ isSaving() ? 'Saving…' : 'Save' }}
-          </button>
-        </div>
-        @if (packConfig()) {
-          <span class="current-value">Current: {{ packConfig()!.packPointCost | number }} pts</span>
-        }
+      <div class="pack-row">
+        <input
+          class="pack-input"
+          type="number"
+          min="1"
+          [ngModel]="editPackCost()"
+          (ngModelChange)="editPackCost.set($event)"
+        />
+        <button class="btn-save" [disabled]="isSaving()" (click)="savePackConfig()">
+          <span class="material-icons btn-icon">save</span>
+          {{ isSaving() ? 'Saving…' : 'Save' }}
+        </button>
       </div>
+
+      @if (packConfig()) {
+        <p class="current-hint">Current: {{ packConfig()!.packPointCost | number }} pts</p>
+      }
     }
-  </section>
+  </div>
 
-  <!-- Rarity Tiers Section -->
-  <section class="config-card">
-    <h3 class="section-title">Rarity Tier Configuration</h3>
+  <!-- ── Rarity Tiers card ──────────────────────────────────────────────────── -->
+  <div class="config-card">
+    <h3 class="card-title">Rarity Tier Configuration</h3>
 
-    <div class="pull-weight-summary">
-      Total pull weight:
-      <strong [class.invalid]="totalPullWeight() !== 10000">
+    <p class="weight-summary">
+      <span class="weight-label">Total pull weight: </span>
+      <span [class.weight-valid]="totalPullWeight() === 10000" [class.weight-invalid]="totalPullWeight() !== 10000">
         {{ totalPullWeight() / 100 | number: '1.2-2' }}%
-      </strong>
-      <span class="hint">(must equal 100%)</span>
-    </div>
+      </span>
+      <span class="weight-hint"> (must equal 100%)</span>
+    </p>
 
     @if (tiersError()) {
       <div class="error-banner">{{ tiersError() }}</div>
     }
-
     @if (saveError()) {
       <div class="error-banner">{{ saveError() }}</div>
     }
 
     @if (isLoadingTiers()) {
-      <div class="loading-row">Loading rarity tiers…</div>
+      <div class="loading-state">Loading rarity tiers…</div>
     } @else {
       <div class="tiers-grid">
         @for (tier of rarityTiers(); track trackById($index, tier)) {
-          <div class="tier-card" [style.border-left-color]="getRarityColor(tier.rarityName)">
+          <div
+            class="tier-card"
+            [style.border-color]="getRarityColor(tier.rarityName)"
+          >
+            <!-- Header: badge + edit icon -->
             <div class="tier-header">
-              <span class="tier-name" [style.color]="getRarityColor(tier.rarityName)">
-                {{ tier.rarityName }}
-              </span>
-              @if (editingTierId() !== tier.id) {
-                <button class="btn btn-sm btn-outline" (click)="startEditTier(tier)">Edit</button>
+              <span
+                class="tier-badge"
+                [style.background]="getRarityColor(tier.rarityName) + '22'"
+                [style.color]="getRarityColor(tier.rarityName)"
+              >{{ tier.rarityName }}</span>
+
+              @if (editingTierId() === tier.id) {
+                <button class="tier-icon-btn" [disabled]="isSaving()" (click)="saveTier()" title="Save">
+                  <span class="material-icons">save</span>
+                </button>
+              } @else {
+                <button class="tier-icon-btn" (click)="startEditTier(tier)" title="Edit">
+                  <span class="material-icons">edit</span>
+                </button>
               }
             </div>
 
             @if (editingTierId() === tier.id) {
               <!-- Edit mode -->
-              <div class="edit-form">
-                <div class="form-row">
-                  <label class="field-label">Rating Min</label>
+              <div class="tier-edit">
+                <div class="edit-field">
+                  <label class="edit-label">Rating Min</label>
                   <input
-                    class="input-field input-sm"
+                    class="edit-input"
                     type="number"
                     min="0"
                     max="98"
@@ -81,10 +89,10 @@
                     (ngModelChange)="editRatingMin.set($event)"
                   />
                 </div>
-                <div class="form-row">
-                  <label class="field-label">Rating Max</label>
+                <div class="edit-field">
+                  <label class="edit-label">Rating Max</label>
                   <input
-                    class="input-field input-sm"
+                    class="edit-input"
                     type="number"
                     min="1"
                     max="99"
@@ -92,22 +100,22 @@
                     (ngModelChange)="editRatingMax.set($event)"
                   />
                 </div>
-                <div class="form-row">
-                  <label class="field-label">Pull Weight (bps)</label>
+                <div class="edit-field">
+                  <label class="edit-label">Pull Weight (bps)</label>
                   <input
-                    class="input-field input-sm"
+                    class="edit-input"
                     type="number"
                     min="1"
                     [ngModel]="editPullWeightBps()"
                     (ngModelChange)="editPullWeightBps.set($event)"
                   />
-                  <span class="bps-hint">= {{ pullWeightPct(editPullWeightBps()) }}</span>
+                  <span class="bps-hint">{{ pullWeightPct(editPullWeightBps()) }}</span>
                 </div>
                 <div class="edit-actions">
-                  <button class="btn btn-sm btn-primary" [disabled]="isSaving()" (click)="saveTier()">
+                  <button class="btn-save btn-sm" [disabled]="isSaving()" (click)="saveTier()">
                     {{ isSaving() ? 'Saving…' : 'Save' }}
                   </button>
-                  <button class="btn btn-sm btn-ghost" (click)="cancelEditTier()">Cancel</button>
+                  <button class="btn-cancel" (click)="cancelEditTier()">Cancel</button>
                 </div>
               </div>
             } @else {
@@ -119,7 +127,10 @@
                 </div>
                 <div class="stat-row">
                   <span class="stat-label">Pull Weight</span>
-                  <span class="stat-value">{{ pullWeightPct(tier.pullWeightBps) }} ({{ tier.pullWeightBps }} bps)</span>
+                  <span class="stat-value">
+                    {{ pullWeightPct(tier.pullWeightBps) }}
+                    <span class="stat-muted">({{ tier.pullWeightBps }} bps)</span>
+                  </span>
                 </div>
               </div>
             }
@@ -127,5 +138,6 @@
         }
       </div>
     }
-  </section>
+  </div>
+
 </div>

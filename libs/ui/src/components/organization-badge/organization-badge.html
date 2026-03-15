@@ -1,11 +1,6 @@
 <div class="organization-selector">
   <button class="organization-dropdown-trigger" (click)="toggleDropdown()">
     <div class="selected-org">
-      <img
-        class="org-logo"
-        [src]="'assets/' + selectedOrg()?.logoUrl"
-        [alt]="selectedOrg()?.name"
-      />
       <span class="org-name">{{ selectedOrg()?.name }}</span>
     </div>
 

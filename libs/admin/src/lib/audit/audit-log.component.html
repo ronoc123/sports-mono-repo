@@ -1,105 +1,126 @@
-<div class="audit-log">
-  <div class="page-header">
-    <h2 class="page-title">Transaction Audit Log</h2>
-    <a class="btn btn-outline btn-sm" [href]="getExportUrl()" download>
-      Export CSV
-    </a>
-  </div>
+<div class="audit-page">
 
-  <!-- Filters -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <label class="filter-label">User ID</label>
-      <input
-        class="input-field"
-        type="text"
-        placeholder="Filter by user ID…"
-        [ngModel]="filterUserId()"
-        (ngModelChange)="onUserIdChange($event)"
-      />
+  <!-- ── Filter card ────────────────────────────────────────────────────── -->
+  <div class="filter-card">
+    <div class="filter-card-inner">
+      <div class="filter-fields">
+
+        <!-- User ID -->
+        <div class="filter-group">
+          <label class="filter-label">Filter by user ID</label>
+          <input
+            class="filter-input"
+            type="text"
+            placeholder="Enter user ID…"
+            [ngModel]="filterUserId()"
+            (ngModelChange)="onUserIdChange($event)"
+          />
+        </div>
+
+        <!-- Transaction type -->
+        <div class="filter-group">
+          <label class="filter-label">Transaction Type</label>
+          <select
+            class="filter-input filter-select"
+            [ngModel]="filterReason()"
+            (ngModelChange)="onReasonChange($event)"
+          >
+            <option value="">All types</option>
+            @for (reason of reasonOptions; track reason) {
+              <option [value]="reason">{{ reason }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Apply + Reset -->
+        <div class="filter-actions">
+          <button class="btn-apply" [disabled]="isLoading()" (click)="applyFilters()">
+            {{ isLoading() ? 'Loading…' : 'Apply' }}
+          </button>
+          <button class="btn-reset" [disabled]="isLoading()" (click)="resetFilters()">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Export CSV -->
+      <a class="btn-export" [href]="getExportUrl()" download>
+        <span class="material-icons export-icon">download</span>
+        Export CSV
+      </a>
     </div>
-    <div class="filter-group">
-      <label class="filter-label">Transaction Type</label>
-      <select
-        class="input-field select-field"
-        [ngModel]="filterReason()"
-        (ngModelChange)="onReasonChange($event)"
-      >
-        <option value="">All types</option>
-        @for (reason of reasonOptions; track reason) {
-          <option [value]="reason">{{ reason }}</option>
-        }
-      </select>
-    </div>
-    <button class="btn btn-primary" [disabled]="isLoading()" (click)="applyFilters()">
-      {{ isLoading() ? 'Loading…' : 'Apply' }}
-    </button>
   </div>
 
   @if (error()) {
     <div class="error-banner">{{ error() }}</div>
   }
 
-  <!-- Results summary -->
-  <div class="results-summary">
-    {{ totalCount() | number }} transaction(s) found
-    @if (totalPages() > 1) {
-      — Page {{ page() }} of {{ totalPages() }}
-    }
+  <!-- ── Table card ──────────────────────────────────────────────────────── -->
+  <div class="table-card">
+    <div class="table-card-inner">
+      <p class="results-count">
+        {{ totalCount() | number }} transaction(s) found
+        @if (totalPages() > 1) { — Page {{ page() }} of {{ totalPages() }} }
+      </p>
+
+      @if (isLoading()) {
+        <div class="loading-state">Loading transactions…</div>
+      } @else {
+        <div class="table-scroll">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>DATE</th>
+                <th>USER ID</th>
+                <th>TYPE</th>
+                <th class="col-right">AMOUNT</th>
+                <th>REF ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tx of transactions(); track trackById($index, tx)) {
+                <tr>
+                  <td class="cell-date">{{ tx.createdAt | date: 'MMM d, yyyy HH:mm' }}</td>
+                  <td class="cell-mono" [title]="tx.userId">{{ tx.userId | slice: 0:8 }}…</td>
+                  <td>
+                    <span class="type-badge type-{{ tx.reason }}">{{ tx.reason }}</span>
+                  </td>
+                  <td class="col-right" [class]="amountClass(tx.amount)">
+                    {{ formatAmount(tx.amount) }}
+                  </td>
+                  <td class="cell-mono" [title]="tx.refId ?? ''">
+                    {{ tx.refId ? (tx.refId | slice: 0:8) + '…' : '—' }}
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="cell-empty">No transactions found matching your filters.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="pagination">
+            <button class="page-btn" [disabled]="!hasPrev()" (click)="goToPage(page() - 1)">‹</button>
+            @for (p of pageNumbers(); track $index) {
+              @if (p === -1) {
+                <span class="page-ellipsis">…</span>
+              } @else {
+                <button
+                  class="page-btn"
+                  [class.page-btn--active]="p === page()"
+                  (click)="goToPage(p)"
+                >{{ p }}</button>
+              }
+            }
+            <button class="page-btn" [disabled]="!hasNext()" (click)="goToPage(page() + 1)">›</button>
+          </div>
+        }
+      }
+    </div>
   </div>
 
-  <!-- Table -->
-  @if (isLoading()) {
-    <div class="loading-row">Loading transactions…</div>
-  } @else {
-    <div class="table-wrapper">
-      <table class="audit-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>User ID</th>
-            <th>Type</th>
-            <th class="amount-col">Amount</th>
-            <th>Ref ID</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (tx of transactions(); track trackById($index, tx)) {
-            <tr>
-              <td class="date-cell">{{ tx.createdAt | date: 'MMM d, yyyy HH:mm' }}</td>
-              <td class="id-cell" [title]="tx.userId">{{ tx.userId | slice: 0:8 }}…</td>
-              <td>
-                <span class="reason-badge reason-{{ tx.reason }}">{{ tx.reason }}</span>
-              </td>
-              <td class="amount-col" [class]="amountClass(tx.amount)">
-                {{ formatAmount(tx.amount) }}
-              </td>
-              <td class="id-cell" [title]="tx.refId ?? ''">
-                {{ tx.refId ? (tx.refId | slice: 0:8) + '…' : '—' }}
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="empty-row">No transactions found.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="page-btn" [disabled]="!hasPrev()" (click)="goToPage(page() - 1)">‹</button>
-        @for (p of pageNumbers(); track $index) {
-          @if (p === -1) {
-            <span class="page-ellipsis">…</span>
-          } @else {
-            <button class="page-btn" [class.page-btn--active]="p === page()" (click)="goToPage(p)">{{ p }}</button>
-          }
-        }
-        <button class="page-btn" [disabled]="!hasNext()" (click)="goToPage(page() + 1)">›</button>
-      </div>
-    }
-  }
 </div>

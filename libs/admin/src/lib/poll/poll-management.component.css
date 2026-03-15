@@ -1,6 +1,6 @@
 .poll-management {
   padding: 1.5rem;
-  max-width: 860px;
+  max-width: 2000px;
 }
 
 .page-header {
@@ -19,14 +19,14 @@
 /* Card */
 .card {
   background: var(--surface, #fff);
-  border: 1px solid var(--border, #e2e8f0);
+  border: 1px solid var(--color-tertiary);
   border-radius: 8px;
   padding: 1.25rem;
   margin-bottom: 1rem;
 }
 
 .form-card {
-  max-width: 520px;
+  max-width: 2000px;
 }
 
 /* Forms */
@@ -91,7 +91,7 @@
 }
 
 .btn-primary {
-  background: #2563eb;
+  background: var(--color-tertiary);
   color: #fff;
 }
 
@@ -103,7 +103,7 @@
 .btn-ghost {
   background: transparent;
   color: var(--text-muted, #64748b);
-  border: 1px solid var(--border, #e2e8f0);
+  border: 1px solid var(--color-tertiary);
 }
 
 .btn-sm {

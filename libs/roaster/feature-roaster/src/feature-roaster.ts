@@ -80,6 +80,19 @@ export class FeatureRoaster implements OnInit {
     return "status--practice";
   }
 
+  posAbbr(position: string): string {
+    if (!position) return '?';
+    const trimmed = position.trim();
+    // Already an abbreviation (≤3 chars) — return as-is uppercased
+    if (trimmed.length <= 3) return trimmed.toUpperCase();
+    // Full name — take first letter of each word: "Offensive Tackle" → "OT"
+    return trimmed
+      .split(/\s+/)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase();
+  }
+
   getGroupIcon(tab: RosterGroup): string {
     switch (tab) {
       case "Offense":       return "sports_football";

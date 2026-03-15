@@ -75,6 +75,13 @@ export class AuditLogComponent implements OnInit {
     this.facade.setFilterReason(value);
   }
 
+  resetFilters(): void {
+    this.facade.setFilterUserId('');
+    this.facade.setFilterReason('');
+    this.facade.setPage(1);
+    this.load();
+  }
+
   getExportUrl(): string {
     const leagueId = this.leagueId;
     if (!leagueId) return '';

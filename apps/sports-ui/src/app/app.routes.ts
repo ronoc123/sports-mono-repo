@@ -52,7 +52,7 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import("@sports-ui/league-feature").then((m) => m.LeagueFeature),
   },
-
+  // Default redirect to dashboard
   // Main app shell with layout (protected routes)
   {
     path: ":organizationId",
@@ -62,7 +62,8 @@ export const appRoutes: Route[] = [
     children: [
       // Dashboard (default route)
       {
-        path: "dashboard",
+        path: "",
+        canActivate: [authGuard],
         loadChildren: () =>
           import("@sports-ui/feature-dashboard").then((m) => m.dashBoardRoutes),
       },
