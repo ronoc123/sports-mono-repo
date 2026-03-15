@@ -90,13 +90,15 @@
     <!-- Pagination -->
     @if (totalPages() > 1) {
       <div class="pagination">
-        <button class="btn btn-sm btn-outline" [disabled]="!hasPrev()" (click)="goToPage(page() - 1)">
-          ‹ Prev
-        </button>
-        <span class="page-indicator">{{ page() }} / {{ totalPages() }}</span>
-        <button class="btn btn-sm btn-outline" [disabled]="!hasNext()" (click)="goToPage(page() + 1)">
-          Next ›
-        </button>
+        <button class="page-btn" [disabled]="!hasPrev()" (click)="goToPage(page() - 1)">‹</button>
+        @for (p of pageNumbers(); track $index) {
+          @if (p === -1) {
+            <span class="page-ellipsis">…</span>
+          } @else {
+            <button class="page-btn" [class.page-btn--active]="p === page()" (click)="goToPage(p)">{{ p }}</button>
+          }
+        }
+        <button class="page-btn" [disabled]="!hasNext()" (click)="goToPage(page() + 1)">›</button>
       </div>
     }
   }

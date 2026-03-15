@@ -1,7 +1,10 @@
 <header class="navbar">
 
-  <!-- Left: brand -->
+  <!-- Left: hamburger (mobile) + brand -->
   <div class="navbar-left">
+    <button class="hamburger-btn" (click)="toggleNavBar.emit()" aria-label="Toggle navigation">
+      <span class="material-icons">menu</span>
+    </button>
     <div class="brand">Sportify</div>
   </div>
 

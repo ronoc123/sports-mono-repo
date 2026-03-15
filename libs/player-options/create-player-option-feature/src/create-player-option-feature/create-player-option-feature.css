@@ -429,3 +429,58 @@
 .btn-create .material-icons {
   font-size: 17px !important;
 }
+
+/* ── Player list pagination ───────────────────────── */
+.player-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 0 4px;
+  flex-wrap: wrap;
+}
+
+.pp-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.pp-btn--active {
+  background: var(--color-tertiary, #2563eb);
+  border-color: var(--color-tertiary, #2563eb);
+  color: #ffffff;
+}
+
+.pp-btn--active:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.pp-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pp-ellipsis {
+  width: 28px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+  line-height: 32px;
+}

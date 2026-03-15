@@ -185,13 +185,55 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 4px;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
-.page-indicator {
-  font-size: 0.85rem;
+.page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  border: 1px solid var(--border, #334155);
+  background: var(--surface-1, #0f172a);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: var(--surface-2, #1e293b);
+  border-color: var(--accent, #6366f1);
+  color: var(--text-primary, #f1f5f9);
+}
+
+.page-btn--active {
+  background: var(--accent, #6366f1);
+  border-color: var(--accent, #6366f1);
+  color: #ffffff;
+}
+
+.page-btn--active:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  width: 28px;
+  text-align: center;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.8125rem;
+  line-height: 34px;
 }
 
 /* Shared inputs + buttons */

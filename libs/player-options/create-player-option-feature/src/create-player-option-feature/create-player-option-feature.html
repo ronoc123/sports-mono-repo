@@ -38,7 +38,7 @@
 
           <div class="player-list" *ngIf="filteredPlayers().length > 0; else emptyPlayers">
             <lib-create-player-option-card
-              *ngFor="let p of filteredPlayers()"
+              *ngFor="let p of paginatedPlayers()"
               [player]="p"
               (selected)="open($event)"
             ></lib-create-player-option-card>
@@ -50,6 +50,20 @@
               <p>No players found</p>
             </div>
           </ng-template>
+
+          @if (totalPages() > 1) {
+          <div class="player-pagination">
+            <button class="pp-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">‹</button>
+            @for (page of pageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="pp-ellipsis">…</span>
+              } @else {
+                <button class="pp-btn" [class.pp-btn--active]="page === currentPage()" (click)="goToPage(page)">{{ page }}</button>
+              }
+            }
+            <button class="pp-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">›</button>
+          </div>
+          }
         </div>
       </div>
     </div>

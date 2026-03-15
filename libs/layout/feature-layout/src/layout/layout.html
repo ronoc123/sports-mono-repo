@@ -14,7 +14,14 @@
 ></lib-ui-navbar>
 
 <div class="layout-body">
-  <aside class="sidebar">
+  <!-- Mobile overlay -->
+  <div
+    class="mobile-overlay"
+    [class.mobile-overlay--visible]="mobileSidebarOpen()"
+    (click)="closeMobileSidebar()"
+  ></div>
+
+  <aside class="sidebar" [class.sidebar--open]="mobileSidebarOpen()">
     <lib-ui-sidebar
       [navItems]="navItems()"
       [user]="user()"

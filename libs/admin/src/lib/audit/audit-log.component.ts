@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuditLogFacade } from './audit-log.facade';
@@ -30,6 +30,20 @@ export class AuditLogComponent implements OnInit {
   readonly error = this.facade.error;
 
   readonly reasonOptions = TRANSACTION_REASONS;
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.page();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: number[] = [1];
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    pages.push(total);
+    return pages;
+  });
 
   async ngOnInit(): Promise<void> {
     await this.load();

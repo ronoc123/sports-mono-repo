@@ -160,10 +160,10 @@
   @if (!isLoading() && filteredCollection().length > 0 && viewMode() === 'grid')
   {
   <div class="cc-result-info">
-    Showing {{ filteredCount() }} of {{ totalCount() }} cards
+    Showing {{ pageRangeStart() }}–{{ pageRangeEnd() }} of {{ filteredCount() }} cards
   </div>
   <div class="cc-grid">
-    @for (card of filteredCollection(); track trackByCard($index, card)) {
+    @for (card of paginatedCollection(); track trackByCard($index, card)) {
     <div
       class="cc-card"
       [class]="'cc-card--' + card.rarityTier.toLowerCase()"
@@ -217,10 +217,10 @@
   @if (!isLoading() && filteredCollection().length > 0 && viewMode() === 'list')
   {
   <div class="cc-result-info">
-    Showing {{ filteredCount() }} of {{ totalCount() }} cards
+    Showing {{ pageRangeStart() }}–{{ pageRangeEnd() }} of {{ filteredCount() }} cards
   </div>
   <div class="cc-list">
-    @for (card of filteredCollection(); track trackByCard($index, card)) {
+    @for (card of paginatedCollection(); track trackByCard($index, card)) {
     <div class="cc-list-row" (click)="openCardDetail(card)">
       <div
         class="cc-list-thumb"
@@ -262,6 +262,29 @@
       }
     </div>
     }
+  </div>
+  }
+
+  <!-- ── Pagination ─────────────────────────────────── -->
+  @if (!isLoading() && totalPages() > 1) {
+  <div class="cc-pagination">
+    <button class="cc-page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
+      ‹
+    </button>
+    @for (page of pageNumbers(); track $index) {
+      @if (page === -1) {
+        <span class="cc-page-ellipsis">…</span>
+      } @else {
+        <button
+          class="cc-page-btn"
+          [class.cc-page-btn--active]="page === currentPage()"
+          (click)="goToPage(page)"
+        >{{ page }}</button>
+      }
+    }
+    <button class="cc-page-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">
+      ›
+    </button>
   </div>
   }
 </div>

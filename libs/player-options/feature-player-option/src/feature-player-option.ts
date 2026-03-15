@@ -49,8 +49,12 @@ export class FeaturePlayerOption {
     effect(() => {
       const org = this.organization();
       if (!org) return;
-
       this.feature.loadPlayerOptions({ organizationId: org.id });
+    });
+
+    effect(() => {
+      this.searchTerm();
+      this.currentPage.set(1);
     });
   }
 
@@ -63,6 +67,40 @@ export class FeaturePlayerOption {
         (p.player.position && p.player.position.toLowerCase().includes(t))
     );
   });
+
+  // ── Pagination ────────────────────────────────────
+  readonly PAGE_SIZE = 12;
+  readonly currentPage = signal(1);
+
+  readonly paginatedOptions = computed(() => {
+    const page = this.currentPage();
+    const start = (page - 1) * this.PAGE_SIZE;
+    return this.filteredPlayerOptions().slice(start, start + this.PAGE_SIZE);
+  });
+
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredPlayerOptions().length / this.PAGE_SIZE))
+  );
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: number[] = [1];
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    pages.push(total);
+    return pages;
+  });
+
+  goToPage(page: number) {
+    const clamped = Math.max(1, Math.min(page, this.totalPages()));
+    this.currentPage.set(clamped);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   onSelectOption(option: any) {
     this.selected.vote(

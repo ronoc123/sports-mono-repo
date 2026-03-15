@@ -86,12 +86,53 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     return result;
   });
 
+  // ── Pagination ────────────────────────────────────────────────────────────
+  readonly PAGE_SIZE = 12;
+  readonly currentPage = signal(1);
+
+  readonly paginatedListings = computed(() => {
+    const page = this.currentPage();
+    const start = (page - 1) * this.PAGE_SIZE;
+    return this.filteredListings().slice(start, start + this.PAGE_SIZE);
+  });
+
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredListings().length / this.PAGE_SIZE))
+  );
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: number[] = [1];
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    pages.push(total);
+    return pages;
+  });
+
+  goToPage(page: number) {
+    const clamped = Math.max(1, Math.min(page, this.totalPages()));
+    this.currentPage.set(clamped);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   constructor() {
     // Auto-clear notifications after 5s
     effect(() => {
       if (this.lastOutbid() || this.lastSettled()) {
         setTimeout(() => this.facade.clearNotifications(), 5000);
       }
+    });
+
+    // Reset to page 1 when filters change
+    effect(() => {
+      this.searchQuery();
+      this.timeFilter();
+      this.currentPage.set(1);
     });
   }
 

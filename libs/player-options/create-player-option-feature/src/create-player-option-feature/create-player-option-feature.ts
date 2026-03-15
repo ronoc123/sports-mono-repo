@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   signal,
   TemplateRef,
@@ -54,6 +55,45 @@ export class CreatePlayerOptionFeature implements OnInit {
         (p.position && p.position.toLowerCase().includes(t))
     );
   });
+
+  // ── Pagination ────────────────────────────────────
+  readonly PAGE_SIZE = 10;
+  readonly currentPage = signal(1);
+
+  readonly paginatedPlayers = computed(() => {
+    const page = this.currentPage();
+    const start = (page - 1) * this.PAGE_SIZE;
+    return this.filteredPlayers().slice(start, start + this.PAGE_SIZE);
+  });
+
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredPlayers().length / this.PAGE_SIZE))
+  );
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: number[] = [1];
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    pages.push(total);
+    return pages;
+  });
+
+  constructor() {
+    effect(() => {
+      this.searchTerm();
+      this.currentPage.set(1);
+    });
+  }
+
+  goToPage(page: number) {
+    this.currentPage.set(Math.max(1, Math.min(page, this.totalPages())));
+  }
 
   ngOnInit(): void {
     const leagueId = this.leagueFacade.selectedLeagueId() || "";

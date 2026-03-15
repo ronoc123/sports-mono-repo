@@ -89,7 +89,7 @@
         </div>
       } @else {
         <div class="listings-grid">
-          @for (listing of filteredListings(); track trackById($index, listing)) {
+          @for (listing of paginatedListings(); track trackById($index, listing)) {
             <div
               class="listing-card"
               [class.selected]="selectedListing()?.id === listing.id"
@@ -153,6 +153,20 @@
             </div>
           }
         </div>
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="mp-pagination">
+            <button class="mp-page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">‹</button>
+            @for (page of pageNumbers(); track $index) {
+              @if (page === -1) {
+                <span class="mp-page-ellipsis">…</span>
+              } @else {
+                <button class="mp-page-btn" [class.mp-page-btn--active]="page === currentPage()" (click)="goToPage(page)">{{ page }}</button>
+              }
+            }
+            <button class="mp-page-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">›</button>
+          </div>
+        }
       }
     </div>
 

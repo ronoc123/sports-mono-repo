@@ -207,3 +207,57 @@
   inset: 0;
   z-index: 150;
 }
+
+/* ── Hamburger button ── */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.hamburger-btn .material-icons {
+  font-size: 22px !important;
+}
+
+/* ── Mobile breakpoint ── */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .balance-chip-label {
+    display: none;
+  }
+
+  .buy-votes-btn span.material-icons {
+    margin: 0;
+  }
+
+  .buy-votes-btn {
+    padding: 8px 10px;
+    font-size: 0;
+  }
+
+  .buy-votes-btn .material-icons {
+    font-size: 18px !important;
+    margin: 0;
+  }
+
+  .navbar {
+    padding: 0 12px;
+  }
+}

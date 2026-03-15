@@ -9,10 +9,25 @@
 </div>
 
 <div class="options-container">
-  <div *ngFor="let po of filteredPlayerOptions()">
+  <div *ngFor="let po of paginatedOptions()">
     <lib-player-option-card
       (vote)="onSelectOption($event)"
       [option]="po"
     ></lib-player-option-card>
   </div>
 </div>
+
+<!-- Pagination -->
+@if (totalPages() > 1) {
+<div class="po-pagination">
+  <button class="po-page-btn" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">‹</button>
+  @for (page of pageNumbers(); track $index) {
+    @if (page === -1) {
+      <span class="po-page-ellipsis">…</span>
+    } @else {
+      <button class="po-page-btn" [class.po-page-btn--active]="page === currentPage()" (click)="goToPage(page)">{{ page }}</button>
+    }
+  }
+  <button class="po-page-btn" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">›</button>
+</div>
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import { Component, OnInit, inject, signal, computed, effect } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
@@ -83,6 +83,60 @@ export class CollectionComponent implements OnInit {
       return 0;
     });
   });
+
+  // ── Pagination ────────────────────────────────────
+  readonly PAGE_SIZE = 24;
+  readonly currentPage = signal(1);
+
+  readonly paginatedCollection = computed(() => {
+    const page = this.currentPage();
+    const start = (page - 1) * this.PAGE_SIZE;
+    return this.filteredCollection().slice(start, start + this.PAGE_SIZE);
+  });
+
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredCollection().length / this.PAGE_SIZE))
+  );
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    // Show window around current page
+    const pages: number[] = [1];
+    const start = Math.max(2, current - 2);
+    const end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1); // ellipsis sentinel
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    pages.push(total);
+    return pages;
+  });
+
+  readonly pageRangeStart = computed(() =>
+    Math.min((this.currentPage() - 1) * this.PAGE_SIZE + 1, this.filteredCount())
+  );
+
+  readonly pageRangeEnd = computed(() =>
+    Math.min(this.currentPage() * this.PAGE_SIZE, this.filteredCount())
+  );
+
+  constructor() {
+    // Reset to page 1 whenever filters change
+    effect(() => {
+      this.searchQuery();
+      this.rarityFilter();
+      this.sortField();
+      this.sortDirection();
+      this.currentPage.set(1);
+    });
+  }
+
+  goToPage(page: number) {
+    const clamped = Math.max(1, Math.min(page, this.totalPages()));
+    this.currentPage.set(clamped);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // ── Stats ─────────────────────────────────────────
   readonly totalCount = computed(() => this.collection().length);

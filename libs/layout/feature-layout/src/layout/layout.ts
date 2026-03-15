@@ -1,15 +1,15 @@
 import {
   Component,
+  HostListener,
   OnDestroy,
   OnInit,
-  ViewChild,
   effect,
   inject,
   input,
   signal,
 } from "@angular/core";
-import { Router, RouterOutlet } from "@angular/router";
-import { MatSidenav } from "@angular/material/sidenav";
+import { Router, RouterOutlet, NavigationEnd } from "@angular/router";
+import { filter } from "rxjs/operators";
 
 import { AuthFacade } from "@sports-ui/auth-data-access";
 import { OrganizationFeatureService } from "@sports-ui/organization-data-access";
@@ -45,11 +45,11 @@ export class LayoutFeatureComponent implements OnInit, OnDestroy {
   organizations = this.orgFacade.organizations;
   selectedOrganization = this.orgFacade.selectedOrganization;
   readonly pointsBalance = this.voteAccountFacade.balance;
-  @ViewChild("drawer") drawer!: MatSidenav;
   readonly navItems = input.required<NavItem[]>();
   mode = signal<"light" | "dark">("light");
   readonly notifications = this.notificationFacade.notifications;
   readonly status = this.notificationFacade.status;
+  mobileSidebarOpen = signal(false);
 
   // Layout configuration
   layoutConfig: LayoutConfig = {
@@ -89,6 +89,11 @@ export class LayoutFeatureComponent implements OnInit, OnDestroy {
       });
     });
 
+    // Close mobile sidebar on route change
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+      this.mobileSidebarOpen.set(false);
+    });
+
     // Points balance effect — load whenever user + league are both available,
     // and connect to real-time balance hub
     effect(() => {
@@ -111,9 +116,20 @@ export class LayoutFeatureComponent implements OnInit, OnDestroy {
     this.voteAccountFacade.disconnectBalance();
   }
 
+  @HostListener('window:resize')
+  onResize() {
+    if (window.innerWidth > 768) {
+      this.mobileSidebarOpen.set(false);
+    }
+  }
+
   // Event handlers from UI
   onToggleSidebar() {
-    this.drawer.toggle();
+    this.mobileSidebarOpen.update(v => !v);
+  }
+
+  closeMobileSidebar() {
+    this.mobileSidebarOpen.set(false);
   }
 
   onLogout() {
