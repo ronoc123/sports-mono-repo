@@ -6,6 +6,7 @@ import {
   RenderJobState,
   initialRenderJobState,
   CreateRenderJobRequest,
+  StartPostFromRenderJobRequest,
 } from './render-job.models';
 
 export const RenderJobStore = signalStore(
@@ -15,6 +16,7 @@ export const RenderJobStore = signalStore(
   withComputed((state) => ({
     isUploading: computed(() => state.uploadStatus() === 'loading'),
     isCreating: computed(() => state.createStatus() === 'loading'),
+    isStartingPost: computed(() => state.postStatus() === 'loading'),
     isJobTerminal: computed(() => {
       const status = state.currentJob()?.status;
       return status !== undefined &&
@@ -95,13 +97,30 @@ export const RenderJobStore = signalStore(
       }
     },
 
-    /** Resets per-job state (upload/create/currentJob/videoUrl) without clearing channelJobs. */
+    async startPostFromRenderJob(jobId: string, req: StartPostFromRenderJobRequest): Promise<string | null> {
+      patchState(store, { postStatus: 'loading', postError: null });
+      try {
+        const res = await firstValueFrom(api.startPostFromRenderJob(jobId, req));
+        patchState(store, { postStatus: 'success' });
+        return res.data.jobId;
+      } catch (err: any) {
+        patchState(store, {
+          postStatus: 'error',
+          postError: err?.error?.message ?? 'Failed to start post cycle.',
+        });
+        return null;
+      }
+    },
+
+    /** Resets per-job state (upload/create/currentJob/videoUrl/post) without clearing channelJobs. */
     resetJob(): void {
       patchState(store, {
         uploadStatus: 'idle',
         createStatus: 'idle',
         currentJob: null,
         videoUrl: null,
+        postStatus: 'idle',
+        postError: null,
         error: null,
       });
     },

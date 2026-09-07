@@ -33,7 +33,6 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
             <button class="btn-danger" (click)="confirmDelete()">Delete Channel</button>
             <button class="btn-local" (click)="localVideo()">Local Video</button>
             <button class="btn-ai" (click)="generateAiVideo()">Generate AI Video</button>
-            <button class="btn-primary" (click)="newPost()">New Post</button>
           </div>
         </div>
 
@@ -415,10 +414,6 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
 
   editChannel(): void {
     this.router.navigate(['edit'], { relativeTo: this.route });
-  }
-
-  newPost(): void {
-    this.router.navigate(['post-cycle'], { relativeTo: this.route });
   }
 
   generateAiVideo(): void {

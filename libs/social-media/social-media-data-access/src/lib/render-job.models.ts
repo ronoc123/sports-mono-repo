@@ -40,6 +40,17 @@ export interface CreateRenderJobResponse {
   jobId: string;
 }
 
+export interface StartPostFromRenderJobRequest {
+  channelId: string;
+  title: string;
+  description: string;
+  hashtags: string[];
+}
+
+export interface StartPostCycleResponse {
+  jobId: string;
+}
+
 export type RenderJobStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export interface RenderJobState {
@@ -49,6 +60,8 @@ export interface RenderJobState {
   channelJobs: RenderJob[];
   channelJobsStatus: RenderJobStatus;
   videoUrl: string | null;
+  postStatus: RenderJobStatus;
+  postError: string | null;
   error: string | null;
 }
 
@@ -59,5 +72,7 @@ export const initialRenderJobState: RenderJobState = {
   channelJobs: [],
   channelJobsStatus: 'idle',
   videoUrl: null,
+  postStatus: 'idle',
+  postError: null,
   error: null,
 };

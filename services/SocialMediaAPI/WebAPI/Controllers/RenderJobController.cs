@@ -1,3 +1,4 @@
+using Application.PostCycle.Dto;
 using Application.RenderJobs.Commands;
 using Application.RenderJobs.Dto;
 using Application.RenderJobs.Queries;
@@ -110,6 +111,39 @@ public class RenderJobController : ControllerBase
         var result = await _mediator.Send(new DeleteRenderJobCommand(jobId), cancellationToken);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Start a post cycle from a completed local render job.
+    /// Downloads the video from R2 and kicks off the posting pipeline.
+    /// </summary>
+    [HttpPost("{jobId}/post")]
+    public async Task<ActionResult<ServiceResponse<StartPostCycleResponse>>> Post(
+        string jobId,
+        [FromBody] StartPostFromRenderJobRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new StartPostCycleFromRenderJobCommand(
+                jobId,
+                request.ChannelId,
+                request.Title,
+                request.Description,
+                request.Hashtags ?? new List<string>()),
+            cancellationToken);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+}
+
+public class StartPostFromRenderJobRequest
+{
+    public string ChannelId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public List<string>? Hashtags { get; set; }
 }
 
 public class CreateRenderJobRequest

@@ -8,6 +8,8 @@ import {
   VideoUrlResponse,
   CreateRenderJobRequest,
   CreateRenderJobResponse,
+  StartPostFromRenderJobRequest,
+  StartPostCycleResponse,
   RenderJob,
 } from './render-job.models';
 
@@ -52,6 +54,13 @@ export class RenderJobApiService {
   getVideoUrl(jobId: string): Observable<ServiceResponse<VideoUrlResponse>> {
     return this.http.get<ServiceResponse<VideoUrlResponse>>(
       `${this.base}render-jobs/${jobId}/video-url`
+    );
+  }
+
+  startPostFromRenderJob(jobId: string, req: StartPostFromRenderJobRequest): Observable<ServiceResponse<StartPostCycleResponse>> {
+    return this.http.post<ServiceResponse<StartPostCycleResponse>>(
+      `${this.base}render-jobs/${jobId}/post`,
+      req
     );
   }
 }
