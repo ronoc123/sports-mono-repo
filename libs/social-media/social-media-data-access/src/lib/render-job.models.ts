@@ -45,6 +45,8 @@ export interface StartPostFromRenderJobRequest {
   title: string;
   description: string;
   hashtags: string[];
+  /** When set, only this platform is posted to. Omit to post to all linked accounts. */
+  targetPlatform?: string;
 }
 
 export interface StartPostCycleResponse {

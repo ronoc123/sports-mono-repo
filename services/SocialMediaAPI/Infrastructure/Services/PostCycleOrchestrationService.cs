@@ -43,15 +43,21 @@ public class PostCycleOrchestrationService : IPostCycleOrchestrationService
             return;
         }
 
-        // Initialise per-platform jobs
-        job.PlatformJobs = channel.LinkedAccounts
+        // Initialise per-platform jobs — filter to TargetPlatforms when specified
+        var accountsToProcess = (job.TargetPlatforms?.Count > 0)
+            ? channel.LinkedAccounts
+                .Where(a => job.TargetPlatforms.Contains(a.Platform, StringComparer.OrdinalIgnoreCase))
+                .ToList()
+            : channel.LinkedAccounts.ToList();
+
+        job.PlatformJobs = accountsToProcess
             .Select(a => new PlatformJob { Platform = a.Platform, Status = "Pending" })
             .ToList();
         await _postCycleRepository.UpdateAsync(job, cancellationToken);
 
         try
         {
-            foreach (var account in channel.LinkedAccounts)
+            foreach (var account in accountsToProcess)
             {
                 var platformJob = job.PlatformJobs.First(pj => pj.Platform == account.Platform);
                 platformJob.Status = "Uploading";

@@ -33,4 +33,11 @@ public class PostCycleJob : Entity<string>
 
     [BsonElement("generationMetadata")]
     public GenerationMetadata? GenerationMetadata { get; set; }
+
+    /// <summary>
+    /// When non-empty, only these platform names are processed by the orchestrator.
+    /// Null / empty means all linked accounts are targeted.
+    /// </summary>
+    [BsonElement("targetPlatforms")]
+    public List<string>? TargetPlatforms { get; set; }
 }

@@ -128,7 +128,8 @@ public class RenderJobController : ControllerBase
                 request.ChannelId,
                 request.Title,
                 request.Description,
-                request.Hashtags ?? new List<string>()),
+                request.Hashtags ?? new List<string>(),
+                request.TargetPlatform),
             cancellationToken);
 
         if (!result.Success)
@@ -144,6 +145,8 @@ public class StartPostFromRenderJobRequest
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public List<string>? Hashtags { get; set; }
+    /// <summary>When set, only this platform is posted to. Null = post to all linked accounts.</summary>
+    public string? TargetPlatform { get; set; }
 }
 
 public class CreateRenderJobRequest

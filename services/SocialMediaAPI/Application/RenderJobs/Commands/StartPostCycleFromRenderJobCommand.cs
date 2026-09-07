@@ -17,7 +17,8 @@ public record StartPostCycleFromRenderJobCommand(
     string ChannelId,
     string Title,
     string Description,
-    List<string> Hashtags)
+    List<string> Hashtags,
+    string? TargetPlatform = null)
     : IRequest<ServiceResponse<StartPostCycleResponse>>;
 
 public class StartPostCycleFromRenderJobCommandValidator
@@ -69,6 +70,20 @@ public class StartPostCycleFromRenderJobCommandHandler
             return ServiceResponse.Fail<StartPostCycleResponse>(
                 "All linked accounts have expired or invalid tokens. Reconnect your accounts in channel settings.");
 
+        if (request.TargetPlatform is not null)
+        {
+            var target = channel.LinkedAccounts.FirstOrDefault(a =>
+                a.Platform.Equals(request.TargetPlatform, StringComparison.OrdinalIgnoreCase));
+
+            if (target is null)
+                return ServiceResponse.Fail<StartPostCycleResponse>(
+                    $"Platform '{request.TargetPlatform}' is not linked to this channel.");
+
+            if (target.TokenStatus == "invalid")
+                return ServiceResponse.Fail<StartPostCycleResponse>(
+                    $"The {request.TargetPlatform} account has an expired or invalid token. Reconnect it in channel settings.");
+        }
+
         var renderJob = await _renderJobs.GetByIdAsync(request.RenderJobId, cancellationToken)
             ?? throw new EntityNotFoundException(nameof(RenderJob), request.RenderJobId);
 
@@ -104,6 +119,9 @@ public class StartPostCycleFromRenderJobCommandHandler
                 Method = "local-gpu-render",
                 RenderedPrompt = renderJob.Prompt,
             },
+            TargetPlatforms = request.TargetPlatform is not null
+                ? new List<string> { request.TargetPlatform }
+                : null,
         };
 
         await _postCycles.AddAsync(job, cancellationToken);
