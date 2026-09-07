@@ -69,5 +69,13 @@ export class ShellComponent {
         { name: "Audit Log", icon: "receipt_long", route: "admin/audit-log" },
       ],
     },
+
+    {
+      name: "Social Media",
+      icon: "video_library",
+      children: [
+        { name: "Channels", icon: "subscriptions", route: "social-media/channels" },
+      ],
+    },
   ];
 }

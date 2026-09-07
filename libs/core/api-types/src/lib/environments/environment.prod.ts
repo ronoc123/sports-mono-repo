@@ -43,4 +43,6 @@ export const environment = {
 
   // Stripe public key — injected by CI
   stripePublicKey: "__STRIPE_PUBLIC_KEY__",
+
+  socialMediaApi: "__SOCIAL_MEDIA_API_URL__/api/",
 };

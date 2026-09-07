@@ -44,4 +44,6 @@ export const environment = {
   // Stripe — key injected at build time by CI from STRIPE_PUBLIC_KEY secret.
   // For local development set the real key in environment.local.ts (gitignored).
   stripePublicKey: "",
+
+  socialMediaApi: ":53016/api/",
 };

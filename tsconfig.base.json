@@ -127,6 +127,12 @@
       "@sports-ui/ui-theme-data-access": [
         "libs/theme/theme-data-access/src/index.ts"
       ],
+      "@sports-ui/social-media-data-access": [
+        "libs/social-media/social-media-data-access/src/index.ts"
+      ],
+      "@sports-ui/feature-channels": [
+        "libs/social-media/feature-channels/src/index.ts"
+      ],
       "@sports-ui/vote-account-data-access": [
         "libs/vote-account/vote-account-data-access/src/index.ts"
       ],

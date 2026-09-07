@@ -153,6 +153,13 @@ export const appRoutes: Route[] = [
           import("@sports-ui/feature-store").then((m) => m.storeRoutes),
       },
 
+      // Social Media route
+      {
+        path: "social-media",
+        loadChildren: () =>
+          import("@sports-ui/feature-channels").then((m) => m.channelRoutes),
+      },
+
       // Profile route
       {
         path: "profile",

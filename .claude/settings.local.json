@@ -43,7 +43,11 @@
       "Bash(docker run:*)",
       "Bash(curl:*)",
       "Bash(docker network:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(cd \"C:/Users/kampe/source/sports-mono-repo\" && npx nx build social-media-ui --configuration=development 2>&1)",
+      "Bash(true:*)",
+      "WebFetch(domain:higgsfield.ai)",
+      "Bash(cd \"C:/Users/kampe/source/sports-mono-repo\" && npx nx build social-media-ui 2>&1)"
     ]
   }
 }
