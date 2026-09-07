@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ChannelStore } from '@sports-ui/social-media-data-access';
 
 @Component({
   selector: 'app-shell',
@@ -26,6 +27,7 @@ import { RouterModule } from '@angular/router';
       gap: 10px;
       padding: 20px 20px 16px;
       border-bottom: 1px solid #1e2030;
+      flex-shrink: 0;
     }
 
     .brand-icon { font-size: 22px; }
@@ -47,6 +49,8 @@ import { RouterModule } from '@angular/router';
     .nav-section {
       padding: 16px 12px 8px;
       flex: 1;
+      overflow-y: auto;
+      min-height: 0;
     }
 
     .nav-section-label {
@@ -78,7 +82,63 @@ import { RouterModule } from '@angular/router';
 
     .nav-item.active { background: #1e2240; color: #818cf8; }
 
-    .nav-item .nav-icon { font-size: 16px; opacity: 0.85; }
+    .nav-item .nav-icon { font-size: 16px; opacity: 0.85; flex-shrink: 0; }
+
+    /* Channel list items — slightly indented */
+    .channels-divider {
+      height: 1px;
+      background: #1e2030;
+      margin: 8px 8px 10px;
+    }
+
+    .channels-list-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #3a3d52;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 8px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item--channel {
+      padding: 7px 10px 7px 14px;
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .nav-item--channel.active {
+      background: #1e2240;
+      color: #818cf8;
+      font-weight: 500;
+    }
+
+    .channel-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3a3d52;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .nav-item--channel.active .channel-dot,
+    .nav-item--channel:hover .channel-dot {
+      background: #818cf8;
+    }
+
+    .channel-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .channels-loading {
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #3a3d52;
+      font-style: italic;
+    }
 
     .sidebar-footer {
       padding: 14px 16px;
@@ -86,6 +146,7 @@ import { RouterModule } from '@angular/router';
       font-size: 11px;
       color: #3a3d52;
       text-align: center;
+      flex-shrink: 0;
     }
 
     .main {
@@ -154,16 +215,33 @@ import { RouterModule } from '@angular/router';
 
       <div class="nav-section">
         <div class="nav-section-label">Channels</div>
+
         <a class="nav-item" routerLink="/channels" routerLinkActive="active"
-           [routerLinkActiveOptions]="{ exact: false }" (click)="sidebarOpen.set(false)">
+           [routerLinkActiveOptions]="{ exact: true }" (click)="sidebarOpen.set(false)">
           <span class="nav-icon">📺</span>
           All Channels
         </a>
         <a class="nav-item" routerLink="/channels/new" routerLinkActive="active"
-           (click)="sidebarOpen.set(false)">
+           [routerLinkActiveOptions]="{ exact: true }" (click)="sidebarOpen.set(false)">
           <span class="nav-icon">➕</span>
           New Channel
         </a>
+
+        @if (store.channels().length > 0) {
+          <div class="channels-divider"></div>
+          <div class="channels-list-label">Your Channels</div>
+          @for (channel of store.channels(); track channel.id) {
+            <a class="nav-item nav-item--channel"
+               [routerLink]="['/channels', channel.id]"
+               routerLinkActive="active"
+               (click)="sidebarOpen.set(false)">
+              <span class="channel-dot"></span>
+              <span class="channel-name">{{ channel.name }}</span>
+            </a>
+          }
+        } @else if (store.isLoading()) {
+          <div class="channels-loading">Loading...</div>
+        }
       </div>
 
       <div class="sidebar-footer">Social Media AI</div>
@@ -174,6 +252,11 @@ import { RouterModule } from '@angular/router';
     </main>
   `,
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   sidebarOpen = signal(false);
+  readonly store = inject(ChannelStore);
+
+  ngOnInit(): void {
+    this.store.loadChannels();
+  }
 }
