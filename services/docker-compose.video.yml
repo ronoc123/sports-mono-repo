@@ -1,16 +1,21 @@
 # docker-compose.video.yml
-# Spins up the VideoWorker together with a stub generation sidecar.
-# Expects the SocialMediaAPI (and its MongoDB) to already be running, OR
-# override MONGODB__CONNECTIONSTRING to point at a shared MongoDB container.
+#
+# Starts the VideoWorker (.NET) and the WanGP generation adapter (Python/FastAPI)
+# together. Both containers share the generation-work volume so local file
+# paths written by the worker are readable by the generation service without
+# any HTTP file transfer.
 #
 # Usage:
 #   docker compose -f docker-compose.video.yml up
 #
-# Override secrets via a .env file or environment variables — never commit real keys.
+# Switch to WanGP:
+#   VIDEO_GENERATOR_TYPE=WanGP docker compose -f docker-compose.video.yml up
+#
+# Secrets: use a .env file or environment variables — never commit real values.
 
 services:
 
-  # ── VideoWorker ───────────────────────────────────────────────────────────────
+  # ── VideoWorker (.NET background service) ─────────────────────────────────
   video-worker:
     build:
       context: ./VideoWorker
@@ -19,51 +24,70 @@ services:
     environment:
       # MongoDB
       MongoDB__ConnectionString: "${MONGODB_CONNECTION_STRING}"
-      MongoDB__DatabaseName: "SocialMediaDb"
+      MongoDB__DatabaseName:     "SocialMediaDb"
 
-      # Cloudflare R2 (set real values in .env or CI secrets)
-      CloudflareR2__AccountId: "${R2_ACCOUNT_ID}"
-      CloudflareR2__AccessKey: "${R2_ACCESS_KEY}"
-      CloudflareR2__SecretKey: "${R2_SECRET_KEY}"
+      # Cloudflare R2
+      CloudflareR2__AccountId:  "${R2_ACCOUNT_ID}"
+      CloudflareR2__AccessKey:  "${R2_ACCESS_KEY}"
+      CloudflareR2__SecretKey:  "${R2_SECRET_KEY}"
       CloudflareR2__BucketName: "${R2_BUCKET_NAME:-sports-media-assets}"
 
-      # Generator — set to WanGP to point at the generation sidecar
-      VideoGenerator__Type: "${VIDEO_GENERATOR_TYPE:-Stub}"
-      VideoGenerator__Stub__SampleVideoPath: "/app/samples/sample.mp4"
+      # Generator — set VIDEO_GENERATOR_TYPE=WanGP to use the real model
+      VideoGenerator__Type:                       "${VIDEO_GENERATOR_TYPE:-Stub}"
+      VideoGenerator__Stub__SampleVideoPath:      "/app/samples/sample.mp4"
       VideoGenerator__Stub__SimulatedDelaySeconds: "3"
-      VideoGenerator__WanGp__ApiUrl: "http://generation:8080"
-      VideoGenerator__WanGp__TimeoutSeconds: "1800"
+      VideoGenerator__WanGp__ApiUrl:              "http://generation:8000"
+      VideoGenerator__WanGp__TimeoutSeconds:      "1800"
 
       # Worker tuning
-      Worker__Id: "${WORKER_ID:-worker-01}"
-      Worker__PollIntervalSeconds: "5"
-      Worker__TempDirectory: "/app/tmp"
+      Worker__Id:                     "${WORKER_ID:-worker-01}"
+      Worker__PollIntervalSeconds:    "5"
+      Worker__TempDirectory:          "/app/tmp"
       Worker__StaleJobTimeoutMinutes: "30"
-      Worker__MaxRetries: "3"
-      Worker__StaleCheckEveryNPolls: "12"
+      Worker__MaxRetries:             "3"
+      Worker__StaleCheckEveryNPolls:  "12"
       Worker__HeartbeatIntervalSeconds: "30"
 
-      # Logging
       Serilog__MinimumLevel__Default: "Information"
     volumes:
-      # Stub sample video — replace path with a real sample.mp4 on the host
       - ${SAMPLE_VIDEO_HOST_PATH:-./VideoWorker/samples}:/app/samples:ro
-      # Ephemeral working directory for job temp files
+      # Shared with generation service — both containers see the same paths
       - generation-work:/app/tmp
     depends_on:
       - generation
 
-  # ── WanGP generation sidecar (stub/placeholder) ───────────────────────────────
-  # Replace this with the real WanGP container once the GPU spike is complete.
-  # The real service must expose POST /generate on port 8080 and return
-  # { "video_url": "..." } on success.
+  # ── WanGP generation adapter (Python / FastAPI) ───────────────────────────
   generation:
-    image: hashicorp/http-echo:latest
-    command: ["-text=stub generation service", "-listen=:8080"]
-    ports:
-      - "8080:8080"
+    build:
+      context: ./generation-container
+      dockerfile: Dockerfile
+      args:
+        # Pin WanGP to a specific commit for reproducibility.
+        # Update WANGP_COMMIT after validating a new WanGP release.
+        WANGP_COMMIT: "${WANGP_COMMIT:-main}"
     restart: unless-stopped
+    environment:
+      WANGP_OUTPUT_DIR: /app/tmp/wangp-out
+    volumes:
+      # Shared working directory — worker writes input files, adapter reads them
+      - generation-work:/app/tmp
+      # Persistent model weights — WanGP downloads to /wangp/models by default
+      - models:/wangp/models
+    ports:
+      - "8000:8000"
+    # GPU reservation — requires the NVIDIA Container Toolkit on the host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 volumes:
+  # Ephemeral shared workspace — cleared when stack is removed
   generation-work:
+    driver: local
+  # Persistent model storage — survives stack restarts
+  models:
     driver: local

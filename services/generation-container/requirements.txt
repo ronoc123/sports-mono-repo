@@ -1,0 +1,4 @@
+# Adapter dependencies only.
+# WanGP's own requirements.txt is installed separately during the Docker build.
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
