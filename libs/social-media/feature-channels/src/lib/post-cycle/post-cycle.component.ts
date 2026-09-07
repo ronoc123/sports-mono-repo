@@ -231,7 +231,7 @@ export class PostCycleComponent implements OnInit, OnDestroy {
   }
 
   cancel(): void {
-    this.router.navigate(['..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   onFileSelected(event: Event): void {

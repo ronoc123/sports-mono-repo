@@ -161,17 +161,15 @@ export class PostCycleStatusComponent implements OnInit, OnDestroy {
   }
 
   backToChannel(): void {
-    // From channels/:id/post-cycle/:jobId → channels/:id
-    this.router.navigate(['..', this.channelId], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   goToChannel(): void {
-    this.router.navigate(['..', this.channelId], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   newPostCycle(): void {
-    // From channels/:id/post-cycle/:jobId → channels/:id/post-cycle
-    this.router.navigate(['..', this.channelId, 'post-cycle'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId, 'post-cycle']);
   }
 
   retryPlatform(platform: string): void {

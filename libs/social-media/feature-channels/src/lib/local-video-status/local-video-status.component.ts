@@ -381,10 +381,7 @@ export class LocalVideoStatusComponent implements OnInit {
       });
 
       if (postCycleJobId) {
-        this.router.navigate(
-          ['..', '..', 'post-cycle', postCycleJobId],
-          { relativeTo: this.route }
-        );
+        this.router.navigate(['/channels', this.channelId, 'post-cycle', postCycleJobId]);
       }
     } finally {
       this.postingTarget.set(null);
@@ -392,10 +389,10 @@ export class LocalVideoStatusComponent implements OnInit {
   }
 
   backToChannel(): void {
-    this.router.navigate(['..', '..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   tryAgain(): void {
-    this.router.navigate(['..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId, 'local-video']);
   }
 }

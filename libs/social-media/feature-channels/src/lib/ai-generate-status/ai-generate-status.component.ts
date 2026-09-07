@@ -196,13 +196,11 @@ export class AiGenerateStatusComponent implements OnInit, OnDestroy {
   }
 
   backToChannel(): void {
-    // From channels/:id/ai-generate/:jobId → channels/:id
-    this.router.navigate(['..', '..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   tryAgain(): void {
-    // Navigate back to upload page
-    this.router.navigate(['..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId, 'ai-generate']);
   }
 
   onHashtagKeydown(event: KeyboardEvent): void {
@@ -237,7 +235,7 @@ export class AiGenerateStatusComponent implements OnInit, OnDestroy {
 
     if (postCycleJobId) {
       // Navigate to channels/:id/post-cycle/:postCycleJobId
-      this.router.navigate(['..', '..', 'post-cycle', postCycleJobId], { relativeTo: this.route });
+      this.router.navigate(['/channels', this.channelId, 'post-cycle', postCycleJobId]);
     }
   }
 }

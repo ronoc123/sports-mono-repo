@@ -293,7 +293,7 @@ export class LocalVideoComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   // --- Keyframes ---

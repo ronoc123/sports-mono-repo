@@ -132,18 +132,18 @@ export class ChannelFormComponent implements OnInit {
 
     if (this.channelId) {
       const success = await this.store.updateChannel(this.channelId, payload);
-      if (success) this.router.navigate(['..', this.channelId], { relativeTo: this.route });
+      if (success) this.router.navigate(['/channels', this.channelId]);
     } else {
       const newId = await this.store.createChannel(payload);
-      if (newId) this.router.navigate(['..', newId], { relativeTo: this.route });
+      if (newId) this.router.navigate(['/channels', newId]);
     }
   }
 
   cancel(): void {
     if (this.channelId) {
-      this.router.navigate(['..', this.channelId], { relativeTo: this.route });
+      this.router.navigate(['/channels', this.channelId]);
     } else {
-      this.router.navigate(['..'], { relativeTo: this.route });
+      this.router.navigate(['/channels']);
     }
   }
 }

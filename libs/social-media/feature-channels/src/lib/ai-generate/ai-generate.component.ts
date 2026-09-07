@@ -137,7 +137,7 @@ export class AiGenerateComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['..'], { relativeTo: this.route });
+    this.router.navigate(['/channels', this.channelId]);
   }
 
   async generate(): Promise<void> {
