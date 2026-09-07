@@ -7,3 +7,6 @@ export * from './lib/post-cycle.store';
 export * from './lib/video-generation.models';
 export * from './lib/video-generation.api';
 export * from './lib/video-generation.store';
+export * from './lib/render-job.models';
+export * from './lib/render-job.api';
+export * from './lib/render-job.store';

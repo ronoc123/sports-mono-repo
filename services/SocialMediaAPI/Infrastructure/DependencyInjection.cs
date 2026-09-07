@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Domain.Channel;
 using Domain.PostCycle;
 using Domain.Records;
+using Domain.RenderJob;
 using Domain.VideoGenerationJob;
 using Infrastructure.Adapters;
 using Infrastructure.Data;
@@ -9,6 +10,7 @@ using Infrastructure.OAuth;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Infrastructure.Settings;
+using Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -37,6 +39,10 @@ public static class DependencyInjection
         services.AddScoped<IPostRecordRepository, PostRecordRepository>();
         services.AddScoped<IPostCycleRepository, PostCycleRepository>();
         services.AddScoped<IVideoGenerationJobRepository, VideoGenerationJobRepository>();
+        services.AddScoped<IRenderJobRepository, RenderJobRepository>();
+
+        // R2 object storage (Cloudflare — S3-compatible)
+        services.AddSingleton<IR2StorageService, CloudflareR2StorageService>();
 
         // Encryption
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
@@ -124,6 +130,15 @@ public static class DependencyInjection
         if (!BsonClassMap.IsClassMapRegistered(typeof(VideoGenerationJob)))
         {
             BsonClassMap.RegisterClassMap<VideoGenerationJob>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIgnoreExtraElements(true);
+            });
+        }
+
+        if (!BsonClassMap.IsClassMapRegistered(typeof(RenderJob)))
+        {
+            BsonClassMap.RegisterClassMap<RenderJob>(cm =>
             {
                 cm.AutoMap();
                 cm.SetIgnoreExtraElements(true);

@@ -8,6 +8,8 @@ import { PostHistoryComponent } from './post-history/post-history.component';
 import { PostRecordDetailComponent } from './post-record-detail/post-record-detail.component';
 import { AiGenerateComponent } from './ai-generate/ai-generate.component';
 import { AiGenerateStatusComponent } from './ai-generate-status/ai-generate-status.component';
+import { LocalVideoComponent } from './local-video/local-video.component';
+import { LocalVideoStatusComponent } from './local-video-status/local-video-status.component';
 
 export const channelRoutes: Route[] = [
   { path: '', redirectTo: 'channels', pathMatch: 'full' },
@@ -24,6 +26,8 @@ export const channelRoutes: Route[] = [
       { path: ':id/history/:postId', component: PostRecordDetailComponent },
       { path: ':id/ai-generate', component: AiGenerateComponent },
       { path: ':id/ai-generate/:jobId', component: AiGenerateStatusComponent },
+      { path: ':id/local-video', component: LocalVideoComponent },
+      { path: ':id/local-video/:jobId', component: LocalVideoStatusComponent },
     ],
   },
 ];

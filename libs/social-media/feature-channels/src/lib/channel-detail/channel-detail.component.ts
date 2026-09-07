@@ -31,6 +31,7 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
           <div class="header-actions">
             <button class="btn-secondary" (click)="editChannel()">Edit Channel</button>
             <button class="btn-danger" (click)="confirmDelete()">Delete Channel</button>
+            <button class="btn-local" (click)="localVideo()">Local Video</button>
             <button class="btn-ai" (click)="generateAiVideo()">Generate AI Video</button>
             <button class="btn-primary" (click)="newPost()">New Post</button>
           </div>
@@ -239,6 +240,8 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     .btn-secondary { background: white; color: #333; border: 1px solid #ddd; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-secondary:hover { background: #f5f5f5; }
     .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-local { background: #2e7d32; color: white; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-local:hover { background: #1b5e20; }
     .btn-ai { background: #7c4dff; color: white; border: none; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-ai:hover { background: #6200ea; }
     .btn-danger { background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
@@ -351,6 +354,10 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
 
   generateAiVideo(): void {
     this.router.navigate(['ai-generate'], { relativeTo: this.route });
+  }
+
+  localVideo(): void {
+    this.router.navigate(['local-video'], { relativeTo: this.route });
   }
 
   viewHistory(): void {
