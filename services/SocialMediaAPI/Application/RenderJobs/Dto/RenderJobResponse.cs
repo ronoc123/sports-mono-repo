@@ -32,3 +32,8 @@ public class UploadAssetResponse
 {
     public string ObjectKey { get; set; } = string.Empty;
 }
+
+public class VideoUrlResponse
+{
+    public string Url { get; set; } = string.Empty;
+}

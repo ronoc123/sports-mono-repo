@@ -102,4 +102,19 @@ public class RenderJobRepository
 
         await Collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
     }
+
+    public async Task<List<RenderJob>> ListByChannelAsync(
+        string channelId,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<RenderJob>.Filter.Eq(j => j.ChannelId, channelId);
+        var sort   = Builders<RenderJob>.Sort.Descending(j => j.CreatedAt);
+        return await Collection.Find(filter).Sort(sort).Limit(50).ToListAsync(cancellationToken);
+    }
+
+    public async Task DeleteByIdAsync(string jobId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<RenderJob>.Filter.Eq(j => j.Id, jobId);
+        await Collection.DeleteOneAsync(filter, cancellationToken);
+    }
 }

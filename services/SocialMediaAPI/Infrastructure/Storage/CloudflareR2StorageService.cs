@@ -79,5 +79,10 @@ public class CloudflareR2StorageService : IR2StorageService, IDisposable
         return await Task.FromResult(_s3.GetPreSignedURL(request));
     }
 
+    public async Task DeleteAsync(string objectKey, CancellationToken cancellationToken = default)
+    {
+        await _s3.DeleteObjectAsync(_bucketName, objectKey, cancellationToken);
+    }
+
     public void Dispose() => _s3.Dispose();
 }

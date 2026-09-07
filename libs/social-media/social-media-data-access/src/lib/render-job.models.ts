@@ -20,6 +20,10 @@ export interface UploadAssetResponse {
   objectKey: string;
 }
 
+export interface VideoUrlResponse {
+  url: string;
+}
+
 export interface CreateRenderJobRequest {
   channelId: string;
   prompt: string;
@@ -42,6 +46,9 @@ export interface RenderJobState {
   uploadStatus: RenderJobStatus;
   createStatus: RenderJobStatus;
   currentJob: RenderJob | null;
+  channelJobs: RenderJob[];
+  channelJobsStatus: RenderJobStatus;
+  videoUrl: string | null;
   error: string | null;
 }
 
@@ -49,5 +56,8 @@ export const initialRenderJobState: RenderJobState = {
   uploadStatus: 'idle',
   createStatus: 'idle',
   currentJob: null,
+  channelJobs: [],
+  channelJobsStatus: 'idle',
+  videoUrl: null,
   error: null,
 };

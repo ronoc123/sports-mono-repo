@@ -21,4 +21,10 @@ public interface IRenderJobRepository : IRepository<RenderJob, string>
 
     /// <summary>Resets a job back to Pending and increments RetryCount.</summary>
     Task RequeueAsync(string jobId, CancellationToken cancellationToken = default);
+
+    /// <summary>Returns all jobs for a channel, newest first.</summary>
+    Task<List<RenderJob>> ListByChannelAsync(string channelId, CancellationToken cancellationToken = default);
+
+    /// <summary>Hard-deletes a job document.</summary>
+    Task DeleteByIdAsync(string jobId, CancellationToken cancellationToken = default);
 }

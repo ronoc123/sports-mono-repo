@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { ChannelStore } from '@sports-ui/social-media-data-access';
+import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-access';
 import { FormsModule } from '@angular/forms';
 import { environment } from '@sports-ui/api-types';
 
@@ -185,6 +185,44 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
           }
         </div>
 
+        <!-- Local Videos Section -->
+        <div class="section">
+          <div class="section-header">
+            <h2>Local Videos</h2>
+            <button class="btn-secondary btn-history"
+                    (click)="renderJobStore.loadChannelJobs(channelId)"
+                    [disabled]="renderJobStore.channelJobsStatus() === 'loading'">
+              Refresh
+            </button>
+          </div>
+
+          @if (renderJobStore.channelJobsStatus() === 'loading') {
+            <div class="empty-section"><p>Loading jobs...</p></div>
+          } @else if (renderJobStore.channelJobs().length === 0) {
+            <div class="empty-section">
+              <p>No local video jobs yet. Click "Local Video" to generate one on your GPU worker.</p>
+            </div>
+          } @else {
+            <div class="video-jobs-list">
+              @for (job of renderJobStore.channelJobs(); track job.id) {
+                <div class="video-job-item">
+                  <div class="video-job-info">
+                    <span class="job-status-badge job-status-badge--{{ job.status.toLowerCase() }}">
+                      {{ job.status }}
+                    </span>
+                    <span class="job-prompt">{{ job.prompt.length > 80 ? (job.prompt | slice:0:80) + '…' : job.prompt }}</span>
+                    <span class="job-date">{{ job.createdAt | date:'shortDate' }}</span>
+                  </div>
+                  <div class="video-job-actions">
+                    <button class="btn-secondary btn-sm" (click)="viewLocalVideo(job.id)">View</button>
+                    <button class="btn-danger-sm" (click)="confirmDeleteVideo(job.id)">Delete</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
         <div class="section">
           <div class="section-header">
             <h2>Post History</h2>
@@ -220,6 +258,21 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
               <button class="btn-secondary" (click)="cancelUnlink()">Cancel</button>
               <button class="btn-danger" (click)="executeUnlink()" [disabled]="store.isSaving()">
                 {{ store.isSaving() ? 'Unlinking...' : 'Unlink' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (deleteVideoTarget()) {
+        <div class="modal-overlay" (click)="cancelDeleteVideo()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h3>Delete Video Job</h3>
+            <p>This will permanently delete the video job and all associated files from R2 storage. This action cannot be undone.</p>
+            <div class="modal-actions">
+              <button class="btn-secondary" (click)="cancelDeleteVideo()">Cancel</button>
+              <button class="btn-danger" (click)="executeDeleteVideo()" [disabled]="deletingVideo()">
+                {{ deletingVideo() ? 'Deleting...' : 'Delete' }}
               </button>
             </div>
           </div>
@@ -309,10 +362,23 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     .modal h3 { margin: 0 0 12px; font-size: 20px; }
     .modal p { margin: 0 0 24px; color: #444; line-height: 1.5; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+    .video-jobs-list { display: flex; flex-direction: column; gap: 8px; }
+    .video-job-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid #e0e0e0; border-radius: 8px; gap: 12px; flex-wrap: wrap; }
+    .video-job-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; flex-wrap: wrap; }
+    .video-job-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .job-status-badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .job-status-badge--pending { background: #fff8e1; color: #f57f17; }
+    .job-status-badge--processing { background: #e3f2fd; color: #1565c0; }
+    .job-status-badge--completed { background: #e8f5e9; color: #2e7d32; }
+    .job-status-badge--failed { background: #ffebee; color: #c62828; }
+    .job-status-badge--timedout { background: #fce4ec; color: #880e4f; }
+    .job-prompt { font-size: 13px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .job-date { font-size: 12px; color: #999; white-space: nowrap; flex-shrink: 0; }
   `]
 })
 export class ChannelDetailComponent implements OnInit, OnDestroy {
   readonly store = inject(ChannelStore);
+  readonly renderJobStore = inject(RenderJobStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -321,12 +387,14 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
 
   readonly showDeleteConfirm = signal(false);
   readonly unlinkTarget = signal<string | null>(null);
+  readonly deleteVideoTarget = signal<string | null>(null);
+  readonly deletingVideo = signal(false);
   readonly oauthLinking = signal(false);
   readonly editingTemplate = signal(false);
   readonly charImageValidationError = signal<string | null>(null);
   templateDraft = '';
 
-  private channelId = '';
+  channelId = '';
   private oauthPollTimer: ReturnType<typeof setInterval> | null = null;
   private oauthPollCount = 0;
   private readonly maxPollCount = 60;
@@ -334,6 +402,7 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.channelId = this.route.snapshot.paramMap.get('id')!;
     this.store.loadChannel(this.channelId);
+    this.renderJobStore.loadChannelJobs(this.channelId);
   }
 
   ngOnDestroy(): void {
@@ -463,6 +532,29 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
     if (!id) return;
     const success = await this.store.deleteChannel(id);
     if (success) this.router.navigate(['..'], { relativeTo: this.route });
+  }
+
+  // --- Local Videos ---
+
+  viewLocalVideo(jobId: string): void {
+    this.router.navigate(['local-video', jobId], { relativeTo: this.route });
+  }
+
+  confirmDeleteVideo(jobId: string): void {
+    this.deleteVideoTarget.set(jobId);
+  }
+
+  cancelDeleteVideo(): void {
+    this.deleteVideoTarget.set(null);
+  }
+
+  async executeDeleteVideo(): Promise<void> {
+    const jobId = this.deleteVideoTarget();
+    if (!jobId) return;
+    this.deletingVideo.set(true);
+    await this.renderJobStore.deleteJob(jobId);
+    this.deletingVideo.set(false);
+    this.deleteVideoTarget.set(null);
   }
 
   // --- Unlink ---

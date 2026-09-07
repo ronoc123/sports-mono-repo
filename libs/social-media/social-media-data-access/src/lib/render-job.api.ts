@@ -5,6 +5,7 @@ import { environment } from '@sports-ui/api-types';
 import { ServiceResponse } from './channel.api';
 import {
   UploadAssetResponse,
+  VideoUrlResponse,
   CreateRenderJobRequest,
   CreateRenderJobResponse,
   RenderJob,
@@ -32,6 +33,25 @@ export class RenderJobApiService {
   getJob(jobId: string): Observable<ServiceResponse<RenderJob>> {
     return this.http.get<ServiceResponse<RenderJob>>(
       `${this.base}render-jobs/${jobId}`
+    );
+  }
+
+  listByChannel(channelId: string): Observable<ServiceResponse<RenderJob[]>> {
+    return this.http.get<ServiceResponse<RenderJob[]>>(
+      `${this.base}render-jobs`,
+      { params: { channelId } }
+    );
+  }
+
+  deleteJob(jobId: string): Observable<ServiceResponse<boolean>> {
+    return this.http.delete<ServiceResponse<boolean>>(
+      `${this.base}render-jobs/${jobId}`
+    );
+  }
+
+  getVideoUrl(jobId: string): Observable<ServiceResponse<VideoUrlResponse>> {
+    return this.http.get<ServiceResponse<VideoUrlResponse>>(
+      `${this.base}render-jobs/${jobId}/video-url`
     );
   }
 }

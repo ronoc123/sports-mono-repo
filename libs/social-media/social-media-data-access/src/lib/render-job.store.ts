@@ -22,88 +22,88 @@ export const RenderJobStore = signalStore(
     }),
   })),
 
-  withMethods((store, api = inject(RenderJobApiService)) => {
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-    let pollCount = 0;
-    const maxPollCount = 360; // 360 × 5s = 30 minutes
-
-    function stopPolling(): void {
-      if (pollTimer !== null) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-        pollCount = 0;
+  withMethods((store, api = inject(RenderJobApiService)) => ({
+    async uploadAsset(formData: FormData): Promise<string | null> {
+      patchState(store, { uploadStatus: 'loading', error: null });
+      try {
+        const res = await firstValueFrom(api.uploadAsset(formData));
+        patchState(store, { uploadStatus: 'success' });
+        return res.data.objectKey;
+      } catch (err: any) {
+        patchState(store, {
+          uploadStatus: 'error',
+          error: err?.error?.message ?? 'Failed to upload asset.',
+        });
+        return null;
       }
-    }
+    },
 
-    return {
-      async uploadAsset(formData: FormData): Promise<string | null> {
-        patchState(store, { uploadStatus: 'loading', error: null });
-        try {
-          const res = await firstValueFrom(api.uploadAsset(formData));
-          patchState(store, { uploadStatus: 'success' });
-          return res.data.objectKey;
-        } catch (err: any) {
-          patchState(store, {
-            uploadStatus: 'error',
-            error: err?.error?.message ?? 'Failed to upload asset.',
-          });
-          return null;
-        }
-      },
+    async createJob(req: CreateRenderJobRequest): Promise<string | null> {
+      patchState(store, { createStatus: 'loading', error: null });
+      try {
+        const res = await firstValueFrom(api.createJob(req));
+        patchState(store, { createStatus: 'success' });
+        return res.data.jobId;
+      } catch (err: any) {
+        patchState(store, {
+          createStatus: 'error',
+          error: err?.error?.message ?? 'Failed to create render job.',
+        });
+        return null;
+      }
+    },
 
-      async createJob(req: CreateRenderJobRequest): Promise<string | null> {
-        patchState(store, { createStatus: 'loading', error: null });
-        try {
-          const res = await firstValueFrom(api.createJob(req));
-          patchState(store, { createStatus: 'success' });
-          return res.data.jobId;
-        } catch (err: any) {
-          patchState(store, {
-            createStatus: 'error',
-            error: err?.error?.message ?? 'Failed to create render job.',
-          });
-          return null;
-        }
-      },
+    /** Single fetch — updates currentJob in state. */
+    async fetchJob(jobId: string): Promise<void> {
+      try {
+        const res = await firstValueFrom(api.getJob(jobId));
+        patchState(store, { currentJob: res.data });
+      } catch {
+        // ignore transient errors
+      }
+    },
 
-      startPolling(jobId: string): void {
-        stopPolling();
-        pollCount = 0;
+    async loadChannelJobs(channelId: string): Promise<void> {
+      patchState(store, { channelJobsStatus: 'loading' });
+      try {
+        const res = await firstValueFrom(api.listByChannel(channelId));
+        patchState(store, { channelJobs: res.data, channelJobsStatus: 'success' });
+      } catch {
+        patchState(store, { channelJobsStatus: 'error' });
+      }
+    },
 
-        pollTimer = setInterval(async () => {
-          pollCount++;
+    async deleteJob(jobId: string): Promise<boolean> {
+      try {
+        await firstValueFrom(api.deleteJob(jobId));
+        patchState(store, {
+          channelJobs: store.channelJobs().filter(j => j.id !== jobId),
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
 
-          if (pollCount >= maxPollCount) {
-            stopPolling();
-            const current = store.currentJob();
-            patchState(store, {
-              currentJob: current
-                ? { ...current, status: 'TimedOut' as const }
-                : null,
-            });
-            return;
-          }
+    async getVideoUrl(jobId: string): Promise<string | null> {
+      try {
+        const res = await firstValueFrom(api.getVideoUrl(jobId));
+        patchState(store, { videoUrl: res.data.url });
+        return res.data.url;
+      } catch {
+        return null;
+      }
+    },
 
-          try {
-            const res = await firstValueFrom(api.getJob(jobId));
-            patchState(store, { currentJob: res.data });
-
-            const terminal = ['Completed', 'Failed', 'TimedOut'];
-            if (terminal.includes(res.data.status)) {
-              stopPolling();
-            }
-          } catch {
-            // ignore transient errors during polling
-          }
-        }, 5000);
-      },
-
-      stopPolling,
-
-      resetJob(): void {
-        stopPolling();
-        patchState(store, initialRenderJobState);
-      },
-    };
-  })
+    /** Resets per-job state (upload/create/currentJob/videoUrl) without clearing channelJobs. */
+    resetJob(): void {
+      patchState(store, {
+        uploadStatus: 'idle',
+        createStatus: 'idle',
+        currentJob: null,
+        videoUrl: null,
+        error: null,
+      });
+    },
+  }))
 );

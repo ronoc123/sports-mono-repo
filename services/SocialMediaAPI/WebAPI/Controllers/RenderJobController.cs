@@ -5,6 +5,7 @@ using Contracts.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace SocialMediaAPI.Controllers;
 
@@ -62,7 +63,7 @@ public class RenderJobController : ControllerBase
     }
 
     /// <summary>
-    /// Poll the status of a render job.
+    /// Get the status of a render job.
     /// Status: Pending | Processing | Completed | Failed
     /// </summary>
     [HttpGet("{jobId}")]
@@ -71,6 +72,42 @@ public class RenderJobController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetRenderJobQuery(jobId), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// List all render jobs for a channel, newest first.
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<ServiceResponse<List<RenderJobResponse>>>> ListByChannel(
+        [FromQuery][Required] string channelId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new ListRenderJobsByChannelQuery(channelId), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Returns a 1-hour pre-signed URL for streaming the completed video from R2.
+    /// </summary>
+    [HttpGet("{jobId}/video-url")]
+    public async Task<ActionResult<ServiceResponse<VideoUrlResponse>>> GetVideoUrl(
+        string jobId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetRenderJobVideoUrlQuery(jobId), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Delete a render job and all associated R2 assets.
+    /// </summary>
+    [HttpDelete("{jobId}")]
+    public async Task<ActionResult<ServiceResponse<bool>>> Delete(
+        string jobId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new DeleteRenderJobCommand(jobId), cancellationToken);
         return Ok(result);
     }
 }

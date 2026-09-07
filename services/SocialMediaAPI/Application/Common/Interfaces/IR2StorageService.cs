@@ -12,4 +12,7 @@ public interface IR2StorageService
     /// <summary>Returns a time-limited presigned URL for direct access to an object.</summary>
     Task<string> GetPresignedUrlAsync(string objectKey, TimeSpan expiry,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Permanently deletes an object from R2. No-ops if the object does not exist.</summary>
+    Task DeleteAsync(string objectKey, CancellationToken cancellationToken = default);
 }
