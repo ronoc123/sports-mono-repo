@@ -1,174 +1,254 @@
 #!/usr/bin/env bash
-# vm-setup.sh
+# vm-setup.sh — RunPod Pod setup (NO Docker / Docker Compose)
 #
-# One-command setup for the GPU VM.
-# Installs Docker, NVIDIA Container Toolkit, clones the repo,
-# writes a .env, and starts the VideoWorker + WanGP containers.
+# A RunPod Pod is already a container — Docker Compose is not supported.
+# This script installs dependencies directly into /workspace (which persists
+# across Pod stop/start) and creates startup.sh to launch both services.
 #
-# The SocialMediaAPI runs on your LOCAL machine — not on this VM.
-# The VM only needs the video worker and the AI model.
+# Architecture on the Pod:
+#   FastAPI / WanGP  →  localhost:8000
+#   VideoWorker      →  polls MongoDB, calls localhost:8000, uploads to R2
 #
 # ── How to use ────────────────────────────────────────────────────────────────
 #
-#   1. SSH into your VM
-#   2. Paste and run the block below (fill in your real values first):
+#  1. In RunPod, add these as Pod environment variables (or use RunPod Secrets
+#     for the sensitive ones):
 #
-# export REPO_URL="https://github.com/your-username/sports-mono-repo.git"
-# export MONGODB_CONNECTION_STRING="mongodb+srv://kampermanconor_db_user:YOUR_PASSWORD@cluster0.qcize5z.mongodb.net/SocialMediaDb?retryWrites=true&w=majority&appName=Cluster0"
-# export R2_ACCOUNT_ID="21e609bb595ba48b08a0d100967c30de"
-# export R2_ACCESS_KEY="your-r2-access-key"
-# export R2_SECRET_KEY="your-r2-secret-key"
-# export R2_BUCKET_NAME="social-media-assets"
-# bash <(curl -fsSL https://raw.githubusercontent.com/your-username/sports-mono-repo/main/services/vm-setup.sh)
+#       MONGODB_CONNECTION_STRING   (Secret)
+#       R2_ACCESS_KEY               (Secret)
+#       R2_SECRET_KEY               (Secret)
+#       R2_ACCOUNT_ID
+#       R2_BUCKET_NAME              (default: social-media-assets)
+#       GITHUB_TOKEN                (Secret — only needed for private repo)
+#       REPO_URL                    (your GitHub repo URL)
+#       WANGP_COMMIT                (default: main)
+#       WORKER_ID                   (default: worker-runpod-01)
 #
-# ── Or if you already cloned the repo ─────────────────────────────────────────
+#  2. SSH into the Pod and run:
+#       bash /workspace/sports-mono-repo/services/vm-setup.sh
 #
-# export MONGODB_CONNECTION_STRING="..."  # (same vars as above)
-# bash /path/to/repo/services/vm-setup.sh
+#     Or if the repo isn't cloned yet, bootstrap with:
+#       export REPO_URL="https://github.com/your-username/sports-mono-repo.git"
+#       export GITHUB_TOKEN="ghp_..."   # only for private repos
+#       curl -fsSL "https://${GITHUB_TOKEN}@raw.githubusercontent.com/your-username/sports-mono-repo/main/services/vm-setup.sh" | bash
+#
+#  3. To start services:
+#       bash /workspace/startup.sh
 
 set -euo pipefail
 
+# ── Paths (all under /workspace so they survive Pod restarts) ─────────────────
+WORKSPACE="${WORKSPACE:-/workspace}"
+REPO_DIR="${REPO_DIR:-$WORKSPACE/sports-mono-repo}"
+VENV_DIR="$WORKSPACE/venv"
+WANGP_DIR="$WORKSPACE/wangp"
+MODELS_DIR="$WORKSPACE/models"
+WORKER_BIN="$WORKSPACE/videoworker-bin"
+DOTNET_DIR="$WORKSPACE/.dotnet"
+
 # ── Config ────────────────────────────────────────────────────────────────────
-REPO_DIR="${REPO_DIR:-/workspace/sports-mono-repo}"
-VIDEO_GENERATOR_TYPE="${VIDEO_GENERATOR_TYPE:-WanGP}"
-WORKER_ID="${WORKER_ID:-worker-vm-01}"
+WANGP_REPO="${WANGP_REPO:-https://github.com/deepbeepmeep/Wan2GP.git}"
 WANGP_COMMIT="${WANGP_COMMIT:-main}"
+WORKER_ID="${WORKER_ID:-worker-runpod-01}"
+DOTNET_VERSION="8.0"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 log()  { echo -e "\n\033[1;32m[setup]\033[0m $*"; }
 err()  { echo -e "\n\033[1;31m[error]\033[0m $*" >&2; exit 1; }
-step() { echo -e "\033[1;34m  →\033[0m $*"; }
 
-log "GPU Video Worker Setup"
-echo "  This installs Docker, NVIDIA Container Toolkit, and starts"
-echo "  the VideoWorker + WanGP generation containers."
-echo "  The SocialMediaAPI is NOT installed here — run that locally."
+log "RunPod GPU Worker Setup"
+echo "  Services:  FastAPI/WanGP + .NET VideoWorker"
+echo "  Storage:   /workspace (persists across Pod stop/start)"
 echo ""
 
-# ── Validate required vars ────────────────────────────────────────────────────
-: "${MONGODB_CONNECTION_STRING:?Export MONGODB_CONNECTION_STRING before running}"
-: "${R2_ACCOUNT_ID:?Export R2_ACCOUNT_ID before running}"
-: "${R2_ACCESS_KEY:?Export R2_ACCESS_KEY before running}"
-: "${R2_SECRET_KEY:?Export R2_SECRET_KEY before running}"
+# ── Validate required env vars ────────────────────────────────────────────────
+: "${MONGODB_CONNECTION_STRING:?Set MONGODB_CONNECTION_STRING in RunPod env vars or Secrets}"
+: "${R2_ACCOUNT_ID:?Set R2_ACCOUNT_ID in RunPod env vars}"
+: "${R2_ACCESS_KEY:?Set R2_ACCESS_KEY in RunPod Secrets}"
+: "${R2_SECRET_KEY:?Set R2_SECRET_KEY in RunPod Secrets}"
 R2_BUCKET_NAME="${R2_BUCKET_NAME:-social-media-assets}"
 
-# ── 1. System packages ────────────────────────────────────────────────────────
-log "Updating system packages..."
-apt-get update -qq
-apt-get install -y -qq curl git
-
-# ── 2. Docker ─────────────────────────────────────────────────────────────────
-if ! command -v docker &>/dev/null; then
-    log "Installing Docker..."
-    curl -fsSL https://get.docker.com | sh
-    usermod -aG docker "$USER" || true
-    log "Docker installed"
-else
-    log "Docker already installed — skipping"
-fi
-
-# docker compose v2 (plugin)
-if ! docker compose version &>/dev/null 2>&1; then
-    log "Installing docker compose plugin..."
-    apt-get install -y -qq docker-compose-plugin
-fi
-
-# ── 3. NVIDIA Container Toolkit ───────────────────────────────────────────────
-if ! dpkg -l 2>/dev/null | grep -q nvidia-container-toolkit; then
-    log "Installing NVIDIA Container Toolkit..."
-    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
-        | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
-        | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
-        | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-    apt-get update -qq
-    apt-get install -y -qq nvidia-container-toolkit
-    nvidia-ctk runtime configure --runtime=docker
-    systemctl restart docker
-    log "NVIDIA Container Toolkit installed"
-else
-    log "NVIDIA Container Toolkit already installed — skipping"
-fi
-
-# ── 4. Verify GPU ─────────────────────────────────────────────────────────────
+# ── 1. Verify GPU ─────────────────────────────────────────────────────────────
 log "Checking GPU..."
-if ! nvidia-smi &>/dev/null; then
-    err "nvidia-smi failed — make sure the NVIDIA driver is installed on this VM before running this script."
-fi
-nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader \
+    || err "nvidia-smi failed — is this a GPU Pod?"
 log "GPU OK"
 
-# ── 5. Clone or update repo ───────────────────────────────────────────────────
+# ── 2. System packages ────────────────────────────────────────────────────────
+log "Installing system packages..."
+apt-get update -qq
+apt-get install -y -qq \
+    curl git ffmpeg libgl1 libglib2.0-0 \
+    python3-pip python3-venv \
+    wget apt-transport-https
+
+# ── 3. .NET 8 runtime (installed into /workspace/.dotnet to survive restarts) ─
+log "Installing .NET $DOTNET_VERSION..."
+if [[ ! -f "$DOTNET_DIR/dotnet" ]]; then
+    mkdir -p "$DOTNET_DIR"
+    # Microsoft's install script — installs into DOTNET_INSTALL_DIR
+    curl -fsSL https://dot.net/v1/dotnet-install.sh \
+        | bash -s -- --channel "$DOTNET_VERSION" --install-dir "$DOTNET_DIR"
+    log ".NET installed to $DOTNET_DIR"
+else
+    log ".NET already installed — skipping"
+fi
+export DOTNET_ROOT="$DOTNET_DIR"
+export PATH="$DOTNET_DIR:$PATH"
+dotnet --version
+
+# ── 4. Clone or update repo ───────────────────────────────────────────────────
+log "Setting up repo..."
 if [[ -d "$REPO_DIR/.git" ]]; then
-    log "Repo already exists — pulling latest..."
+    log "Repo exists — pulling latest..."
+    # Use token for private repos if set
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        git -C "$REPO_DIR" remote set-url origin \
+            "$(git -C "$REPO_DIR" remote get-url origin | sed "s|https://|https://${GITHUB_TOKEN}@|")"
+    fi
     git -C "$REPO_DIR" pull --ff-only
 else
-    : "${REPO_URL:?Export REPO_URL (your GitHub repo URL) before running}"
+    : "${REPO_URL:?Set REPO_URL in RunPod env vars}"
+    # Inject token into URL for private repos
+    CLONE_URL="$REPO_URL"
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        CLONE_URL="${REPO_URL/https:\/\//https:\/\/${GITHUB_TOKEN}@}"
+    fi
     log "Cloning repo to $REPO_DIR..."
-    mkdir -p "$(dirname "$REPO_DIR")"
-    git clone "$REPO_URL" "$REPO_DIR"
+    git clone "$CLONE_URL" "$REPO_DIR"
 fi
 
-# ── 6. Write .env (VM only needs docker-compose vars) ─────────────────────────
-log "Writing .env..."
-cat > "$REPO_DIR/services/.env" <<EOF
-# Generated by vm-setup.sh — do not commit
-# VM only runs VideoWorker + WanGP. SocialMediaAPI runs on your local machine.
+# ── 5. Python venv + WanGP dependencies ──────────────────────────────────────
+log "Setting up Python venv..."
+if [[ ! -d "$VENV_DIR" ]]; then
+    python3 -m venv "$VENV_DIR"
+fi
+source "$VENV_DIR/bin/activate"
 
-MONGODB_CONNECTION_STRING=${MONGODB_CONNECTION_STRING}
-R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
-R2_ACCESS_KEY=${R2_ACCESS_KEY}
-R2_SECRET_KEY=${R2_SECRET_KEY}
-R2_BUCKET_NAME=${R2_BUCKET_NAME}
-VIDEO_GENERATOR_TYPE=${VIDEO_GENERATOR_TYPE}
-WORKER_ID=${WORKER_ID}
-WANGP_COMMIT=${WANGP_COMMIT}
-EOF
-chmod 600 "$REPO_DIR/services/.env"
-log ".env written"
+log "Installing PyTorch (CUDA 12.1)..."
+pip install --quiet torch==2.3.1 torchvision==0.18.1 \
+    --index-url https://download.pytorch.org/whl/cu121
 
-# ── 7. Create temp directory for video worker ─────────────────────────────────
-mkdir -p /tmp/video-worker
+# ── 6. Clone or update WanGP ─────────────────────────────────────────────────
+log "Setting up WanGP..."
+if [[ -d "$WANGP_DIR/.git" ]]; then
+    log "WanGP exists — updating..."
+    git -C "$WANGP_DIR" fetch
+    git -C "$WANGP_DIR" checkout "$WANGP_COMMIT"
+else
+    log "Cloning WanGP ($WANGP_COMMIT)..."
+    git clone "$WANGP_REPO" "$WANGP_DIR"
+    git -C "$WANGP_DIR" checkout "$WANGP_COMMIT"
+fi
 
-# ── 8. Start the video stack ──────────────────────────────────────────────────
-log "Building and starting containers..."
-echo "  First run downloads WanGP and the LTX model weights (~10-20 GB)."
-echo "  This can take a while — the worker won't process jobs until it's done."
+log "Installing WanGP Python dependencies..."
+pip install --quiet -r "$WANGP_DIR/requirements.txt" \
+    --extra-index-url https://download.pytorch.org/whl/cu121
+
+log "Installing FastAPI adapter dependencies..."
+pip install --quiet -r "$REPO_DIR/services/generation-container/requirements.txt"
+
+# ── 7. Publish VideoWorker ────────────────────────────────────────────────────
+log "Publishing VideoWorker..."
+dotnet publish "$REPO_DIR/services/VideoWorker" \
+    -c Release \
+    -o "$WORKER_BIN" \
+    --self-contained false \
+    -p:PublishSingleFile=false \
+    --nologo \
+    -v quiet
+log "VideoWorker published to $WORKER_BIN"
+
+# ── 8. Create model cache dir ─────────────────────────────────────────────────
+mkdir -p "$MODELS_DIR"
+mkdir -p "$WORKSPACE/tmp"
+
+# ── 9. Write startup.sh ───────────────────────────────────────────────────────
+log "Writing startup.sh..."
+cat > "$WORKSPACE/startup.sh" <<STARTUP
+#!/usr/bin/env bash
+# startup.sh — Start FastAPI/WanGP + VideoWorker on RunPod
+# Run this after vm-setup.sh:  bash /workspace/startup.sh
+
+set -euo pipefail
+
+WORKSPACE="${WORKSPACE}"
+VENV_DIR="${VENV_DIR}"
+WANGP_DIR="${WANGP_DIR}"
+MODELS_DIR="${MODELS_DIR}"
+WORKER_BIN="${WORKER_BIN}"
+DOTNET_DIR="${DOTNET_DIR}"
+REPO_DIR="${REPO_DIR}"
+
+export DOTNET_ROOT="\$DOTNET_DIR"
+export PATH="\$DOTNET_DIR:\$PATH"
+export WANGP_PATH="\$WANGP_DIR"
+export WANGP_OUTPUT_DIR="\$WORKSPACE/tmp/wangp-out"
+
+mkdir -p "\$WANGP_OUTPUT_DIR" "\$WORKSPACE/tmp"
+
+echo ""
+echo "Starting FastAPI / WanGP adapter on localhost:8000 ..."
+source "\$VENV_DIR/bin/activate"
+
+# Point WanGP at the persistent model directory
+export HF_HOME="\$MODELS_DIR"
+export TORCH_HOME="\$MODELS_DIR"
+
+cd "\$REPO_DIR/services/generation-container"
+uvicorn main:app \\
+    --host 127.0.0.1 \\
+    --port 8000 \\
+    --timeout-keep-alive 1800 \\
+    --log-level info &
+
+UVICORN_PID=\$!
+echo "  FastAPI PID: \$UVICORN_PID"
+
+# Wait for FastAPI to be ready before starting the worker
+echo "Waiting for FastAPI to be ready..."
+for i in \$(seq 1 30); do
+    if curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1; then
+        echo "  FastAPI ready"
+        break
+    fi
+    sleep 2
+done
+
+echo ""
+echo "Starting VideoWorker..."
+dotnet "\$WORKER_BIN/VideoWorker.dll" &
+WORKER_PID=\$!
+echo "  VideoWorker PID: \$WORKER_PID"
+
+echo ""
+echo "Both services running. Logs:"
+echo "  FastAPI health:  curl http://127.0.0.1:8000/health"
+echo "  Stop all:        kill \$UVICORN_PID \$WORKER_PID"
 echo ""
 
-cd "$REPO_DIR/services"
-docker compose -f docker-compose.video.yml pull 2>/dev/null || true
-docker compose -f docker-compose.video.yml up --build -d
+# Keep script alive and exit if either process dies
+wait -n \$UVICORN_PID \$WORKER_PID
+echo "A service exited — check logs above"
+STARTUP
 
-# ── 9. Summary ────────────────────────────────────────────────────────────────
-VM_IP=$(curl -s --max-time 3 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
+chmod +x "$WORKSPACE/startup.sh"
 
+# ── 10. Summary ───────────────────────────────────────────────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                    Setup Complete                            ║"
+echo "║               Setup Complete                                 ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  Running on this VM:                                         ║"
-echo "║    • VideoWorker  (polls MongoDB for jobs)                   ║"
-echo "║    • WanGP        (AI video generation on GPU)               ║"
+echo "║  Start services:                                             ║"
+echo "║    bash /workspace/startup.sh                                ║"
 echo "║                                                              ║"
-echo "║  Runs on your local machine:                                 ║"
-echo "║    • SocialMediaAPI   dotnet run                             ║"
-echo "║    • Angular frontend  npm start / nx serve                  ║"
-echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  Useful commands:                                            ║"
+echo "║  First job will trigger model download (~10-20 GB).         ║"
+echo "║  Watch progress:  curl http://127.0.0.1:8000/health          ║"
 echo "║                                                              ║"
-echo "║  Watch logs (model download progress):                       ║"
-printf "║    docker compose -f %s/services/          \n" "$REPO_DIR"
-echo "║        docker-compose.video.yml logs -f generation           ║"
-echo "║                                                              ║"
-echo "║  Check status:                                               ║"
-printf "║    docker compose -f %s/services/          \n" "$REPO_DIR"
-echo "║        docker-compose.video.yml ps                           ║"
-echo "║                                                              ║"
-echo "║  Update after git push:                                      ║"
-printf "║    git -C %s pull              \n" "$REPO_DIR"
-printf "║    docker compose -f %s/services/          \n" "$REPO_DIR"
-echo "║        docker-compose.video.yml up --build -d                ║"
+echo "║  After git push, update with:                                ║"
+echo "║    git -C /workspace/sports-mono-repo pull                   ║"
+echo "║    dotnet publish .../VideoWorker -c Release -o \$WORKER_BIN  ║"
+echo "║    bash /workspace/startup.sh                                ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
-log "Done! Submit a job from your local UI and watch it process."
+log "Run: bash /workspace/startup.sh"
