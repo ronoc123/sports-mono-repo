@@ -11,6 +11,8 @@ import {
   StartPostFromRenderJobRequest,
   StartPostCycleResponse,
   RenderJob,
+  IdeateVideoRequest,
+  IdeateVideoResponse,
 } from './render-job.models';
 
 @Injectable({ providedIn: 'root' })
@@ -60,6 +62,13 @@ export class RenderJobApiService {
   startPostFromRenderJob(jobId: string, req: StartPostFromRenderJobRequest): Observable<ServiceResponse<StartPostCycleResponse>> {
     return this.http.post<ServiceResponse<StartPostCycleResponse>>(
       `${this.base}render-jobs/${jobId}/post`,
+      req
+    );
+  }
+
+  ideate(req: IdeateVideoRequest): Observable<ServiceResponse<IdeateVideoResponse>> {
+    return this.http.post<ServiceResponse<IdeateVideoResponse>>(
+      `${this.base}render-jobs/ideate`,
       req
     );
   }

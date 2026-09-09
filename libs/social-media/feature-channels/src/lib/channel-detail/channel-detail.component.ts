@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-access';
 import { FormsModule } from '@angular/forms';
 import { environment } from '@sports-ui/api-types';
+import { Subscription } from 'rxjs';
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -397,15 +398,19 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
   private oauthPollTimer: ReturnType<typeof setInterval> | null = null;
   private oauthPollCount = 0;
   private readonly maxPollCount = 60;
+  private routeSub: Subscription | null = null;
 
   ngOnInit(): void {
-    this.channelId = this.route.snapshot.paramMap.get('id')!;
-    this.store.loadChannel(this.channelId);
-    this.renderJobStore.loadChannelJobs(this.channelId);
+    this.routeSub = this.route.paramMap.subscribe(params => {
+      this.channelId = params.get('id')!;
+      this.store.loadChannel(this.channelId);
+      this.renderJobStore.loadChannelJobs(this.channelId);
+    });
   }
 
   ngOnDestroy(): void {
     this.stopOAuthPoll();
+    this.routeSub?.unsubscribe();
   }
 
   backToList(): void {

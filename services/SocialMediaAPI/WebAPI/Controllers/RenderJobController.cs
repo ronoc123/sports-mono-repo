@@ -113,6 +113,26 @@ public class RenderJobController : ControllerBase
     }
 
     /// <summary>
+    /// Uses Claude to generate a video concept (prompt + 6 keyframe scenes) from a rough idea.
+    /// Passes the channel's character image and context automatically.
+    /// The result is intended to auto-fill the local video generation form.
+    /// </summary>
+    [HttpPost("ideate")]
+    public async Task<ActionResult<ServiceResponse<IdeateVideoResponse>>> Ideate(
+        [FromBody] IdeateVideoRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new IdeateVideoQuery(request.ChannelId, request.UserIdea),
+            cancellationToken);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Start a post cycle from a completed local render job.
     /// Downloads the video from R2 and kicks off the posting pipeline.
     /// </summary>
@@ -147,6 +167,12 @@ public class StartPostFromRenderJobRequest
     public List<string>? Hashtags { get; set; }
     /// <summary>When set, only this platform is posted to. Null = post to all linked accounts.</summary>
     public string? TargetPlatform { get; set; }
+}
+
+public class IdeateVideoRequest
+{
+    public string ChannelId { get; set; } = string.Empty;
+    public string UserIdea { get; set; } = string.Empty;
 }
 
 public class CreateRenderJobRequest

@@ -53,6 +53,16 @@ export interface StartPostCycleResponse {
   jobId: string;
 }
 
+export interface IdeateVideoRequest {
+  channelId: string;
+  userIdea: string;
+}
+
+export interface IdeateVideoResponse {
+  prompt: string;
+  scenes: string[];
+}
+
 export type RenderJobStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export interface RenderJobState {
@@ -64,6 +74,9 @@ export interface RenderJobState {
   videoUrl: string | null;
   postStatus: RenderJobStatus;
   postError: string | null;
+  ideateStatus: RenderJobStatus;
+  ideateResult: IdeateVideoResponse | null;
+  ideateError: string | null;
   error: string | null;
 }
 
@@ -76,5 +89,8 @@ export const initialRenderJobState: RenderJobState = {
   videoUrl: null,
   postStatus: 'idle',
   postError: null,
+  ideateStatus: 'idle',
+  ideateResult: null,
+  ideateError: null,
   error: null,
 };

@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-access';
 import { environment } from '@sports-ui/api-types';
@@ -15,7 +16,7 @@ interface StagedKeyframe {
 @Component({
   selector: 'lib-local-video',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="container">
       <div class="page-header">
@@ -49,6 +50,56 @@ interface StagedKeyframe {
           }
         } @else {
           <div class="loading-inline">Loading channel...</div>
+        }
+      </div>
+
+      <!-- Claude Ideation (optional) -->
+      <div class="step-section step-section--ideation">
+        <h2 class="step-title">
+          <span class="step-num step-num--ai">&#10022;</span>
+          Ideate with Claude <span class="optional-label">(Optional)</span>
+        </h2>
+        <p class="step-desc">Describe a rough idea and Claude will generate a detailed prompt and 6 keyframe scene descriptions using your channel's character and context. You can then apply it directly to the form below.</p>
+
+        <div class="form-group">
+          <label>Your rough idea</label>
+          <textarea class="form-control" rows="3"
+                    [(ngModel)]="ideaInput"
+                    placeholder="e.g. 'A day in the life morning routine, energetic and motivational'"></textarea>
+        </div>
+
+        <div class="ideation-actions">
+          <button class="btn-ai btn-sm"
+                  (click)="runIdeation()"
+                  [disabled]="!ideaInput.trim() || store.isIdeating()">
+            {{ store.isIdeating() ? 'Claude is thinking…' : 'Generate Concept' }}
+          </button>
+          @if (store.ideateStatus() === 'success' && store.ideateResult()) {
+            <button class="btn-apply btn-sm" (click)="applyIdeation()">
+              &#10003; Apply to Form
+            </button>
+          }
+        </div>
+
+        @if (store.ideateError()) {
+          <p class="error-msg">{{ store.ideateError() }}</p>
+        }
+
+        @if (store.ideateStatus() === 'success' && store.ideateResult(); as result) {
+          <div class="ideation-result">
+            <div class="ideation-result-section">
+              <div class="ideation-result-label">Overall Prompt</div>
+              <p class="ideation-result-prompt">{{ result.prompt }}</p>
+            </div>
+            <div class="ideation-result-section">
+              <div class="ideation-result-label">Keyframe Scenes</div>
+              <ol class="scene-list">
+                @for (scene of result.scenes; track $index) {
+                  <li class="scene-item">{{ scene }}</li>
+                }
+              </ol>
+            </div>
+          </div>
         }
       </div>
 
@@ -244,6 +295,22 @@ interface StagedKeyframe {
     .btn-local { background: #2e7d32; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-local:hover { background: #1b5e20; }
     .btn-local:disabled { opacity: 0.6; cursor: not-allowed; }
+    /* Ideation section */
+    .step-section--ideation { border-color: #d8b4fe; background: #faf5ff; }
+    .step-num--ai { background: #7c3aed; font-size: 15px; }
+    .btn-ai { background: #7c3aed; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-ai:hover { background: #6d28d9; }
+    .btn-ai:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-apply { background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-apply:hover { background: #047857; }
+    .ideation-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+    .ideation-result { margin-top: 18px; border: 1px solid #d8b4fe; border-radius: 8px; overflow: hidden; }
+    .ideation-result-section { padding: 14px 16px; }
+    .ideation-result-section + .ideation-result-section { border-top: 1px solid #e9d5ff; }
+    .ideation-result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #7c3aed; margin-bottom: 8px; }
+    .ideation-result-prompt { margin: 0; font-size: 14px; color: #1e1b4b; line-height: 1.6; }
+    .scene-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .scene-item { font-size: 13px; color: #374151; line-height: 1.5; }
   `]
 })
 export class LocalVideoComponent implements OnInit {
@@ -268,6 +335,7 @@ export class LocalVideoComponent implements OnInit {
 
   readonly generationError = signal<string | null>(null);
 
+  ideaInput = '';
   private channelId = '';
 
   ngOnInit(): void {
@@ -294,6 +362,19 @@ export class LocalVideoComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/channels', this.channelId]);
+  }
+
+  // --- Claude Ideation ---
+
+  async runIdeation(): Promise<void> {
+    if (!this.ideaInput.trim()) return;
+    await this.store.ideate({ channelId: this.channelId, userIdea: this.ideaInput.trim() });
+  }
+
+  applyIdeation(): void {
+    const result = this.store.ideateResult();
+    if (!result) return;
+    this.prompt.set(result.prompt);
   }
 
   // --- Keyframes ---

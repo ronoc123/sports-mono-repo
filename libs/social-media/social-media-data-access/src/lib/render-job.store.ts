@@ -7,6 +7,8 @@ import {
   initialRenderJobState,
   CreateRenderJobRequest,
   StartPostFromRenderJobRequest,
+  IdeateVideoRequest,
+  IdeateVideoResponse,
 } from './render-job.models';
 
 export const RenderJobStore = signalStore(
@@ -17,6 +19,7 @@ export const RenderJobStore = signalStore(
     isUploading: computed(() => state.uploadStatus() === 'loading'),
     isCreating: computed(() => state.createStatus() === 'loading'),
     isStartingPost: computed(() => state.postStatus() === 'loading'),
+    isIdeating: computed(() => state.ideateStatus() === 'loading'),
     isJobTerminal: computed(() => {
       const status = state.currentJob()?.status;
       return status !== undefined &&
@@ -112,6 +115,21 @@ export const RenderJobStore = signalStore(
       }
     },
 
+    async ideate(req: IdeateVideoRequest): Promise<IdeateVideoResponse | null> {
+      patchState(store, { ideateStatus: 'loading', ideateResult: null, ideateError: null });
+      try {
+        const res = await firstValueFrom(api.ideate(req));
+        patchState(store, { ideateStatus: 'success', ideateResult: res.data });
+        return res.data;
+      } catch (err: any) {
+        patchState(store, {
+          ideateStatus: 'error',
+          ideateError: err?.error?.message ?? 'Claude could not generate a concept. Please try again.',
+        });
+        return null;
+      }
+    },
+
     /** Resets per-job state (upload/create/currentJob/videoUrl/post) without clearing channelJobs. */
     resetJob(): void {
       patchState(store, {
@@ -121,6 +139,9 @@ export const RenderJobStore = signalStore(
         videoUrl: null,
         postStatus: 'idle',
         postError: null,
+        ideateStatus: 'idle',
+        ideateResult: null,
+        ideateError: null,
         error: null,
       });
     },

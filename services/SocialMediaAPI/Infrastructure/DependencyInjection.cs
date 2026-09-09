@@ -78,6 +78,12 @@ public static class DependencyInjection
         // Video generation orchestration
         services.AddScoped<IVideoGenerationOrchestrationService, VideoGenerationOrchestrationService>();
 
+        // Claude ideation (prompt + scene generation for local video flow)
+        services.AddHttpClient<IClaudeIdeationService, ClaudeIdeationService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
+
         // Background services
         services.AddHostedService<TempFileCleanupService>();
 
