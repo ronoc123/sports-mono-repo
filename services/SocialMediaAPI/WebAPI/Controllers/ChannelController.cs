@@ -152,6 +152,66 @@ public class ChannelController : ControllerBase
 
         return PhysicalFile(Path.GetFullPath(file), contentType);
     }
+
+    [HttpPost("{id}/audio")]
+    [RequestSizeLimit(52_428_800)]  // 50 MB
+    [RequestFormLimits(MultipartBodyLengthLimit = 52_428_800)]
+    public async Task<ActionResult<ServiceResponse<ChannelDetailResponse>>> UploadChannelAudio(
+        string id,
+        IFormFile audio,
+        CancellationToken cancellationToken)
+    {
+        if (audio is null || audio.Length == 0)
+            return BadRequest(ServiceResponse.Fail<ChannelDetailResponse>("No audio file provided."));
+
+        var ext = Path.GetExtension(audio.FileName).ToLowerInvariant();
+        if (ext is not (".mp3" or ".wav" or ".aac" or ".m4a" or ".ogg"))
+            return BadRequest(ServiceResponse.Fail<ChannelDetailResponse>("Audio must be MP3, WAV, AAC, M4A, or OGG."));
+
+        var audioDir = _configuration["ChannelAudio:Path"] ?? "channel-audio";
+        Directory.CreateDirectory(audioDir);
+
+        // Overwrite any previous audio for this channel
+        foreach (var old in Directory.GetFiles(audioDir, $"{id}.*"))
+            System.IO.File.Delete(old);
+
+        var audioPath = Path.Combine(audioDir, $"{id}{ext}");
+
+        await using (var stream = System.IO.File.Create(audioPath))
+        {
+            await audio.CopyToAsync(stream, cancellationToken);
+        }
+
+        var result = await _mediator.Send(
+            new UploadChannelAudioCommand(id, audioPath),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/audio")]
+    public IActionResult GetChannelAudio(string id)
+    {
+        var audioDir = _configuration["ChannelAudio:Path"] ?? "channel-audio";
+        if (!Directory.Exists(audioDir))
+            return NotFound();
+
+        var file = Directory.GetFiles(audioDir, $"{id}.*").FirstOrDefault();
+        if (file is null)
+            return NotFound();
+
+        var contentType = Path.GetExtension(file).ToLowerInvariant() switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".wav" => "audio/wav",
+            ".aac" => "audio/aac",
+            ".m4a" => "audio/mp4",
+            ".ogg" => "audio/ogg",
+            _ => "application/octet-stream"
+        };
+
+        return PhysicalFile(Path.GetFullPath(file), contentType);
+    }
 }
 
 public record CreateChannelRequest(string Name, string Description, string StyleToneContext);

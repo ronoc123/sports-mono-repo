@@ -53,6 +53,27 @@ interface StagedKeyframe {
         }
       </div>
 
+      <!-- Channel Context Audio (auto-used) -->
+      <div class="step-section">
+        <h2 class="step-title">
+          <span class="step-num">&#9654;</span>
+          Channel Context Audio
+        </h2>
+        @if (channelStore.selectedChannel(); as channel) {
+          @if (channel.contextAudioUrl) {
+            <p class="step-desc">Your channel's context audio will automatically be mixed into the final video.</p>
+            <div class="ref-audio-container">
+              <audio controls [src]="apiOrigin + channel.contextAudioUrl" class="ref-audio-player"></audio>
+              <div class="ref-image-footer">
+                <span class="ref-image-label">&#10003; Auto-mixing channel context audio</span>
+              </div>
+            </div>
+          } @else {
+            <p class="step-desc" style="color:#999">No context audio set for this channel — video will be generated without audio. You can add audio on the channel settings page.</p>
+          }
+        }
+      </div>
+
       <!-- Claude Ideation (optional) -->
       <div class="step-section step-section--ideation">
         <h2 class="step-title">
@@ -188,7 +209,8 @@ interface StagedKeyframe {
             <select class="form-control"
                     [value]="model()"
                     (change)="model.set($any($event.target).value)">
-              <option value="ltx-2.3">ltx-2.3</option>
+              <option value="ltx-2">LTX-2 19B (downloaded)</option>
+              <option value="ltx-2.3">LTX-2.3 22B distilled</option>
             </select>
           </div>
 
@@ -207,9 +229,11 @@ interface StagedKeyframe {
             <select class="form-control"
                     [value]="resolution()"
                     (change)="resolution.set($any($event.target).value)">
+              <option value="448x256">448×256 (256p — fastest test)</option>
+              <option value="640x360">640×360 (360p — fast)</option>
+              <option value="854x480">854×480 (SD)</option>
               <option value="1280x720">1280×720 (HD)</option>
               <option value="1920x1080">1920×1080 (Full HD)</option>
-              <option value="854x480">854×480 (SD)</option>
             </select>
           </div>
 
@@ -255,6 +279,8 @@ interface StagedKeyframe {
     .optional-label { font-size: 13px; font-weight: 400; color: #999; }
     .required { color: #d32f2f; }
     .loading-inline { color: #999; font-size: 14px; padding: 8px 0; }
+    .ref-audio-container { display: flex; flex-direction: column; border: 1px solid #c8e6c9; border-radius: 10px; overflow: hidden; max-width: 420px; }
+    .ref-audio-player { width: 100%; display: block; background: #f5f5f5; padding: 12px; box-sizing: border-box; }
     .ref-image-container { display: flex; flex-direction: column; border: 1px solid #c8e6c9; border-radius: 10px; overflow: hidden; max-width: 420px; }
     .ref-image { width: 100%; max-height: 240px; object-fit: contain; background: #f5f5f5; display: block; }
     .ref-image-footer { display: flex; align-items: center; padding: 10px 14px; background: #f1f8e9; border-top: 1px solid #c8e6c9; }
@@ -322,9 +348,9 @@ export class LocalVideoComponent implements OnInit {
   readonly apiOrigin = environment.apiUrl + environment.socialMediaApi.split('/api')[0];
 
   readonly prompt = signal('');
-  readonly model = signal('ltx-2.3');
-  readonly durationSeconds = signal(6);
-  readonly resolution = signal('1280x720');
+  readonly model = signal('ltx-2');
+  readonly durationSeconds = signal(2);
+  readonly resolution = signal('448x256');
   readonly aspectRatio = signal('16:9');
 
   readonly stagedKeyframes = signal<StagedKeyframe[]>([]);

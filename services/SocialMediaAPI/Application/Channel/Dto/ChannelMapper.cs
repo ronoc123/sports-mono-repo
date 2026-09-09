@@ -12,6 +12,9 @@ public static class ChannelMapper
         CharacterImageUrl = channel.CharacterImagePath != null
             ? $"/api/channels/{channel.Id}/image"
             : null,
+        ContextAudioUrl = channel.ContextAudioPath != null
+            ? $"/api/channels/{channel.Id}/audio"
+            : null,
         CreatedAt = channel.CreatedAt,
         LinkedAccounts = channel.LinkedAccounts.Select(a => new LinkedAccountResponse
         {

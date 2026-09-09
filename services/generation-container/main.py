@@ -5,7 +5,7 @@ A thin FastAPI service that wraps WanGP's Python API (shared/api.py).
 The .NET VideoWorker calls POST /generate with local file paths that are
 accessible to both containers via a shared Docker volume (/app/tmp).
 
-Verified against C:\Users\kampe\Wan2GP\shared\api.py:
+Verified against C:/Users/kampe/Wan2GP/shared/api.py:
 
     init(*, output_dir=...) -> WanGPSession
         output_dir sets where WanGP writes generated files (session-level).
@@ -33,8 +33,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-# WanGP is cloned to /wangp during the Docker build
-sys.path.insert(0, "/wangp")
+# WanGP location: /wangp in Docker, override with WANGP_PATH for local dev
+_wangp_path = os.environ.get("WANGP_PATH", "/wangp")
+sys.path.insert(0, _wangp_path)
 
 logger = logging.getLogger("generation-adapter")
 logging.basicConfig(
@@ -55,6 +56,8 @@ WANGP_OUTPUT_DIR = os.environ.get("WANGP_OUTPUT_DIR", "/app/tmp/wangp-out")
 
 # Map clean model IDs → WanGP internal model_type strings
 MODEL_TYPE_MAP: dict[str, str] = {
+    "ltx-2":             "ltx2_19B",
+    "ltx-2-dev":         "ltx2_19B",
     "ltx-2.3":           "ltx2_22B_distilled",
     "ltx-2.3-distilled": "ltx2_22B_distilled",
 }
@@ -92,12 +95,13 @@ app = FastAPI(title="WanGP Generation Adapter", lifespan=lifespan)
 
 class GenerateRequest(BaseModel):
     prompt: str
-    model: str = "ltx-2.3-distilled"
+    model: str = "ltx-2"
     width: int = 1280
     height: int = 720
     frame_count: int = 145       # frames; C# computes durationSeconds * 24 + 1
     reference_images: list[str] = []
     keyframes: list[str] = []
+    reference_video: str | None = None  # local path for video-to-video conditioning
     output_path: str             # absolute path on the shared volume
 
 
@@ -130,6 +134,10 @@ async def generate(req: GenerateRequest):
 
     if req.keyframes:
         settings["image_end"] = req.keyframes[-1]
+
+    if req.reference_video:
+        settings["video_start"] = req.reference_video
+        logger.info("v2v conditioning: video_start=%s", req.reference_video)
 
     logger.info(
         "Generating: model=%s %dx%d %d frames — %r",

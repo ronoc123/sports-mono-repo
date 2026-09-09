@@ -19,7 +19,8 @@ public record CreateRenderJobCommand(
     string AspectRatio,
     List<string> ReferenceImageKeys,
     List<string>? KeyframeKeys,
-    Dictionary<string, string>? ModelOptions
+    Dictionary<string, string>? ModelOptions,
+    string? ReferenceVideoKey
 ) : IRequest<ServiceResponse<CreateRenderJobResponse>>;
 
 public class CreateRenderJobCommandValidator : AbstractValidator<CreateRenderJobCommand>
@@ -81,11 +82,41 @@ public class CreateRenderJobCommandHandler
             KeyframeKeys = request.KeyframeKeys ?? new List<string>(),
             ModelOptions = request.ModelOptions ?? new Dictionary<string, string>(),
             OutputVideoKey = $"generation/{jobId}/output.mp4",
+            ReferenceVideoKey = request.ReferenceVideoKey,
         };
 
         await _repository.AddAsync(job, cancellationToken);
 
         return ServiceResponse.Ok(new CreateRenderJobResponse { JobId = job.Id });
+    }
+
+    private async Task<string?> TryUploadChannelAudioAsync(
+        string channelId,
+        string jobId,
+        CancellationToken cancellationToken)
+    {
+        var channel = await _channels.GetByIdAsync(channelId, cancellationToken);
+
+        if (channel?.ContextAudioPath is null || !File.Exists(channel.ContextAudioPath))
+            return null;
+
+        var ext = Path.GetExtension(channel.ContextAudioPath).ToLowerInvariant();
+        var contentType = ext switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".wav" => "audio/wav",
+            ".aac" => "audio/aac",
+            ".m4a" => "audio/mp4",
+            ".ogg" => "audio/ogg",
+            _      => "audio/mpeg",
+        };
+
+        var objectKey = $"generation/{jobId}/audio{ext}";
+
+        await using var stream = File.OpenRead(channel.ContextAudioPath);
+        await _storage.UploadAsync(objectKey, stream, contentType, cancellationToken);
+
+        return objectKey;
     }
 
     private async Task<List<string>> TryUploadChannelImageAsync(

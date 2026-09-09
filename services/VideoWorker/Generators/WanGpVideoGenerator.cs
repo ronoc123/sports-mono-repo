@@ -58,8 +58,11 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
         var frameCount      = DurationToFrameCount(request.DurationSeconds);
 
         _logger.LogInformation(
-            "WanGP: POST /generate (model={Model}, {Width}x{Height}, {FrameCount} frames, {RefCount} ref image(s))",
-            request.Model, width, height, frameCount, request.ReferenceImagePaths.Count);
+            "WanGP: POST /generate (model={Model}, {Width}x{Height}, {FrameCount} frames, {RefCount} ref image(s), v2v={HasReferenceVideo})",
+            request.Model, width, height, frameCount, request.ReferenceImagePaths.Count, request.VideoPath is not null);
+
+        if (request.VideoPath is not null)
+            _logger.LogInformation("WanGP: reference video for v2v conditioning: {VideoPath}", request.VideoPath);
 
         var body = new WanGpGenerateRequest
         {
@@ -70,6 +73,7 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
             FrameCount       = frameCount,
             ReferenceImages  = request.ReferenceImagePaths,
             Keyframes        = request.KeyframePaths,
+            ReferenceVideo   = request.VideoPath,
             OutputPath       = request.OutputPath,
         };
 
@@ -173,6 +177,8 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
         public int          FrameCount      { get; set; }
         public List<string> ReferenceImages { get; set; } = new();
         public List<string> Keyframes       { get; set; } = new();
+        /// <summary>Local path of a reference video for video-to-video conditioning (optional).</summary>
+        public string?      ReferenceVideo  { get; set; }
         /// <summary>Absolute path on the shared volume where the adapter must write the MP4.</summary>
         public string       OutputPath      { get; set; } = string.Empty;
     }

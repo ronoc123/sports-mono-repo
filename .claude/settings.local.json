@@ -49,7 +49,8 @@
       "WebFetch(domain:higgsfield.ai)",
       "Bash(cd \"C:/Users/kampe/source/sports-mono-repo\" && npx nx build social-media-ui 2>&1)",
       "Bash(where ffmpeg:*)",
-      "Bash(python3.10:*)"
+      "Bash(python3.10:*)",
+      "Bash(git:*)"
     ]
   }
 }

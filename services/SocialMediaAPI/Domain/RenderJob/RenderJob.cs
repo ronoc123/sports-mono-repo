@@ -44,6 +44,14 @@ public class RenderJob : Entity<string>
     [BsonElement("keyframeKeys")]
     public List<string> KeyframeKeys { get; set; } = new();
 
+    /// <summary>R2 object key of a previously generated video used as the video-to-video reference (optional).</summary>
+    [BsonElement("referenceVideoKey")]
+    public string? ReferenceVideoKey { get; set; }
+
+    /// <summary>R2 object key for the channel's context audio (optional). Mixed into the output video by the worker.</summary>
+    [BsonElement("contextAudioKey")]
+    public string? ContextAudioKey { get; set; }
+
     /// <summary>
     /// R2 object key where the worker will write the generated MP4.
     /// Computed by the backend at job creation time: generation/{jobId}/output.mp4

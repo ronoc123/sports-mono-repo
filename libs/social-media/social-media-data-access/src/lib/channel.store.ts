@@ -19,6 +19,7 @@ export const ChannelStore = signalStore(
     isSaving: computed(() => state.saveStatus() === 'loading'),
     hasChannels: computed(() => state.channels().length > 0),
     isUploadingImage: computed(() => state.imageUploadStatus() === 'loading'),
+    isUploadingAudio: computed(() => state.audioUploadStatus() === 'loading'),
   })),
 
   withMethods((store, api = inject(ChannelApiService)) => ({
@@ -125,6 +126,21 @@ export const ChannelStore = signalStore(
         patchState(store, {
           imageUploadStatus: 'error',
           imageUploadError: err?.error?.message ?? 'Failed to upload image.',
+        });
+        return false;
+      }
+    },
+
+    async uploadContextAudio(channelId: string, formData: FormData): Promise<boolean> {
+      patchState(store, { audioUploadStatus: 'loading', audioUploadError: null });
+      try {
+        const res = await firstValueFrom(api.uploadContextAudio(channelId, formData));
+        patchState(store, { audioUploadStatus: 'success', selectedChannel: res.data });
+        return true;
+      } catch (err: any) {
+        patchState(store, {
+          audioUploadStatus: 'error',
+          audioUploadError: err?.error?.message ?? 'Failed to upload audio.',
         });
         return false;
       }

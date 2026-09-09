@@ -43,6 +43,12 @@ public class RenderJobDocument
     [BsonElement("keyframeKeys")]
     public List<string> KeyframeKeys { get; set; } = new();
 
+    [BsonElement("contextAudioKey")]
+    public string? ContextAudioKey { get; set; }
+
+    [BsonElement("referenceVideoKey")]
+    public string? ReferenceVideoKey { get; set; }
+
     [BsonElement("outputVideoKey")]
     public string OutputVideoKey { get; set; } = string.Empty;
 

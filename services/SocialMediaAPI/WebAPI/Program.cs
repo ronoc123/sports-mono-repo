@@ -7,6 +7,10 @@ using System.Security.Cryptography;
 using Web;
 using Web.Web;
 
+// Load .env file from the services/ directory (two levels up from WebAPI/).
+// Safe to call even if the file doesn't exist (e.g. on the VM using OS env vars).
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Allow large video uploads (up to 2 GB)

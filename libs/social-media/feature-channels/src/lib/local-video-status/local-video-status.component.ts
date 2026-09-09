@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-access';
 
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+interface StagedKeyframe {
+  file: File;
+  previewUrl: string;
+}
+
 @Component({
   selector: 'lib-local-video-status',
   standalone: true,
@@ -112,6 +120,145 @@ import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-acces
                 </div>
               }
             </div>
+
+            <!-- Regenerate panel -->
+            @if (!showRegenForm()) {
+              <div class="regen-bar">
+                <button class="btn-regen" (click)="openRegenForm()">&#8635; Regenerate with Changes</button>
+                <span class="regen-bar-hint">Refine prompt, resolution, or model — uses this video as the generation starting point.</span>
+              </div>
+            } @else {
+              <div class="regen-panel">
+                <div class="regen-header">
+                  <span class="regen-title">Regenerate with Changes</span>
+                  <button class="btn-link" (click)="showRegenForm.set(false)">Cancel</button>
+                </div>
+
+                <div class="regen-info-pill">
+                  <span class="regen-info-icon">&#9654;</span>
+                  Using this video as the generation starting point (video-to-video)
+                </div>
+
+                <!-- Optional keyframe images -->
+                <div class="regen-section">
+                  <p class="regen-section-label">Keyframe Images <span class="optional-label">(Optional)</span></p>
+
+                  @if (keyframeUploadStatus() === 'done') {
+                    <div class="upload-done-banner">
+                      &#10003; {{ keyframeObjectKeys().length }} keyframe{{ keyframeObjectKeys().length !== 1 ? 's' : '' }} uploaded
+                    </div>
+                  } @else {
+                    @if (stagedKeyframes().length > 0) {
+                      <div class="keyframe-grid">
+                        @for (kf of stagedKeyframes(); track kf.previewUrl; let i = $index) {
+                          <div class="keyframe-thumb">
+                            <img [src]="kf.previewUrl" alt="Keyframe {{ i + 1 }}" class="keyframe-img">
+                            <button class="keyframe-remove" (click)="removeKeyframe(i)" title="Remove">&#10005;</button>
+                          </div>
+                        }
+                      </div>
+                    }
+
+                    <div class="upload-area upload-area--keyframe"
+                         [class.upload-area--over]="isKeyframeDragOver()"
+                         (click)="regenKeyframeInput.click()"
+                         (dragover)="onKeyframeDragOver($event)"
+                         (dragleave)="isKeyframeDragOver.set(false)"
+                         (drop)="onKeyframeDrop($event)">
+                      <div class="upload-placeholder">
+                        <span class="upload-icon">&#43;</span>
+                        <p>Click or drag images here to add keyframes</p>
+                        <span class="upload-hint">JPG, PNG, WEBP — up to 20 MB each</span>
+                      </div>
+                    </div>
+
+                    <input #regenKeyframeInput type="file" accept="image/jpeg,image/png,image/webp" multiple style="display:none"
+                           (change)="onKeyframeFilesSelected($event)">
+
+                    @if (keyframeValidationError()) {
+                      <p class="error-msg">{{ keyframeValidationError() }}</p>
+                    }
+
+                    @if (stagedKeyframes().length > 0) {
+                      <div class="keyframe-actions">
+                        <button class="btn-local btn-sm"
+                                (click)="uploadKeyframes()"
+                                [disabled]="keyframeUploadStatus() === 'uploading'">
+                          {{ keyframeUploadStatus() === 'uploading' ? 'Uploading…' : 'Upload Keyframes (' + stagedKeyframes().length + ')' }}
+                        </button>
+                        @if (keyframeUploadStatus() === 'error') {
+                          <p class="error-msg">Failed to upload keyframes. Please try again.</p>
+                        }
+                      </div>
+                    }
+                  }
+                </div>
+
+                <!-- Prompt -->
+                <div class="form-group">
+                  <label class="form-label">Prompt <span class="required">*</span></label>
+                  <textarea class="form-control" rows="4"
+                            [(ngModel)]="regenPrompt"
+                            placeholder="Describe the video you want to generate..."
+                            [disabled]="isRegenerating()"></textarea>
+                </div>
+
+                <!-- Model + Duration -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Model</label>
+                    <select class="form-control" [(ngModel)]="regenModel" [disabled]="isRegenerating()">
+                      <option value="ltx-2">LTX-2 19B</option>
+                      <option value="ltx-2.3">LTX-2.3 22B distilled</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Duration (seconds)</label>
+                    <input type="number" class="form-control" min="1" max="30"
+                           [(ngModel)]="regenDuration"
+                           [disabled]="isRegenerating()">
+                  </div>
+                </div>
+
+                <!-- Resolution + Aspect Ratio -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Resolution</label>
+                    <select class="form-control" [(ngModel)]="regenResolution" [disabled]="isRegenerating()">
+                      <option value="448x256">448×256 (256p — fastest test)</option>
+                      <option value="640x360">640×360 (360p — fast)</option>
+                      <option value="854x480">854×480 (SD)</option>
+                      <option value="1280x720">1280×720 (HD)</option>
+                      <option value="1920x1080">1920×1080 (Full HD)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Aspect Ratio</label>
+                    <select class="form-control" [(ngModel)]="regenAspectRatio" [disabled]="isRegenerating()">
+                      <option value="16:9">16:9 (Landscape)</option>
+                      <option value="9:16">9:16 (Portrait)</option>
+                      <option value="1:1">1:1 (Square)</option>
+                    </select>
+                  </div>
+                </div>
+
+                @if (regenError()) {
+                  <p class="error-msg">{{ regenError() }}</p>
+                }
+
+                <div class="regen-actions">
+                  <button class="btn-secondary" (click)="showRegenForm.set(false)" [disabled]="isRegenerating()">Cancel</button>
+                  <button class="btn-local"
+                          (click)="submitRegen()"
+                          [disabled]="!regenPrompt.trim() || isRegenerating() || keyframeUploadStatus() === 'uploading'">
+                    @if (isRegenerating()) {
+                      <span class="spinner spinner--sm spinner--white"></span>
+                    }
+                    {{ isRegenerating() ? 'Starting…' : 'Generate New Video' }}
+                  </button>
+                </div>
+              </div>
+            }
 
             <!-- Post to Social Media -->
             <div class="post-section">
@@ -244,8 +391,10 @@ import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-acces
     .btn-secondary { background: white; color: #333; border: 1px solid #ddd; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-secondary:hover { background: #f5f5f5; }
     .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-local { background: #2e7d32; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .btn-local { background: #2e7d32; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; }
     .btn-local:hover { background: #1b5e20; }
+    .btn-local:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-sm { padding: 8px 18px; font-size: 13px; }
     .success-panel { background: #f1f8e9; border: 1px solid #c8e6c9; }
     .success-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     .success-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #c8e6c9; color: #2e7d32; font-size: 18px; font-weight: bold; flex-shrink: 0; }
@@ -255,11 +404,43 @@ import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-acces
     .video-loading { display: flex; align-items: center; gap: 10px; padding: 20px; color: #555; font-size: 14px; }
     .video-placeholder { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; background: white; border: 1px solid #c8e6c9; border-radius: 8px; }
     .video-hint { margin: 0; font-size: 12px; color: #999; text-align: center; }
-    .job-meta { background: white; border: 1px solid #c8e6c9; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; }
+    .job-meta { background: white; border: 1px solid #c8e6c9; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
     .meta-row { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; flex-wrap: wrap; }
     .meta-row:last-child { border-bottom: none; }
     .meta-label { font-size: 13px; color: #777; min-width: 100px; }
     .meta-value { font-size: 13px; color: #333; font-weight: 500; }
+    /* Regen bar */
+    .regen-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 16px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; flex-wrap: wrap; }
+    .regen-bar-hint { font-size: 12px; color: #555; flex: 1; min-width: 0; }
+    .btn-regen { background: #1976d2; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap; flex-shrink: 0; }
+    .btn-regen:hover { background: #1565c0; }
+    /* Regen panel */
+    .regen-panel { background: white; border: 1px solid #90caf9; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    .regen-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .regen-title { font-size: 16px; font-weight: 600; color: #1a237e; }
+    .regen-info-pill { display: flex; align-items: center; gap: 8px; background: #e3f2fd; border: 1px solid #90caf9; border-radius: 20px; padding: 7px 14px; font-size: 13px; color: #1565c0; margin-bottom: 16px; width: fit-content; }
+    .regen-info-icon { font-size: 11px; }
+    .regen-section { margin-bottom: 16px; }
+    .regen-section-label { font-size: 13px; font-weight: 600; color: #444; margin: 0 0 8px; }
+    .optional-label { font-size: 12px; font-weight: 400; color: #999; }
+    .regen-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e3f2fd; }
+    /* Keyframe upload */
+    .keyframe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .keyframe-thumb { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #c8e6c9; }
+    .keyframe-img { width: 100%; height: 90px; object-fit: cover; display: block; background: #f0f0f0; }
+    .keyframe-remove { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.55); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .keyframe-remove:hover { background: rgba(211,47,47,0.85); }
+    .upload-area { border: 2px dashed #a5d6a7; border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #f9fbe7; }
+    .upload-area:hover { border-color: #2e7d32; background: #f1f8e9; }
+    .upload-area--over { border-color: #2e7d32; background: #f1f8e9; }
+    .upload-area--keyframe { padding: 18px 16px; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .upload-icon { font-size: 28px; color: #43a047; }
+    .upload-placeholder p { margin: 0; font-size: 14px; color: #555; }
+    .upload-hint { color: #999; font-size: 12px; }
+    .keyframe-actions { margin-top: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .upload-done-banner { display: flex; align-items: center; gap: 8px; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2e7d32; font-weight: 500; }
+    /* Post section */
     .post-section { background: white; border: 1px solid #c8e6c9; border-radius: 8px; padding: 20px; }
     .post-section-title { margin: 0 0 16px; font-size: 17px; color: #1a1a1a; }
     .form-group { margin-bottom: 14px; }
@@ -270,6 +451,8 @@ import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-acces
     .form-control:focus { outline: none; border-color: #1976d2; }
     .form-control:disabled { background: #f5f5f5; color: #999; cursor: not-allowed; }
     textarea.form-control { resize: vertical; }
+    select.form-control { appearance: auto; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .accounts-loading { display: flex; align-items: center; gap: 10px; padding: 16px 0; color: #666; font-size: 14px; }
     .no-accounts-msg { display: flex; align-items: center; gap: 8px; padding: 14px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; font-size: 14px; color: #5d4037; margin-top: 8px; }
     .no-accounts-icon { font-size: 16px; flex-shrink: 0; }
@@ -309,9 +492,26 @@ export class LocalVideoStatusComponent implements OnInit {
   /** 'all' = posting to all accounts; platform name = posting to that single account; null = idle */
   readonly postingTarget = signal<string | null>(null);
 
+  // Regenerate panel signals
+  readonly showRegenForm = signal(false);
+  readonly regenError = signal<string | null>(null);
+  readonly isRegenerating = signal(false);
+  readonly isKeyframeDragOver = signal(false);
+  readonly keyframeUploadStatus = signal<'idle' | 'uploading' | 'done' | 'error'>('idle');
+  readonly keyframeValidationError = signal<string | null>(null);
+  readonly stagedKeyframes = signal<StagedKeyframe[]>([]);
+  readonly keyframeObjectKeys = signal<string[]>([]);
+
   postTitle = '';
   postDescription = '';
   postHashtags = '';
+
+  // Regenerate form plain properties (ngModel)
+  regenPrompt = '';
+  regenModel = 'ltx-2.3';
+  regenDuration = 5;
+  regenResolution = '1280x720';
+  regenAspectRatio = '16:9';
 
   private jobId = '';
   private channelId = '';
@@ -385,6 +585,133 @@ export class LocalVideoStatusComponent implements OnInit {
       }
     } finally {
       this.postingTarget.set(null);
+    }
+  }
+
+  // --- Regenerate panel ---
+
+  openRegenForm(): void {
+    const job = this.store.currentJob();
+    if (!job) return;
+    this.regenPrompt = job.prompt;
+    this.regenModel = job.model ?? 'ltx-2.3';
+    this.regenDuration = job.durationSeconds ?? 5;
+    this.regenResolution = job.resolution ?? '1280x720';
+    this.regenAspectRatio = job.aspectRatio ?? '16:9';
+    // Reset keyframe state for a fresh panel
+    this.stagedKeyframes.set([]);
+    this.keyframeObjectKeys.set([]);
+    this.keyframeUploadStatus.set('idle');
+    this.keyframeValidationError.set(null);
+    this.regenError.set(null);
+    this.showRegenForm.set(true);
+  }
+
+  // --- Keyframe upload ---
+
+  onKeyframeDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isKeyframeDragOver.set(true);
+  }
+
+  onKeyframeDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isKeyframeDragOver.set(false);
+    const files = event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : [];
+    if (files.length > 0) this.addKeyframeFiles(files);
+  }
+
+  onKeyframeFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    input.value = '';
+    if (files.length > 0) this.addKeyframeFiles(files);
+  }
+
+  private addKeyframeFiles(files: File[]): void {
+    this.keyframeValidationError.set(null);
+    const toAdd: StagedKeyframe[] = [];
+    for (const file of files) {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        this.keyframeValidationError.set(`"${file.name}" is not an accepted image type (JPG, PNG, WEBP).`);
+        continue;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        this.keyframeValidationError.set(`"${file.name}" exceeds the 20 MB limit.`);
+        continue;
+      }
+      toAdd.push({ file, previewUrl: URL.createObjectURL(file) });
+    }
+    if (toAdd.length > 0) {
+      this.stagedKeyframes.update(prev => [...prev, ...toAdd]);
+    }
+  }
+
+  removeKeyframe(index: number): void {
+    this.stagedKeyframes.update(prev => {
+      const copy = [...prev];
+      URL.revokeObjectURL(copy[index].previewUrl);
+      copy.splice(index, 1);
+      return copy;
+    });
+  }
+
+  async uploadKeyframes(): Promise<void> {
+    this.keyframeUploadStatus.set('uploading');
+    const objectKeys: string[] = [];
+    for (const staged of this.stagedKeyframes()) {
+      const formData = new FormData();
+      formData.append('file', staged.file, staged.file.name);
+      const key = await this.store.uploadAsset(formData);
+      if (!key) {
+        this.keyframeUploadStatus.set('error');
+        return;
+      }
+      objectKeys.push(key);
+    }
+    this.keyframeObjectKeys.set(objectKeys);
+    this.keyframeUploadStatus.set('done');
+  }
+
+  async submitRegen(): Promise<void> {
+    if (!this.regenPrompt.trim() || this.isRegenerating()) return;
+
+    const job = this.store.currentJob();
+    if (!job) return;
+
+    this.regenError.set(null);
+    this.isRegenerating.set(true);
+
+    try {
+      // Upload any staged keyframes that haven't been uploaded yet
+      if (this.stagedKeyframes().length > 0 && this.keyframeUploadStatus() !== 'done') {
+        await this.uploadKeyframes();
+        if (this.keyframeUploadStatus() === 'error') {
+          this.regenError.set('Failed to upload keyframes. Please try again.');
+          return;
+        }
+      }
+
+      const newJobId = await this.store.createJob({
+        channelId: this.channelId,
+        prompt: this.regenPrompt.trim(),
+        model: this.regenModel,
+        durationSeconds: this.regenDuration,
+        resolution: this.regenResolution,
+        aspectRatio: this.regenAspectRatio,
+        referenceImageKeys: [],
+        keyframeKeys: this.keyframeObjectKeys(),
+        modelOptions: {},
+        referenceVideoKey: job.outputVideoKey ?? null,
+      });
+
+      if (newJobId) {
+        this.router.navigate(['/channels', this.channelId, 'local-video', newJobId]);
+      } else {
+        this.regenError.set('Failed to create regeneration job. Please try again.');
+      }
+    } finally {
+      this.isRegenerating.set(false);
     }
   }
 

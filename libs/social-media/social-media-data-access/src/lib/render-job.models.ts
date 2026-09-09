@@ -34,6 +34,8 @@ export interface CreateRenderJobRequest {
   referenceImageKeys: string[];
   keyframeKeys: string[];
   modelOptions: Record<string, string>;
+  /** R2 key of a completed video to use as the video-to-video starting point (optional). */
+  referenceVideoKey?: string | null;
 }
 
 export interface CreateRenderJobResponse {

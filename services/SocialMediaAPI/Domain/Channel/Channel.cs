@@ -24,6 +24,9 @@ public class Channel : Aggregate<string>
     [BsonElement("characterImagePath")]
     public string? CharacterImagePath { get; set; }
 
+    [BsonElement("contextAudioPath")]
+    public string? ContextAudioPath { get; set; }
+
     public void AddLinkedAccount(LinkedAccount account)
     {
         LinkedAccounts.RemoveAll(a => a.Platform == account.Platform);

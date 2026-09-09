@@ -4,6 +4,10 @@ using VideoWorker.Abstractions;
 using VideoWorker.Generators;
 using VideoWorker.Infrastructure;
 
+// Load .env file from the services/ directory (two levels up from VideoWorker/).
+// Safe to call even if the file doesn't exist (e.g. on the VM using OS env vars).
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = Host.CreateApplicationBuilder(args);
 
 // HttpClient factory — used by WanGpVideoGenerator

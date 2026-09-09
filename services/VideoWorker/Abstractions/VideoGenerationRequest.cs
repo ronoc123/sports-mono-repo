@@ -13,6 +13,9 @@ public class VideoGenerationRequest
     /// <summary>Local file paths of keyframe images downloaded from R2 (may be empty).</summary>
     public List<string> KeyframePaths { get; set; } = new();
 
+    /// <summary>Local path of a reference video downloaded from R2 for video-to-video conditioning (optional).</summary>
+    public string? VideoPath { get; set; }
+
     public int DurationSeconds { get; set; }
 
     /// <summary>e.g. "1280x720"</summary>

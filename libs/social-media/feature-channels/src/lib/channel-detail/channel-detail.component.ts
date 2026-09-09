@@ -8,6 +8,8 @@ import { Subscription } from 'rxjs';
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
+const ACCEPTED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/aac', 'audio/mp4', 'audio/ogg'];
 
 @Component({
   selector: 'lib-channel-detail',
@@ -136,6 +138,59 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
           }
           @if (store.imageUploadStatus() === 'success' && channel.characterImageUrl) {
             <p class="success-msg">Character image updated.</p>
+          }
+        </div>
+
+        <!-- Context Audio Section -->
+        <div class="section">
+          <div class="section-header">
+            <h2>Context Audio</h2>
+          </div>
+          <p class="section-desc">
+            This audio track is automatically mixed into every local video you generate for this channel.
+          </p>
+
+          @if (channel.contextAudioUrl) {
+            <div class="audio-container">
+              <audio controls [src]="apiOrigin + channel.contextAudioUrl" class="audio-player"></audio>
+              <div class="audio-footer">
+                <span class="audio-label">Current context audio</span>
+                <button class="btn-secondary btn-sm"
+                        (click)="audioInput.click()"
+                        [disabled]="store.isUploadingAudio()">
+                  {{ store.isUploadingAudio() ? 'Uploading…' : 'Replace Audio' }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="upload-area"
+                 (click)="audioInput.click()"
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onAudioDrop($event)">
+              <div class="upload-placeholder">
+                @if (store.isUploadingAudio()) {
+                  <span class="uploading-indicator"></span>
+                  <p>Uploading...</p>
+                } @else {
+                  <span class="upload-icon">&#127925;</span>
+                  <p>Click or drag an audio file here</p>
+                  <span class="upload-hint">MP3, WAV, AAC, M4A, OGG — up to 50 MB</span>
+                }
+              </div>
+            </div>
+          }
+
+          <input #audioInput type="file" accept="audio/mpeg,audio/wav,audio/aac,audio/mp4,audio/ogg" style="display:none"
+                 (change)="onAudioFileSelected($event)">
+
+          @if (audioValidationError()) {
+            <p class="error-msg">{{ audioValidationError() }}</p>
+          }
+          @if (store.audioUploadStatus() === 'error') {
+            <p class="error-msg">{{ store.audioUploadError() }}</p>
+          }
+          @if (store.audioUploadStatus() === 'success' && channel.contextAudioUrl) {
+            <p class="success-msg">Context audio updated.</p>
           }
         </div>
 
@@ -374,6 +429,10 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     .job-status-badge--timedout { background: #fce4ec; color: #880e4f; }
     .job-prompt { font-size: 13px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
     .job-date { font-size: 12px; color: #999; white-space: nowrap; flex-shrink: 0; }
+    .audio-container { display: flex; flex-direction: column; gap: 0; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; max-width: 480px; }
+    .audio-player { width: 100%; display: block; background: #f5f5f5; padding: 12px; box-sizing: border-box; }
+    .audio-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #fafafa; border-top: 1px solid #e0e0e0; }
+    .audio-label { font-size: 13px; color: #777; }
   `]
 })
 export class ChannelDetailComponent implements OnInit, OnDestroy {
@@ -392,6 +451,7 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
   readonly oauthLinking = signal(false);
   readonly editingTemplate = signal(false);
   readonly charImageValidationError = signal<string | null>(null);
+  readonly audioValidationError = signal<string | null>(null);
   templateDraft = '';
 
   channelId = '';
@@ -461,6 +521,36 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('image', file, file.name);
     this.store.uploadCharacterImage(this.channelId, formData);
+  }
+
+  // --- Context audio ---
+
+  onAudioFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+    if (file) this.uploadAudio(file);
+  }
+
+  onAudioDrop(event: DragEvent): void {
+    event.preventDefault();
+    const file = event.dataTransfer?.files[0] ?? null;
+    if (file) this.uploadAudio(file);
+  }
+
+  private uploadAudio(file: File): void {
+    this.audioValidationError.set(null);
+    if (!ACCEPTED_AUDIO_TYPES.includes(file.type)) {
+      this.audioValidationError.set('Only MP3, WAV, AAC, M4A, and OGG files are accepted.');
+      return;
+    }
+    if (file.size > MAX_AUDIO_BYTES) {
+      this.audioValidationError.set('Audio must be 50 MB or smaller.');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('audio', file, file.name);
+    this.store.uploadContextAudio(this.channelId, formData);
   }
 
   // --- Prompt template ---

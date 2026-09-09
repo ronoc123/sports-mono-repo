@@ -24,6 +24,7 @@ export interface ChannelDetail {
   createdAt: string | null;
   promptTemplate?: string;
   characterImageUrl?: string;
+  contextAudioUrl?: string;
 }
 
 export interface CreateChannelRequest {
@@ -51,6 +52,8 @@ export interface ChannelState {
   promptTemplateSaveError: string | null;
   imageUploadStatus: ChannelStatus;
   imageUploadError: string | null;
+  audioUploadStatus: ChannelStatus;
+  audioUploadError: string | null;
 }
 
 export const initialChannelState: ChannelState = {
@@ -64,4 +67,6 @@ export const initialChannelState: ChannelState = {
   promptTemplateSaveError: null,
   imageUploadStatus: 'idle',
   imageUploadError: null,
+  audioUploadStatus: 'idle',
+  audioUploadError: null,
 };

@@ -68,10 +68,18 @@ public class JobProcessor
             foreach (var key in job.KeyframeKeys)
                 keyframePaths.Add(await _r2.DownloadToLocalAsync(key, tempDir, cancellationToken));
 
-            _logger.LogInformation("Assets downloaded: {RefCount} reference image(s), {FrameCount} keyframe(s)",
-                refImagePaths.Count, keyframePaths.Count);
+            // 3. Download reference video from R2 for video-to-video conditioning (optional)
+            string? referenceVideoPath = null;
+            if (!string.IsNullOrEmpty(job.ReferenceVideoKey))
+            {
+                referenceVideoPath = await _r2.DownloadToLocalAsync(job.ReferenceVideoKey, tempDir, cancellationToken);
+                _logger.LogInformation("Reference video downloaded for v2v conditioning: {VideoPath}", referenceVideoPath);
+            }
 
-            // 3. Build generator request
+            _logger.LogInformation("Assets downloaded: {RefCount} reference image(s), {FrameCount} keyframe(s), referenceVideo={HasRefVideo}",
+                refImagePaths.Count, keyframePaths.Count, referenceVideoPath is not null);
+
+            // 5. Build generator request
             var outputPath = Path.Combine(tempDir, "output.mp4");
             var request = new VideoGenerationRequest
             {
@@ -79,6 +87,7 @@ public class JobProcessor
                 Model               = job.Model,
                 ReferenceImagePaths = refImagePaths,
                 KeyframePaths       = keyframePaths,
+                VideoPath           = referenceVideoPath,
                 DurationSeconds     = job.DurationSeconds,
                 Resolution          = job.Resolution,
                 AspectRatio         = job.AspectRatio,
@@ -86,7 +95,7 @@ public class JobProcessor
                 ModelOptions        = job.ModelOptions,
             };
 
-            // 4. Generate
+            // 6. Generate
             _logger.LogInformation("Generation starting...");
             var result = await _generator.GenerateAsync(request, cancellationToken);
 
@@ -101,11 +110,11 @@ public class JobProcessor
             _logger.LogInformation("Generation complete in {ElapsedSeconds:F1}s: {VideoPath}",
                 elapsed.TotalSeconds, result.VideoPath);
 
-            // 5. Upload MP4 to R2
+            // 7. Upload MP4 to R2
             await _r2.UploadFromLocalAsync(result.VideoPath!, job.OutputVideoKey, "video/mp4", cancellationToken);
             _logger.LogInformation("Result uploaded to R2: {Key}", job.OutputVideoKey);
 
-            // 6. Mark Completed
+            // 8. Mark Completed
             await _jobQueue.MarkCompletedAsync(job.Id, job.OutputVideoKey, cancellationToken);
 
             _logger.LogInformation("Job completed. Total wall-clock: {ElapsedSeconds:F1}s",
@@ -150,6 +159,51 @@ public class JobProcessor
                 _logger.LogWarning(ex, "Failed to write heartbeat for job {JobId}", jobId);
             }
         }
+    }
+
+    /// <summary>
+    /// Uses FFmpeg to mix context audio into the generated video.
+    /// Audio is trimmed to the video's duration. Returns the path to the mixed output.
+    /// </summary>
+    private async Task<string> MixAudioAsync(
+        string videoPath,
+        string audioPath,
+        string tempDir,
+        CancellationToken cancellationToken)
+    {
+        var mixedPath = Path.Combine(tempDir, "output_with_audio.mp4");
+
+        // -c:v copy  — no video re-encode
+        // -c:a aac   — encode audio to AAC for MP4 container compatibility
+        // -map 0:v:0 — take video stream from first input
+        // -map 1:a:0 — take audio stream from second input
+        // -shortest  — stop when the shortest stream ends (trims audio to video length)
+        var args = $"-y -i \"{videoPath}\" -i \"{audioPath}\" -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 -shortest \"{mixedPath}\"";
+
+        using var process = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName               = "ffmpeg",
+                Arguments              = args,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true,
+            }
+        };
+
+        process.Start();
+        var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+
+        if (process.ExitCode != 0)
+        {
+            _logger.LogWarning("FFmpeg audio mix failed (exit {Code}): {Stderr}", process.ExitCode, stderr);
+            // Fall back to the original video without audio rather than failing the job
+            return videoPath;
+        }
+
+        return mixedPath;
     }
 
     private async Task TryMarkFailedAsync(string jobId, string error)

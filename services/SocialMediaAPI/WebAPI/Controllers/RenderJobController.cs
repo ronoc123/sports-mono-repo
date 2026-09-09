@@ -57,7 +57,8 @@ public class RenderJobController : ControllerBase
                 request.AspectRatio,
                 request.ReferenceImageKeys,
                 request.KeyframeKeys,
-                request.ModelOptions),
+                request.ModelOptions,
+                request.ReferenceVideoKey),
             cancellationToken);
 
         return Ok(result);
@@ -186,4 +187,6 @@ public class CreateRenderJobRequest
     public List<string> ReferenceImageKeys { get; set; } = new();
     public List<string>? KeyframeKeys { get; set; }
     public Dictionary<string, string>? ModelOptions { get; set; }
+    /// <summary>R2 key of an existing generated video to use as the video-to-video starting point.</summary>
+    public string? ReferenceVideoKey { get; set; }
 }

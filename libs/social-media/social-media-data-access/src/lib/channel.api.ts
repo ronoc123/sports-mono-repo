@@ -66,4 +66,11 @@ export class ChannelApiService {
       formData
     );
   }
+
+  uploadContextAudio(id: string, formData: FormData): Observable<ServiceResponse<ChannelDetail>> {
+    return this.http.post<ServiceResponse<ChannelDetail>>(
+      `${this.base}/${id}/audio`,
+      formData
+    );
+  }
 }
