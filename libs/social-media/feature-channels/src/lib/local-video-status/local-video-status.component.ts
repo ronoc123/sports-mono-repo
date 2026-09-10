@@ -208,8 +208,16 @@ interface StagedKeyframe {
                   <div class="form-group">
                     <label class="form-label">Model</label>
                     <select class="form-control" [(ngModel)]="regenModel" [disabled]="isRegenerating()">
-                      <option value="ltx-2">LTX-2 19B</option>
-                      <option value="ltx-2.3">LTX-2.3 22B distilled</option>
+                      <optgroup label="Wan 2.1 (Recommended)">
+                        <option value="wan-i2v">Wan 2.1 i2v 480p — image-to-video 14B</option>
+                        <option value="wan-i2v-720p">Wan 2.1 i2v 720p — image-to-video 14B</option>
+                        <option value="wan-t2v">Wan 2.1 t2v — text-to-video 14B</option>
+                        <option value="wan-t2v-1.3b">Wan 2.1 t2v 1.3B — fast / low VRAM</option>
+                      </optgroup>
+                      <optgroup label="LTX Video">
+                        <option value="ltx-2">LTX-2 19B</option>
+                        <option value="ltx-2.3">LTX-2.3 22B distilled</option>
+                      </optgroup>
                     </select>
                   </div>
                   <div class="form-group">
@@ -508,7 +516,7 @@ export class LocalVideoStatusComponent implements OnInit {
 
   // Regenerate form plain properties (ngModel)
   regenPrompt = '';
-  regenModel = 'ltx-2.3';
+  regenModel = 'wan-i2v';
   regenDuration = 5;
   regenResolution = '1280x720';
   regenAspectRatio = '16:9';

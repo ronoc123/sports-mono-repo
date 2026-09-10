@@ -55,7 +55,14 @@ except ImportError as exc:
 WANGP_OUTPUT_DIR = os.environ.get("WANGP_OUTPUT_DIR", "/app/tmp/wangp-out")
 
 # Map clean model IDs → WanGP internal model_type strings
+# Wan 2.1 model_type keys verified from Wan2GP/wgp.py model_signatures dict.
 MODEL_TYPE_MAP: dict[str, str] = {
+    # ── Wan 2.1 (recommended) ─────────────────────────────────────────────────
+    "wan-i2v":           "i2v",        # image-to-video 14B 480p  (best for character ref images)
+    "wan-i2v-720p":      "i2v_720p",   # image-to-video 14B 720p  (higher quality, more VRAM)
+    "wan-t2v":           "t2v",        # text-to-video 14B
+    "wan-t2v-1.3b":      "t2v_1.3B",  # text-to-video 1.3B       (fast, lower VRAM)
+    # ── LTX Video ─────────────────────────────────────────────────────────────
     "ltx-2":             "ltx2_19B",
     "ltx-2-dev":         "ltx2_19B",
     "ltx-2.3":           "ltx2_22B_distilled",

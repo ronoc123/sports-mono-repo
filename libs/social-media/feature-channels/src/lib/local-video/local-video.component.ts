@@ -209,8 +209,16 @@ interface StagedKeyframe {
             <select class="form-control"
                     [value]="model()"
                     (change)="model.set($any($event.target).value)">
-              <option value="ltx-2">LTX-2 19B (downloaded)</option>
-              <option value="ltx-2.3">LTX-2.3 22B distilled</option>
+              <optgroup label="Wan 2.1 (Recommended)">
+                <option value="wan-i2v">Wan 2.1 i2v 480p — image-to-video 14B</option>
+                <option value="wan-i2v-720p">Wan 2.1 i2v 720p — image-to-video 14B</option>
+                <option value="wan-t2v">Wan 2.1 t2v — text-to-video 14B</option>
+                <option value="wan-t2v-1.3b">Wan 2.1 t2v 1.3B — fast / low VRAM</option>
+              </optgroup>
+              <optgroup label="LTX Video">
+                <option value="ltx-2">LTX-2 19B</option>
+                <option value="ltx-2.3">LTX-2.3 22B distilled</option>
+              </optgroup>
             </select>
           </div>
 
@@ -348,7 +356,7 @@ export class LocalVideoComponent implements OnInit {
   readonly apiOrigin = environment.apiUrl + environment.socialMediaApi.split('/api')[0];
 
   readonly prompt = signal('');
-  readonly model = signal('ltx-2');
+  readonly model = signal('wan-i2v');
   readonly durationSeconds = signal(2);
   readonly resolution = signal('448x256');
   readonly aspectRatio = signal('16:9');
