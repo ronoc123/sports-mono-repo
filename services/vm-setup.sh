@@ -336,6 +336,20 @@ fi
 
 echo ""
 echo "Starting VideoWorker..."
+
+# ASP.NET Core reads config from env vars where __ maps to the : separator.
+# RunPod sets flat names (MONGODB_CONNECTION_STRING etc.) so we translate them
+# here.  These are also needed because appsettings.json defaults VideoGenerator
+# to Stub mode and points WanGP at the Docker hostname, not localhost.
+export MongoDB__ConnectionString="\${MONGODB_CONNECTION_STRING}"
+export CloudflareR2__AccountId="\${R2_ACCOUNT_ID}"
+export CloudflareR2__AccessKey="\${R2_ACCESS_KEY}"
+export CloudflareR2__SecretKey="\${R2_SECRET_KEY}"
+export CloudflareR2__BucketName="\${R2_BUCKET_NAME:-social-media-assets}"
+export VideoGenerator__Type="WanGp"
+export VideoGenerator__WanGp__ApiUrl="http://127.0.0.1:8000"
+export Worker__Id="\${WORKER_ID:-worker-runpod-01}"
+
 dotnet "\$WORKER_BIN/VideoWorker.dll" &
 WORKER_PID=\$!
 echo "  VideoWorker PID: \$WORKER_PID"
