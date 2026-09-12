@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,6 +7,62 @@ import { environment } from '@sports-ui/api-types';
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+/** Valid pixel dimensions for each model. Aspect ratio is encoded in the dimensions. */
+const MODEL_RESOLUTIONS: Record<string, { value: string; label: string }[]> = {
+  'wan-i2v': [
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '480x832',  label: '480×832  — 480p 9:16' },
+    { value: '624x624',  label: '624×624  — 480p 1:1'  },
+  ],
+  'wan-i2v-720p': [
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+    { value: '960x960',  label: '960×960  — 720p 1:1'  },
+  ],
+  'wan-t2v': [
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '480x832',  label: '480×832  — 480p 9:16' },
+    { value: '624x624',  label: '624×624  — 480p 1:1'  },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+  'wan-t2v-1.3b': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+  ],
+  'ltx-2': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '360x640',  label: '360×640  — 360p 9:16' },
+    { value: '854x480',  label: '854×480  — 480p 16:9' },
+    { value: '480x854',  label: '480×854  — 480p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+  'ltx-2.3': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '360x640',  label: '360×640  — 360p 9:16' },
+    { value: '854x480',  label: '854×480  — 480p 16:9' },
+    { value: '480x854',  label: '480×854  — 480p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+};
+
+const MODEL_DEFAULT_RESOLUTION: Record<string, string> = {
+  'wan-i2v':      '832x480',
+  'wan-i2v-720p': '1280x720',
+  'wan-t2v':      '832x480',
+  'wan-t2v-1.3b': '448x256',
+  'ltx-2':        '448x256',
+  'ltx-2.3':      '448x256',
+};
 
 interface StagedKeyframe {
   file: File;
@@ -32,11 +88,16 @@ interface StagedKeyframe {
         </h2>
         @if (channelStore.selectedChannel(); as channel) {
           @if (channel.characterImageUrl) {
-            <p class="step-desc">Your channel's character reference image will automatically be sent to the GPU worker as visual context.</p>
-            <div class="ref-image-container">
+            <p class="step-desc">Your channel's character reference image can be sent to the GPU worker as visual context.</p>
+            <div class="ref-image-container" [class.ref-image-container--disabled]="!useReferenceImage()">
               <img [src]="apiOrigin + channel.characterImageUrl" alt="Channel character reference" class="ref-image">
               <div class="ref-image-footer">
-                <span class="ref-image-label">&#10003; Auto-using channel character image</span>
+                <label class="ref-image-toggle">
+                  <input type="checkbox"
+                         [checked]="useReferenceImage()"
+                         (change)="useReferenceImage.set($any($event.target).checked)">
+                  {{ useReferenceImage() ? '&#10003; Send character image to model' : 'Character image disabled for this job' }}
+                </label>
               </div>
             </div>
           } @else {
@@ -208,7 +269,7 @@ interface StagedKeyframe {
             <label>Model</label>
             <select class="form-control"
                     [value]="model()"
-                    (change)="model.set($any($event.target).value)">
+                    (change)="onModelChange($any($event.target).value)">
               <optgroup label="Wan 2.1 (Recommended)">
                 <option value="wan-i2v">Wan 2.1 i2v 480p — image-to-video 14B</option>
                 <option value="wan-i2v-720p">Wan 2.1 i2v 720p — image-to-video 14B</option>
@@ -231,30 +292,15 @@ interface StagedKeyframe {
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Resolution</label>
-            <select class="form-control"
-                    [value]="resolution()"
-                    (change)="resolution.set($any($event.target).value)">
-              <option value="448x256">448×256 (256p — fastest test)</option>
-              <option value="640x360">640×360 (360p — fast)</option>
-              <option value="854x480">854×480 (SD)</option>
-              <option value="1280x720">1280×720 (HD)</option>
-              <option value="1920x1080">1920×1080 (Full HD)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Aspect Ratio</label>
-            <select class="form-control"
-                    [value]="aspectRatio()"
-                    (change)="aspectRatio.set($any($event.target).value)">
-              <option value="16:9">16:9 (Landscape)</option>
-              <option value="9:16">9:16 (Portrait)</option>
-              <option value="1:1">1:1 (Square)</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label>Resolution</label>
+          <select class="form-control"
+                  [value]="resolution()"
+                  (change)="resolution.set($any($event.target).value)">
+            @for (r of availableResolutions(); track r.value) {
+              <option [value]="r.value">{{ r.label }}</option>
+            }
+          </select>
         </div>
 
         @if (generationError()) {
@@ -293,6 +339,8 @@ interface StagedKeyframe {
     .ref-image { width: 100%; max-height: 240px; object-fit: contain; background: #f5f5f5; display: block; }
     .ref-image-footer { display: flex; align-items: center; padding: 10px 14px; background: #f1f8e9; border-top: 1px solid #c8e6c9; }
     .ref-image-label { font-size: 13px; color: #2e7d32; font-weight: 500; }
+    .ref-image-container--disabled { opacity: 0.45; }
+    .ref-image-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #2e7d32; font-weight: 500; user-select: none; }
     .no-ref-image-warning { display: flex; gap: 12px; align-items: flex-start; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 14px 16px; }
     .warning-icon { font-size: 20px; color: #f57f17; flex-shrink: 0; }
     .no-ref-image-warning strong { display: block; font-size: 14px; color: #e65100; margin-bottom: 4px; }
@@ -358,8 +406,12 @@ export class LocalVideoComponent implements OnInit {
   readonly prompt = signal('');
   readonly model = signal('wan-i2v');
   readonly durationSeconds = signal(2);
-  readonly resolution = signal('448x256');
-  readonly aspectRatio = signal('16:9');
+  readonly resolution = signal(MODEL_DEFAULT_RESOLUTION['wan-i2v']);
+
+  /** Resolution options valid for the currently selected model. */
+  readonly availableResolutions = computed(() =>
+    MODEL_RESOLUTIONS[this.model()] ?? MODEL_RESOLUTIONS['wan-i2v']
+  );
 
   readonly stagedKeyframes = signal<StagedKeyframe[]>([]);
   readonly keyframeObjectKeys = signal<string[]>([]);
@@ -367,6 +419,7 @@ export class LocalVideoComponent implements OnInit {
   readonly keyframeValidationError = signal<string | null>(null);
   readonly isKeyframeDragOver = signal(false);
 
+  readonly useReferenceImage = signal(true);
   readonly generationError = signal<string | null>(null);
 
   ideaInput = '';
@@ -396,6 +449,21 @@ export class LocalVideoComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/channels', this.channelId]);
+  }
+
+  // --- Model / resolution ---
+
+  onModelChange(newModel: string): void {
+    this.model.set(newModel);
+    const options = MODEL_RESOLUTIONS[newModel] ?? [];
+    if (!options.find(r => r.value === this.resolution())) {
+      this.resolution.set(MODEL_DEFAULT_RESOLUTION[newModel] ?? options[0]?.value ?? '832x480');
+    }
+  }
+
+  private aspectRatioFromResolution(resolution: string): string {
+    const [w, h] = resolution.split('x').map(Number);
+    return w > h ? '16:9' : h > w ? '9:16' : '1:1';
   }
 
   // --- Claude Ideation ---
@@ -495,10 +563,11 @@ export class LocalVideoComponent implements OnInit {
       model: this.model(),
       durationSeconds: this.durationSeconds(),
       resolution: this.resolution(),
-      aspectRatio: this.aspectRatio(),
+      aspectRatio: this.aspectRatioFromResolution(this.resolution()),
       referenceImageKeys: [],
       keyframeKeys: this.keyframeObjectKeys(),
       modelOptions: {},
+      useChannelImage: this.useReferenceImage(),
     });
 
     if (jobId) {

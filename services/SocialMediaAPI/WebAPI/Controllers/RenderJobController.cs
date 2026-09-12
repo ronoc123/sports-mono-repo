@@ -58,7 +58,8 @@ public class RenderJobController : ControllerBase
                 request.ReferenceImageKeys,
                 request.KeyframeKeys,
                 request.ModelOptions,
-                request.ReferenceVideoKey),
+                request.ReferenceVideoKey,
+                request.UseChannelImage),
             cancellationToken);
 
         return Ok(result);
@@ -189,4 +190,9 @@ public class CreateRenderJobRequest
     public Dictionary<string, string>? ModelOptions { get; set; }
     /// <summary>R2 key of an existing generated video to use as the video-to-video starting point.</summary>
     public string? ReferenceVideoKey { get; set; }
+    /// <summary>
+    /// When false the backend will NOT auto-upload the channel's character image even if
+    /// ReferenceImageKeys is empty.  Defaults to true.
+    /// </summary>
+    public bool UseChannelImage { get; set; } = true;
 }

@@ -20,7 +20,8 @@ public record CreateRenderJobCommand(
     List<string> ReferenceImageKeys,
     List<string>? KeyframeKeys,
     Dictionary<string, string>? ModelOptions,
-    string? ReferenceVideoKey
+    string? ReferenceVideoKey,
+    bool UseChannelImage = true
 ) : IRequest<ServiceResponse<CreateRenderJobResponse>>;
 
 public class CreateRenderJobCommandValidator : AbstractValidator<CreateRenderJobCommand>
@@ -62,11 +63,13 @@ public class CreateRenderJobCommandHandler
     {
         var jobId = ObjectId.GenerateNewId().ToString();
 
-        // If the caller did not supply reference image keys, auto-upload the
-        // channel's character image (stored locally on the API server) to R2.
+        // Auto-upload the channel's character image when the caller has no explicit
+        // reference image keys AND has not opted out via UseChannelImage=false.
         var referenceKeys = request.ReferenceImageKeys.Count > 0
             ? request.ReferenceImageKeys
-            : await TryUploadChannelImageAsync(request.ChannelId, jobId, cancellationToken);
+            : request.UseChannelImage
+                ? await TryUploadChannelImageAsync(request.ChannelId, jobId, cancellationToken)
+                : new List<string>();
 
         var job = new RenderJob
         {

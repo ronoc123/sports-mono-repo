@@ -348,7 +348,9 @@ export CloudflareR2__SecretKey="\${R2_SECRET_KEY}"
 export CloudflareR2__BucketName="\${R2_BUCKET_NAME:-social-media-assets}"
 export VideoGenerator__Type="WanGp"
 export VideoGenerator__WanGp__ApiUrl="http://127.0.0.1:8000"
+export VideoGenerator__WanGp__TimeoutSeconds="7200"
 export Worker__Id="\${WORKER_ID:-worker-runpod-01}"
+export Worker__StaleJobTimeoutMinutes="120"
 
 dotnet "\$WORKER_BIN/VideoWorker.dll" &
 WORKER_PID=\$!

@@ -36,6 +36,11 @@ export interface CreateRenderJobRequest {
   modelOptions: Record<string, string>;
   /** R2 key of a completed video to use as the video-to-video starting point (optional). */
   referenceVideoKey?: string | null;
+  /**
+   * When false the backend will NOT auto-upload the channel's character image as a
+   * reference image even if no referenceImageKeys are provided.  Defaults to true.
+   */
+  useChannelImage?: boolean;
 }
 
 export interface CreateRenderJobResponse {
