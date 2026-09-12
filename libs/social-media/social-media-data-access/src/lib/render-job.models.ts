@@ -24,21 +24,25 @@ export interface VideoUrlResponse {
   url: string;
 }
 
+export interface CreateRenderJobClipRequest {
+  prompt: string;
+  /** R2 key for the clip's start frame (image_start). Omit to use the channel image. */
+  startImageKey?: string | null;
+  /** R2 key for the clip's end frame (image_end). Omit for no end-frame guidance. */
+  endImageKey?: string | null;
+}
+
 export interface CreateRenderJobRequest {
   channelId: string;
-  prompt: string;
   model: string;
   durationSeconds: number;
   resolution: string;
   aspectRatio: string;
-  referenceImageKeys: string[];
-  keyframeKeys: string[];
-  modelOptions: Record<string, string>;
-  /** R2 key of a completed video to use as the video-to-video starting point (optional). */
-  referenceVideoKey?: string | null;
+  clips: CreateRenderJobClipRequest[];
+  modelOptions?: Record<string, string>;
   /**
-   * When false the backend will NOT auto-upload the channel's character image as a
-   * reference image even if no referenceImageKeys are provided.  Defaults to true.
+   * When false the backend will NOT auto-upload the channel's character image as the
+   * default start frame for clips that have no explicit startImageKey. Defaults to true.
    */
   useChannelImage?: boolean;
 }

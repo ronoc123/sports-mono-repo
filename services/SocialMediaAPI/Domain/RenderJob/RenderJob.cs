@@ -3,6 +3,20 @@ using SportifyCore.Domain;
 
 namespace Domain.RenderJob;
 
+public record RenderJobClip
+{
+    [BsonElement("prompt")]
+    public string Prompt { get; init; } = string.Empty;
+
+    /// <summary>R2 key for the start frame (image_start). Null = use channel image or no start frame.</summary>
+    [BsonElement("startImageKey")]
+    public string? StartImageKey { get; init; }
+
+    /// <summary>R2 key for the end frame (image_end). Null = no end-frame guidance.</summary>
+    [BsonElement("endImageKey")]
+    public string? EndImageKey { get; init; }
+}
+
 /// <summary>
 /// A self-hosted video generation job. Assets live in Cloudflare R2;
 /// this document contains only object keys and metadata — no binary data.
@@ -62,6 +76,14 @@ public class RenderJob : Entity<string>
     /// <summary>Model-specific options (seed, steps, guidance scale, etc.)</summary>
     [BsonElement("modelOptions")]
     public Dictionary<string, string> ModelOptions { get; set; } = new();
+
+    /// <summary>
+    /// Multi-clip job: each element maps to one WanGP call.
+    /// When non-empty, the worker generates one segment per clip and concatenates them.
+    /// When empty, the worker uses the legacy flat Prompt/ReferenceImageKeys/KeyframeKeys fields.
+    /// </summary>
+    [BsonElement("clips")]
+    public List<RenderJobClip> Clips { get; set; } = new();
 
     /// <summary>Set when status transitions to Processing.</summary>
     [BsonElement("workerId")]

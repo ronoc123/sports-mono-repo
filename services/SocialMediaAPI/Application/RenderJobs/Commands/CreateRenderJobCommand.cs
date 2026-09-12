@@ -10,17 +10,22 @@ using ChannelEntity = Domain.Channel.Channel;
 
 namespace Application.RenderJobs.Commands;
 
+/// <summary>Per-clip data passed from the API layer to the command.</summary>
+public class CreateRenderJobClipRequest
+{
+    public string Prompt { get; set; } = string.Empty;
+    public string? StartImageKey { get; set; }
+    public string? EndImageKey { get; set; }
+}
+
 public record CreateRenderJobCommand(
     string ChannelId,
-    string Prompt,
     string Model,
     int DurationSeconds,
     string Resolution,
     string AspectRatio,
-    List<string> ReferenceImageKeys,
-    List<string>? KeyframeKeys,
+    List<CreateRenderJobClipRequest> Clips,
     Dictionary<string, string>? ModelOptions,
-    string? ReferenceVideoKey,
     bool UseChannelImage = true
 ) : IRequest<ServiceResponse<CreateRenderJobResponse>>;
 
@@ -29,14 +34,14 @@ public class CreateRenderJobCommandValidator : AbstractValidator<CreateRenderJob
     public CreateRenderJobCommandValidator()
     {
         RuleFor(x => x.ChannelId).NotEmpty().WithMessage("ChannelId is required.");
-        RuleFor(x => x.Prompt).NotEmpty().WithMessage("Prompt is required.");
         RuleFor(x => x.Model).NotEmpty().WithMessage("Model is required.");
         RuleFor(x => x.DurationSeconds)
             .InclusiveBetween(1, 120).WithMessage("DurationSeconds must be between 1 and 120.");
         RuleFor(x => x.Resolution).NotEmpty().WithMessage("Resolution is required.");
         RuleFor(x => x.AspectRatio).NotEmpty().WithMessage("AspectRatio is required.");
-        // ReferenceImageKeys is no longer required from the client —
-        // the handler auto-uploads the channel's character image when none are provided.
+        RuleFor(x => x.Clips).NotEmpty().WithMessage("At least one clip is required.");
+        RuleForEach(x => x.Clips).ChildRules(clip =>
+            clip.RuleFor(c => c.Prompt).NotEmpty().WithMessage("Each clip must have a non-empty prompt."));
     }
 }
 
@@ -63,63 +68,40 @@ public class CreateRenderJobCommandHandler
     {
         var jobId = ObjectId.GenerateNewId().ToString();
 
-        // Auto-upload the channel's character image when the caller has no explicit
-        // reference image keys AND has not opted out via UseChannelImage=false.
-        var referenceKeys = request.ReferenceImageKeys.Count > 0
-            ? request.ReferenceImageKeys
-            : request.UseChannelImage
-                ? await TryUploadChannelImageAsync(request.ChannelId, jobId, cancellationToken)
-                : new List<string>();
+        // Upload the channel character image once if UseChannelImage is true and
+        // at least one clip does not supply its own start frame.
+        string? channelImageKey = null;
+        if (request.UseChannelImage && request.Clips.Any(c => string.IsNullOrEmpty(c.StartImageKey)))
+        {
+            var uploaded = await TryUploadChannelImageAsync(request.ChannelId, jobId, cancellationToken);
+            channelImageKey = uploaded.FirstOrDefault();
+        }
+
+        var clips = request.Clips.Select(c => new RenderJobClip
+        {
+            Prompt = c.Prompt,
+            StartImageKey = !string.IsNullOrEmpty(c.StartImageKey) ? c.StartImageKey : channelImageKey,
+            EndImageKey = string.IsNullOrEmpty(c.EndImageKey) ? null : c.EndImageKey,
+        }).ToList();
 
         var job = new RenderJob
         {
             Id = jobId,
             ChannelId = request.ChannelId,
             Status = "Pending",
-            Prompt = request.Prompt,
+            Prompt = clips.FirstOrDefault()?.Prompt ?? string.Empty,
             Model = request.Model,
             DurationSeconds = request.DurationSeconds,
             Resolution = request.Resolution,
             AspectRatio = request.AspectRatio,
-            ReferenceImageKeys = referenceKeys,
-            KeyframeKeys = request.KeyframeKeys ?? new List<string>(),
             ModelOptions = request.ModelOptions ?? new Dictionary<string, string>(),
             OutputVideoKey = $"generation/{jobId}/output.mp4",
-            ReferenceVideoKey = request.ReferenceVideoKey,
+            Clips = clips,
         };
 
         await _repository.AddAsync(job, cancellationToken);
 
         return ServiceResponse.Ok(new CreateRenderJobResponse { JobId = job.Id });
-    }
-
-    private async Task<string?> TryUploadChannelAudioAsync(
-        string channelId,
-        string jobId,
-        CancellationToken cancellationToken)
-    {
-        var channel = await _channels.GetByIdAsync(channelId, cancellationToken);
-
-        if (channel?.ContextAudioPath is null || !File.Exists(channel.ContextAudioPath))
-            return null;
-
-        var ext = Path.GetExtension(channel.ContextAudioPath).ToLowerInvariant();
-        var contentType = ext switch
-        {
-            ".mp3" => "audio/mpeg",
-            ".wav" => "audio/wav",
-            ".aac" => "audio/aac",
-            ".m4a" => "audio/mp4",
-            ".ogg" => "audio/ogg",
-            _      => "audio/mpeg",
-        };
-
-        var objectKey = $"generation/{jobId}/audio{ext}";
-
-        await using var stream = File.OpenRead(channel.ContextAudioPath);
-        await _storage.UploadAsync(objectKey, stream, contentType, cancellationToken);
-
-        return objectKey;
     }
 
     private async Task<List<string>> TryUploadChannelImageAsync(

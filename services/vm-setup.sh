@@ -9,13 +9,19 @@
 #   FastAPI / WanGP  →  localhost:8000
 #   VideoWorker      →  polls MongoDB, calls localhost:8000, uploads to R2
 #
-# Runtime stack: Python 3.10.9 (Miniconda) + PyTorch 2.7.1 + CUDA 12.8
-#   RunPod driver 570 supports up to CUDA 12.8.  WanGP's requirements.txt
-#   has a Python version guard:
-#     Python < 3.11  → onnxruntime-gpu 1.22.0  (cu12-compatible)
-#     Python >= 3.11 → onnxruntime-gpu nightly  (CUDA 13 package feed)
-#   Python 3.10.9 keeps us on the cu128-compatible path.  WANGP_COMMIT stays
-#   on main — current WanGP code is not inherently CUDA-13-only.
+# Runtime stack (defaults): Python 3.10.9 + PyTorch 2.7.1 + CUDA 12.8
+#   Targets pods with CUDA 12.8 / driver 570 (e.g. RunPod RTX 4090).
+#   WanGP requirements.txt Python version guard:
+#     Python < 3.11  → onnxruntime-gpu 1.22.0  (cu128-compatible)  ← this path
+#     Python >= 3.11 → onnxruntime-gpu 1.25.0.dev nightly  (cu130 feed)
+#
+# CUDA 13.0 upgrade (for pods with driver 575+):
+#   Set these env vars before running:
+#     PYTHON_VERSION=3.11.9
+#     PYTORCH_VERSION=2.10.0
+#     PYTORCH_TV_VERSION=0.25.0
+#     PYTORCH_CUDA_STACK=cu130
+#     CUDA_VERSION_EXPECTED=13.0
 #
 # ── How to use ────────────────────────────────────────────────────────────────
 #
@@ -64,7 +70,15 @@ DOTNET_DIR="$WORKSPACE/.dotnet"
 # ── Config ────────────────────────────────────────────────────────────────────
 WANGP_REPO="${WANGP_REPO:-https://github.com/deepbeepmeep/Wan2GP.git}"
 WANGP_COMMIT="${WANGP_COMMIT:-main}"
-PYTHON_VERSION="3.10.9"               # must be < 3.11 to avoid CUDA-13 onnxruntime
+# Python / PyTorch stack — override these for CUDA 12.8 legacy pods:
+#   PYTHON_VERSION=3.10.9 PYTORCH_VERSION=2.7.1 PYTORCH_TV_VERSION=0.22.1
+#   PYTORCH_CUDA_STACK=cu128 CUDA_VERSION_EXPECTED=12.8
+PYTHON_VERSION="${PYTHON_VERSION:-3.10.9}"
+PYTORCH_VERSION="${PYTORCH_VERSION:-2.7.1}"
+PYTORCH_TV_VERSION="${PYTORCH_TV_VERSION:-0.22.1}"
+PYTORCH_CUDA_STACK="${PYTORCH_CUDA_STACK:-cu128}"
+CUDA_VERSION_EXPECTED="${CUDA_VERSION_EXPECTED:-12.8}"
+
 WORKER_ID="${WORKER_ID:-worker-runpod-01}"
 DOTNET_VERSION="8.0"
 
@@ -73,7 +87,7 @@ log()  { echo -e "\n\033[1;32m[setup]\033[0m $*"; }
 err()  { echo -e "\n\033[1;31m[error]\033[0m $*" >&2; exit 1; }
 
 log "RunPod GPU Worker Setup"
-echo "  Runtime:   Python $PYTHON_VERSION + PyTorch 2.7.1 cu128"
+echo "  Runtime:   Python $PYTHON_VERSION + PyTorch $PYTORCH_VERSION+$PYTORCH_CUDA_STACK (CUDA $CUDA_VERSION_EXPECTED)"
 echo "  Services:  FastAPI/WanGP + .NET VideoWorker"
 echo "  Storage:   /workspace (persists across Pod stop/start)"
 echo ""
@@ -194,37 +208,42 @@ else
     git -C "$WANGP_DIR" checkout "$WANGP_COMMIT"
 fi
 
-# ── 7. PyTorch 2.7.1 cu128 — pinned BEFORE WanGP requirements ────────────────
-# Install torch first with --index-url so only the cu128 index is consulted.
+# ── 7. PyTorch — pinned BEFORE WanGP requirements ────────────────────────────
+# Install torch first with --index-url so only the target CUDA index is used.
 # WanGP's requirements.txt does not pin a torch version, so pip will see these
 # as already satisfied and leave them alone.
-log "Installing PyTorch 2.7.1 (CUDA 12.8, pinned)..."
+log "Installing PyTorch $PYTORCH_VERSION ($PYTORCH_CUDA_STACK, pinned)..."
 pip install --quiet \
-    torch==2.7.1 \
-    torchvision==0.22.1 \
-    torchaudio==2.7.1 \
-    --index-url https://download.pytorch.org/whl/cu128
+    "torch==${PYTORCH_VERSION}" \
+    "torchvision==${PYTORCH_TV_VERSION}" \
+    "torchaudio==${PYTORCH_VERSION}" \
+    --index-url "https://download.pytorch.org/whl/${PYTORCH_CUDA_STACK}"
 
 log "Installing WanGP Python dependencies..."
 # --extra-index-url (not --index-url) so PyPI is reachable for non-torch
-# packages.  With Python 3.10 active, requirements.txt picks onnxruntime-gpu
-# 1.22.0 from PyPI (not the CUDA-13 nightly feed).
+# packages.  requirements.txt itself adds the CUDA 13 ONNX Runtime nightly
+# feed via --extra-index-url at the top of the file; Python version guard
+# then selects the appropriate onnxruntime-gpu build automatically.
 pip install --quiet -r "$WANGP_DIR/requirements.txt" \
-    --extra-index-url https://download.pytorch.org/whl/cu128
+    --extra-index-url "https://download.pytorch.org/whl/${PYTORCH_CUDA_STACK}"
 
 # ── 8. Verify PyTorch — hard gate, aborts setup on failure ───────────────────
-log "Verifying PyTorch (must be 2.7.1 + CUDA 12.8)..."
+log "Verifying PyTorch (must be ${PYTORCH_VERSION} + CUDA ${CUDA_VERSION_EXPECTED})..."
+PYTORCH_VERSION_CHECK="$PYTORCH_VERSION" CUDA_VERSION_CHECK="$CUDA_VERSION_EXPECTED" \
 python - <<'PYCHECK'
-import sys
+import os, sys
 import torch
+
+expected_torch = os.environ["PYTORCH_VERSION_CHECK"]
+expected_cuda  = os.environ["CUDA_VERSION_CHECK"]
 
 failures = []
 
-if not torch.__version__.startswith("2.7.1"):
-    failures.append(f"torch version = {torch.__version__!r}  (expected 2.7.1+cu128)")
+if not torch.__version__.startswith(expected_torch):
+    failures.append(f"torch version = {torch.__version__!r}  (expected {expected_torch}+)")
 
-if torch.version.cuda != "12.8":
-    failures.append(f"torch CUDA    = {torch.version.cuda!r}  (expected '12.8')")
+if torch.version.cuda != expected_cuda:
+    failures.append(f"torch CUDA    = {torch.version.cuda!r}  (expected '{expected_cuda}')")
 
 if not torch.cuda.is_available():
     failures.append("torch.cuda.is_available() returned False")
@@ -238,7 +257,7 @@ if failures:
     for f in failures:
         print(f"  {f}", file=sys.stderr)
     print(
-        "\nFix: ensure RunPod Pod has CUDA 12.8 driver and rerun vm-setup.sh",
+        f"\nFix: ensure RunPod Pod driver supports CUDA {expected_cuda} and rerun vm-setup.sh",
         file=sys.stderr,
     )
     sys.exit(1)
@@ -374,8 +393,9 @@ echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║               Setup Complete                                 ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  Runtime:  Python 3.10.9  +  PyTorch 2.7.1 cu128            ║"
-echo "║  WanGP:    $WANGP_COMMIT                                           ║"
+printf "║  Runtime:  Python %-5s  +  PyTorch %-7s %-6s        ║\n" \
+    "$PYTHON_VERSION" "$PYTORCH_VERSION" "$PYTORCH_CUDA_STACK"
+printf "║  WanGP:    %-51s ║\n" "$WANGP_COMMIT"
 echo "║                                                              ║"
 echo "║  Start services:                                             ║"
 echo "║    bash /workspace/startup.sh                                ║"

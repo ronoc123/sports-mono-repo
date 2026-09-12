@@ -7,7 +7,7 @@ namespace VideoWorker;
 
 /// <summary>
 /// Orchestrates the complete lifecycle of a single render job:
-/// download assets → generate video → upload result → update job status → cleanup.
+/// download assets → generate video (one segment per clip) → concatenate → upload result → update job status → cleanup.
 /// Writes a heartbeat to MongoDB during generation so stale-job recovery can
 /// distinguish an active job from a crashed worker.
 /// </summary>
@@ -58,63 +58,143 @@ public class JobProcessor
 
         try
         {
-            // 1. Download reference images from R2
-            var refImagePaths = new List<string>();
-            foreach (var key in job.ReferenceImageKeys)
-                refImagePaths.Add(await _r2.DownloadToLocalAsync(key, tempDir, cancellationToken));
+            string outputPath;
 
-            // 2. Download keyframes from R2 (may be empty)
-            var keyframePaths = new List<string>();
-            foreach (var key in job.KeyframeKeys)
-                keyframePaths.Add(await _r2.DownloadToLocalAsync(key, tempDir, cancellationToken));
-
-            // 3. Download reference video from R2 for video-to-video conditioning (optional)
-            string? referenceVideoPath = null;
-            if (!string.IsNullOrEmpty(job.ReferenceVideoKey))
+            if (job.Clips.Count > 0)
             {
-                referenceVideoPath = await _r2.DownloadToLocalAsync(job.ReferenceVideoKey, tempDir, cancellationToken);
-                _logger.LogInformation("Reference video downloaded for v2v conditioning: {VideoPath}", referenceVideoPath);
+                // ── Multi-clip path ──────────────────────────────────────────────
+                _logger.LogInformation("Multi-clip job: {ClipCount} clip(s)", job.Clips.Count);
+
+                var segmentPaths = new List<string>();
+                string? previousLastFramePath = null;
+
+                foreach (var (clip, idx) in job.Clips.Select((c, i) => (c, i)))
+                {
+                    var segDir = Path.Combine(tempDir, $"clip_{idx:D2}");
+                    Directory.CreateDirectory(segDir);
+
+                    var refImages = new List<string>();
+                    if (!string.IsNullOrEmpty(clip.StartImageKey))
+                        // Explicit start frame always wins
+                        refImages.Add(await _r2.DownloadToLocalAsync(clip.StartImageKey, segDir, cancellationToken));
+                    else if (previousLastFramePath is not null)
+                        // Chain: use the last frame of the previous segment for visual continuity
+                        refImages.Add(previousLastFramePath);
+
+                    var keyframes = new List<string>();
+                    if (!string.IsNullOrEmpty(clip.EndImageKey))
+                        keyframes.Add(await _r2.DownloadToLocalAsync(clip.EndImageKey, segDir, cancellationToken));
+
+                    var chained = previousLastFramePath is not null && string.IsNullOrEmpty(clip.StartImageKey);
+                    _logger.LogInformation(
+                        "Clip {Idx}/{Total}: startImage={HasStart} (chained={Chained}), endImage={HasEnd}, prompt={Prompt}",
+                        idx + 1, job.Clips.Count,
+                        refImages.Count > 0, chained, keyframes.Count > 0,
+                        Truncate(clip.Prompt, 60));
+
+                    var segRequest = new VideoGenerationRequest
+                    {
+                        Prompt              = clip.Prompt,
+                        Model               = job.Model,
+                        ReferenceImagePaths = refImages,
+                        KeyframePaths       = keyframes,
+                        DurationSeconds     = job.DurationSeconds,
+                        Resolution          = job.Resolution,
+                        AspectRatio         = job.AspectRatio,
+                        OutputPath          = Path.Combine(segDir, "segment.mp4"),
+                        ModelOptions        = job.ModelOptions,
+                    };
+
+                    var segResult = await _generator.GenerateAsync(segRequest, cancellationToken);
+
+                    if (!segResult.Success)
+                    {
+                        await _jobQueue.MarkFailedAsync(
+                            job.Id,
+                            $"Clip {idx + 1} generation failed: {segResult.ErrorMessage ?? "no details"}",
+                            cancellationToken);
+                        return;
+                    }
+
+                    _logger.LogInformation("Clip {Idx} generated: {Path}", idx + 1, segResult.VideoPath);
+                    segmentPaths.Add(segResult.VideoPath!);
+
+                    // Extract the last frame so the next clip can use it as its start image.
+                    // Best-effort: if extraction fails previousLastFramePath stays null and the
+                    // next clip simply proceeds without a chained start frame.
+                    if (idx < job.Clips.Count - 1)
+                        previousLastFramePath = await ExtractLastFrameAsync(segResult.VideoPath!, segDir, cancellationToken);
+                }
+
+                outputPath = segmentPaths.Count == 1
+                    ? segmentPaths[0]
+                    : await ConcatenateSegmentsAsync(segmentPaths, tempDir, cancellationToken);
+
+                // Mix context audio into the combined video if available
+                if (!string.IsNullOrEmpty(job.ContextAudioKey))
+                {
+                    var audioPath = await _r2.DownloadToLocalAsync(job.ContextAudioKey, tempDir, cancellationToken);
+                    outputPath = await MixAudioAsync(outputPath, audioPath, tempDir, cancellationToken);
+                }
             }
-
-            _logger.LogInformation("Assets downloaded: {RefCount} reference image(s), {FrameCount} keyframe(s), referenceVideo={HasRefVideo}",
-                refImagePaths.Count, keyframePaths.Count, referenceVideoPath is not null);
-
-            // 5. Build generator request
-            var outputPath = Path.Combine(tempDir, "output.mp4");
-            var request = new VideoGenerationRequest
+            else
             {
-                Prompt              = job.Prompt,
-                Model               = job.Model,
-                ReferenceImagePaths = refImagePaths,
-                KeyframePaths       = keyframePaths,
-                VideoPath           = referenceVideoPath,
-                DurationSeconds     = job.DurationSeconds,
-                Resolution          = job.Resolution,
-                AspectRatio         = job.AspectRatio,
-                OutputPath          = outputPath,
-                ModelOptions        = job.ModelOptions,
-            };
+                // ── Legacy single-segment path (backward compat) ─────────────────
+                var refImagePaths = new List<string>();
+                foreach (var key in job.ReferenceImageKeys)
+                    refImagePaths.Add(await _r2.DownloadToLocalAsync(key, tempDir, cancellationToken));
 
-            // 6. Generate
-            _logger.LogInformation("Generation starting...");
-            var result = await _generator.GenerateAsync(request, cancellationToken);
+                var keyframePaths = new List<string>();
+                foreach (var key in job.KeyframeKeys)
+                    keyframePaths.Add(await _r2.DownloadToLocalAsync(key, tempDir, cancellationToken));
 
-            if (!result.Success)
-            {
-                await _jobQueue.MarkFailedAsync(
-                    job.Id, result.ErrorMessage ?? "Generation failed with no details.", cancellationToken);
-                return;
+                string? referenceVideoPath = null;
+                if (!string.IsNullOrEmpty(job.ReferenceVideoKey))
+                {
+                    referenceVideoPath = await _r2.DownloadToLocalAsync(job.ReferenceVideoKey, tempDir, cancellationToken);
+                    _logger.LogInformation("Reference video downloaded for v2v conditioning: {VideoPath}", referenceVideoPath);
+                }
+
+                _logger.LogInformation("Assets downloaded: {RefCount} reference image(s), {FrameCount} keyframe(s), referenceVideo={HasRefVideo}",
+                    refImagePaths.Count, keyframePaths.Count, referenceVideoPath is not null);
+
+                var legacyOutputPath = Path.Combine(tempDir, "output.mp4");
+                var request = new VideoGenerationRequest
+                {
+                    Prompt              = job.Prompt,
+                    Model               = job.Model,
+                    ReferenceImagePaths = refImagePaths,
+                    KeyframePaths       = keyframePaths,
+                    VideoPath           = referenceVideoPath,
+                    DurationSeconds     = job.DurationSeconds,
+                    Resolution          = job.Resolution,
+                    AspectRatio         = job.AspectRatio,
+                    OutputPath          = legacyOutputPath,
+                    ModelOptions        = job.ModelOptions,
+                };
+
+                _logger.LogInformation("Generation starting...");
+                var result = await _generator.GenerateAsync(request, cancellationToken);
+
+                if (!result.Success)
+                {
+                    await _jobQueue.MarkFailedAsync(
+                        job.Id, result.ErrorMessage ?? "Generation failed with no details.", cancellationToken);
+                    return;
+                }
+
+                outputPath = result.VideoPath!;
             }
 
             var elapsed = DateTime.UtcNow - started;
             _logger.LogInformation("Generation complete in {ElapsedSeconds:F1}s: {VideoPath}",
-                elapsed.TotalSeconds, result.VideoPath);
+                elapsed.TotalSeconds, outputPath);
 
-            // 7. Upload MP4 to R2
-            await _r2.UploadFromLocalAsync(result.VideoPath!, job.OutputVideoKey, "video/mp4", cancellationToken);
+            // Upload MP4 to R2
+            await _r2.UploadFromLocalAsync(outputPath, job.OutputVideoKey, "video/mp4", cancellationToken);
             _logger.LogInformation("Result uploaded to R2: {Key}", job.OutputVideoKey);
 
-            // 8. Mark Completed
+            // Mark Completed
             await _jobQueue.MarkCompletedAsync(job.Id, job.OutputVideoKey, cancellationToken);
 
             _logger.LogInformation("Job completed. Total wall-clock: {ElapsedSeconds:F1}s",
@@ -138,6 +218,91 @@ public class JobProcessor
             _tempFiles.Cleanup(tempDir);
             _logger.LogInformation("Temp files cleaned up");
         }
+    }
+
+    /// <summary>
+    /// Extracts the very last frame of a video as a PNG using FFmpeg.
+    /// Used to chain clips: the last frame of segment N becomes the start frame of segment N+1.
+    /// </summary>
+    private async Task<string?> ExtractLastFrameAsync(
+        string videoPath,
+        string segDir,
+        CancellationToken cancellationToken)
+    {
+        var framePath = Path.Combine(segDir, "last_frame.png");
+        // -sseof -0.1  — seek 0.1 s before end of file
+        // -vframes 1   — capture exactly one frame
+        var args = $"-y -sseof -0.1 -i \"{videoPath}\" -vframes 1 \"{framePath}\"";
+
+        using var process = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName               = "ffmpeg",
+                Arguments              = args,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true,
+            }
+        };
+
+        process.Start();
+        var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+
+        if (process.ExitCode != 0 || !File.Exists(framePath))
+        {
+            _logger.LogWarning("Failed to extract last frame from clip (exit {Code}): {Stderr}", process.ExitCode, stderr);
+            return null;
+        }
+
+        _logger.LogDebug("Last frame extracted: {FramePath}", framePath);
+        return framePath;
+    }
+
+    /// <summary>
+    /// Concatenates multiple MP4 segments into a single file using FFmpeg stream copy (no re-encode).
+    /// </summary>
+    private async Task<string> ConcatenateSegmentsAsync(
+        IReadOnlyList<string> segmentPaths,
+        string tempDir,
+        CancellationToken cancellationToken)
+    {
+        var listPath = Path.Combine(tempDir, "concat.txt");
+        await File.WriteAllLinesAsync(
+            listPath,
+            segmentPaths.Select(p => $"file '{p.Replace("'", "'\\''")}'" ),
+            cancellationToken);
+
+        var outputPath = Path.Combine(tempDir, "concatenated.mp4");
+        var args = $"-y -f concat -safe 0 -i \"{listPath}\" -c copy \"{outputPath}\"";
+
+        _logger.LogInformation("Concatenating {Count} segments with FFmpeg", segmentPaths.Count);
+
+        using var process = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName               = "ffmpeg",
+                Arguments              = args,
+                RedirectStandardError  = true,
+                UseShellExecute        = false,
+                CreateNoWindow         = true,
+            }
+        };
+
+        process.Start();
+        var stderr = await process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+
+        if (process.ExitCode != 0)
+        {
+            _logger.LogWarning("FFmpeg concat failed (exit {Code}): {Stderr}", process.ExitCode, stderr);
+            throw new InvalidOperationException($"FFmpeg concat failed (exit {process.ExitCode}): {stderr}");
+        }
+
+        _logger.LogInformation("Segments concatenated: {OutputPath}", outputPath);
+        return outputPath;
     }
 
     private async Task RunHeartbeatAsync(string jobId, CancellationToken cancellationToken)

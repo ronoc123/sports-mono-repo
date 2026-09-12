@@ -55,18 +55,34 @@ except ImportError as exc:
 WANGP_OUTPUT_DIR = os.environ.get("WANGP_OUTPUT_DIR", "/app/tmp/wangp-out")
 
 # Map clean model IDs → WanGP internal model_type strings
-# Wan 2.1 model_type keys verified from Wan2GP/wgp.py model_signatures dict.
+# Keys verified from Wan2GP/wgp.py and handler files.
 MODEL_TYPE_MAP: dict[str, str] = {
-    # ── Wan 2.1 (recommended) ─────────────────────────────────────────────────
-    "wan-i2v":           "i2v",        # image-to-video 14B 480p  (best for character ref images)
-    "wan-i2v-720p":      "i2v_720p",   # image-to-video 14B 720p  (higher quality, more VRAM)
-    "wan-t2v":           "t2v",        # text-to-video 14B
-    "wan-t2v-1.3b":      "t2v_1.3B",  # text-to-video 1.3B       (fast, lower VRAM)
+    # ── Wan 2.1 ───────────────────────────────────────────────────────────────
+    "wan-i2v":           "i2v",                      # i2v 14B 480p
+    "wan-i2v-720p":      "i2v_720p",                 # i2v 14B 720p
+    "wan-t2v":           "t2v",                      # t2v 14B
+    "wan-t2v-1.3b":      "t2v_1.3B",                 # t2v 1.3B (fast)
+    # ── MiniMax H3 ────────────────────────────────────────────────────────────
+    "h3-fl2va":          "minimax_h3_fl2va_pruned",   # FL2VA Pruned 20B — PDD 8-step
+    "h3-ref2va":         "minimax_h3_ref2va_pruned",  # Ref2VA Pruned 20B — PDD 8-step
     # ── LTX Video ─────────────────────────────────────────────────────────────
     "ltx-2":             "ltx2_19B",
-    "ltx-2-dev":         "ltx2_19B",
     "ltx-2.3":           "ltx2_22B_distilled",
-    "ltx-2.3-distilled": "ltx2_22B_distilled",
+    "ltx-2.5":           "ltx2_25_22B",              # LTX 2.5 22B (distilled via LoRA)
+}
+
+# Per-model inference step counts.
+# PDD / distilled models run well at 8 steps; non-distilled Wan 2.1 needs more.
+MODEL_STEPS: dict[str, int] = {
+    "i2v":                       20,
+    "i2v_720p":                  20,
+    "t2v":                       20,
+    "t2v_1.3B":                  20,
+    "minimax_h3_fl2va_pruned":   8,
+    "minimax_h3_ref2va_pruned":  8,
+    "ltx2_19B":                  8,
+    "ltx2_22B_distilled":        8,
+    "ltx2_25_22B":               8,
 }
 
 # One WanGP session; model stays in VRAM between requests
@@ -110,6 +126,7 @@ class GenerateRequest(BaseModel):
     keyframes: list[str] = []
     reference_video: str | None = None  # local path for video-to-video conditioning
     output_path: str             # absolute path on the shared volume
+    num_inference_steps: int | None = None  # overrides MODEL_STEPS default when set
 
 
 class GenerateResponse(BaseModel):
@@ -130,7 +147,7 @@ async def generate(req: GenerateRequest):
         "prompt":              req.prompt,
         "resolution":          f"{req.width}x{req.height}",
         "video_length":        req.frame_count,   # int frames
-        "num_inference_steps": 8,
+        "num_inference_steps": req.num_inference_steps or MODEL_STEPS.get(model_type, 20),
     }
 
     # Verified key names from shared/api.py apply_media_flag_defaults():

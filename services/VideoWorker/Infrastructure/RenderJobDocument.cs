@@ -3,6 +3,18 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace VideoWorker.Infrastructure;
 
+public class RenderJobClipDocument
+{
+    [BsonElement("prompt")]
+    public string Prompt { get; set; } = string.Empty;
+
+    [BsonElement("startImageKey")]
+    public string? StartImageKey { get; set; }
+
+    [BsonElement("endImageKey")]
+    public string? EndImageKey { get; set; }
+}
+
 /// <summary>
 /// Local representation of the render_jobs MongoDB document.
 /// Mirrors Domain.RenderJob.RenderJob in SocialMediaAPI — kept in sync manually.
@@ -79,4 +91,12 @@ public class RenderJobDocument
     /// </summary>
     [BsonElement("lastHeartbeatAt")]
     public DateTime? LastHeartbeatAt { get; set; }
+
+    /// <summary>
+    /// Multi-clip job: one entry per WanGP call. When non-empty the worker generates
+    /// a segment per clip, concatenates them, and uploads the result.
+    /// When empty, the legacy flat Prompt/ReferenceImageKeys/KeyframeKeys fields are used.
+    /// </summary>
+    [BsonElement("clips")]
+    public List<RenderJobClipDocument> Clips { get; set; } = new();
 }

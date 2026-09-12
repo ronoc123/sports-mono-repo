@@ -41,6 +41,7 @@ public class RenderJobController : ControllerBase
 
     /// <summary>
     /// Create a Pending render job. The VideoWorker will pick this up and execute it.
+    /// Each clip is generated separately and concatenated into one output video.
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<ServiceResponse<CreateRenderJobResponse>>> Create(
@@ -50,15 +51,12 @@ public class RenderJobController : ControllerBase
         var result = await _mediator.Send(
             new CreateRenderJobCommand(
                 request.ChannelId,
-                request.Prompt,
                 request.Model,
                 request.DurationSeconds,
                 request.Resolution,
                 request.AspectRatio,
-                request.ReferenceImageKeys,
-                request.KeyframeKeys,
+                request.Clips,
                 request.ModelOptions,
-                request.ReferenceVideoKey,
                 request.UseChannelImage),
             cancellationToken);
 
@@ -180,19 +178,15 @@ public class IdeateVideoRequest
 public class CreateRenderJobRequest
 {
     public string ChannelId { get; set; } = string.Empty;
-    public string Prompt { get; set; } = string.Empty;
-    public string Model { get; set; } = "ltx-2.3";
-    public int DurationSeconds { get; set; } = 10;
-    public string Resolution { get; set; } = "1280x720";
-    public string AspectRatio { get; set; } = "16:9";
-    public List<string> ReferenceImageKeys { get; set; } = new();
-    public List<string>? KeyframeKeys { get; set; }
+    public string Model { get; set; } = "h3-fl2va";
+    public int DurationSeconds { get; set; } = 4;
+    public string Resolution { get; set; } = "480x832";
+    public string AspectRatio { get; set; } = "9:16";
+    public List<CreateRenderJobClipRequest> Clips { get; set; } = new();
     public Dictionary<string, string>? ModelOptions { get; set; }
-    /// <summary>R2 key of an existing generated video to use as the video-to-video starting point.</summary>
-    public string? ReferenceVideoKey { get; set; }
     /// <summary>
-    /// When false the backend will NOT auto-upload the channel's character image even if
-    /// ReferenceImageKeys is empty.  Defaults to true.
+    /// When false the backend will NOT auto-upload the channel's character image as the
+    /// default start frame for clips that have no explicit StartImageKey. Defaults to true.
     /// </summary>
     public bool UseChannelImage { get; set; } = true;
 }

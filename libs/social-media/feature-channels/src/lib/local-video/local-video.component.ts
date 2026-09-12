@@ -33,6 +33,19 @@ const MODEL_RESOLUTIONS: Record<string, { value: string; label: string }[]> = {
     { value: '640x360',  label: '640×360  — 360p 16:9' },
     { value: '832x480',  label: '832×480  — 480p 16:9' },
   ],
+  // MiniMax H3 — supports start+end frame guidance, PDD 8-step
+  'h3-fl2va': [
+    { value: '480x832',  label: '480×832  — 480p 9:16 (recommended)' },
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+  ],
+  'h3-ref2va': [
+    { value: '480x832',  label: '480×832  — 480p 9:16 (recommended)' },
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+  ],
   'ltx-2': [
     { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
     { value: '256x448',  label: '256×448  — 256p 9:16' },
@@ -53,6 +66,16 @@ const MODEL_RESOLUTIONS: Record<string, { value: string; label: string }[]> = {
     { value: '1280x720', label: '1280×720 — 720p 16:9' },
     { value: '720x1280', label: '720×1280 — 720p 9:16' },
   ],
+  'ltx-2.5': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '360x640',  label: '360×640  — 360p 9:16' },
+    { value: '854x480',  label: '854×480  — 480p 16:9' },
+    { value: '480x854',  label: '480×854  — 480p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
 };
 
 const MODEL_DEFAULT_RESOLUTION: Record<string, string> = {
@@ -60,13 +83,28 @@ const MODEL_DEFAULT_RESOLUTION: Record<string, string> = {
   'wan-i2v-720p': '1280x720',
   'wan-t2v':      '832x480',
   'wan-t2v-1.3b': '448x256',
+  'h3-fl2va':     '480x832',
+  'h3-ref2va':    '480x832',
   'ltx-2':        '448x256',
   'ltx-2.3':      '448x256',
+  'ltx-2.5':      '448x256',
 };
 
 interface StagedKeyframe {
   file: File;
   previewUrl: string;
+}
+
+interface Clip {
+  prompt: string;
+  /** Start frame / anchor image (image_start). Overrides the global channel reference image for this clip. */
+  stagedStartFrame: StagedKeyframe | null;
+  startFrameKey: string | null;
+  startFrameUploadStatus: 'idle' | 'uploading' | 'done' | 'error';
+  /** End frame image (image_end / keyframe). */
+  stagedKeyframe: StagedKeyframe | null;
+  keyframeKey: string | null;
+  keyframeUploadStatus: 'idle' | 'uploading' | 'done' | 'error';
 }
 
 @Component({
@@ -185,84 +223,12 @@ interface StagedKeyframe {
         }
       </div>
 
-      <!-- Keyframe Images (optional) -->
+      <!-- Generation Settings (shared across all clips) -->
       <div class="step-section">
         <h2 class="step-title">
           <span class="step-num">1</span>
-          Keyframe Images <span class="optional-label">(Optional)</span>
+          Generation Settings
         </h2>
-        <p class="step-desc">Add one or more keyframe images to guide scene composition. When ready, click "Upload Keyframes" to submit them.</p>
-
-        @if (keyframeUploadStatus() === 'done') {
-          <div class="upload-done-banner">
-            &#10003; {{ keyframeObjectKeys().length }} keyframe{{ keyframeObjectKeys().length !== 1 ? 's' : '' }} uploaded
-          </div>
-        } @else {
-          <!-- Staged grid -->
-          @if (stagedKeyframes().length > 0) {
-            <div class="keyframe-grid">
-              @for (kf of stagedKeyframes(); track kf.previewUrl; let i = $index) {
-                <div class="keyframe-thumb">
-                  <img [src]="kf.previewUrl" alt="Keyframe {{ i + 1 }}" class="keyframe-img">
-                  <button class="keyframe-remove" (click)="removeKeyframe(i)" title="Remove">&#10005;</button>
-                </div>
-              }
-            </div>
-          }
-
-          <!-- Drop / click area -->
-          <div class="upload-area upload-area--keyframe"
-               [class.upload-area--over]="isKeyframeDragOver()"
-               (click)="keyframeInput.click()"
-               (dragover)="onKeyframeDragOver($event)"
-               (dragleave)="isKeyframeDragOver.set(false)"
-               (drop)="onKeyframeDrop($event)">
-            <div class="upload-placeholder">
-              <span class="upload-icon">&#43;</span>
-              <p>Click or drag images here to add keyframes</p>
-              <span class="upload-hint">JPG, PNG, WEBP — up to 20 MB each</span>
-            </div>
-          </div>
-
-          <input #keyframeInput type="file" accept="image/jpeg,image/png,image/webp" multiple style="display:none"
-                 (change)="onKeyframeFilesSelected($event)">
-
-          @if (keyframeValidationError()) {
-            <p class="error-msg">{{ keyframeValidationError() }}</p>
-          }
-
-          <div class="keyframe-actions">
-            @if (stagedKeyframes().length > 0) {
-              <button class="btn-local btn-sm"
-                      (click)="uploadKeyframes()"
-                      [disabled]="keyframeUploadStatus() === 'uploading'">
-                {{ keyframeUploadStatus() === 'uploading' ? 'Uploading…' : 'Upload Keyframes (' + stagedKeyframes().length + ')' }}
-              </button>
-            } @else {
-              <span class="skip-label">No keyframes — generation uses reference image only.</span>
-            }
-          </div>
-
-          @if (keyframeUploadStatus() === 'error') {
-            <p class="error-msg">Failed to upload one or more keyframes. Please try again.</p>
-          }
-        }
-      </div>
-
-      <!-- Generation Parameters -->
-      <div class="step-section">
-        <h2 class="step-title">
-          <span class="step-num">2</span>
-          Generation Parameters
-        </h2>
-
-        <div class="form-group">
-          <label>Prompt <span class="required">*</span></label>
-          <textarea class="form-control" rows="4"
-                    [value]="prompt()"
-                    (input)="prompt.set($any($event.target).value)"
-                    placeholder="Describe the video you want to generate..."></textarea>
-        </div>
 
         <div class="form-row">
           <div class="form-group">
@@ -270,21 +236,26 @@ interface StagedKeyframe {
             <select class="form-control"
                     [value]="model()"
                     (change)="onModelChange($any($event.target).value)">
-              <optgroup label="Wan 2.1 (Recommended)">
+              <optgroup label="MiniMax H3 (Best for transformation / before-after)">
+                <option value="h3-fl2va">H3 FL2VA Pruned 20B — 8-step PDD</option>
+                <option value="h3-ref2va">H3 Ref2VA Pruned 20B — 8-step PDD</option>
+              </optgroup>
+              <optgroup label="LTX Video (Fastest)">
+                <option value="ltx-2.5">LTX 2.5 22B distilled</option>
+                <option value="ltx-2.3">LTX 2.3 22B distilled</option>
+                <option value="ltx-2">LTX-2 19B</option>
+              </optgroup>
+              <optgroup label="Wan 2.1">
                 <option value="wan-i2v">Wan 2.1 i2v 480p — image-to-video 14B</option>
                 <option value="wan-i2v-720p">Wan 2.1 i2v 720p — image-to-video 14B</option>
                 <option value="wan-t2v">Wan 2.1 t2v — text-to-video 14B</option>
                 <option value="wan-t2v-1.3b">Wan 2.1 t2v 1.3B — fast / low VRAM</option>
               </optgroup>
-              <optgroup label="LTX Video">
-                <option value="ltx-2">LTX-2 19B</option>
-                <option value="ltx-2.3">LTX-2.3 22B distilled</option>
-              </optgroup>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Duration (seconds)</label>
+            <label>Duration per clip (seconds)</label>
             <input type="number" class="form-control"
                    min="1" max="30"
                    [value]="durationSeconds()"
@@ -302,12 +273,88 @@ interface StagedKeyframe {
             }
           </select>
         </div>
+      </div>
+
+      <!-- Clips -->
+      <div class="step-section">
+        <h2 class="step-title">
+          <span class="step-num">2</span>
+          Clips
+        </h2>
+        <p class="step-desc">
+          All clips are submitted as one job and concatenated into a single output video.
+          Use 4–5 s clips to keep generation fast and quality high.
+          Add an end-frame image to guide how each clip should end.
+        </p>
+
+        @for (clip of clips(); track $index; let i = $index) {
+          <div class="clip-card">
+            <div class="clip-header">
+              <span class="clip-label">Clip {{ i + 1 }}</span>
+              @if (clips().length > 1) {
+                <button class="clip-remove" (click)="removeClip(i)" title="Remove clip">&#10005;</button>
+              }
+            </div>
+
+            <textarea class="form-control clip-prompt" rows="3"
+                      [value]="clip.prompt"
+                      (input)="updateClipPrompt(i, $any($event.target).value)"
+                      placeholder="Describe what happens in this clip…"></textarea>
+
+            <!-- Anchor images row -->
+            <div class="clip-frames-row">
+              <!-- Start frame (anchor / image_start) -->
+              <div class="clip-frame-slot">
+                <div class="clip-frame-slot-label">Start frame <span class="optional-label">(optional)</span></div>
+                @if (clip.startFrameUploadStatus === 'done' && clip.stagedStartFrame) {
+                  <div class="clip-frame-preview">
+                    <img [src]="clip.stagedStartFrame.previewUrl" class="clip-frame-img" alt="Start frame">
+                    <button class="clip-frame-clear" (click)="clearClipStartFrame(i)">&#10005;</button>
+                  </div>
+                } @else if (clip.startFrameUploadStatus === 'uploading') {
+                  <span class="clip-endframe-hint">Uploading…</span>
+                } @else {
+                  <label class="clip-frame-add" [class.clip-frame-add--error]="clip.startFrameUploadStatus === 'error'">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
+                           (change)="onClipStartFrameSelected(i, $event)">
+                    <span class="clip-frame-add-icon">&#8680;</span>
+                    <span>{{ clip.startFrameUploadStatus === 'error' ? 'Retry' : 'Add' }}</span>
+                  </label>
+                }
+              </div>
+
+              <div class="clip-frames-arrow">&#8594;</div>
+
+              <!-- End frame (keyframe / image_end) -->
+              <div class="clip-frame-slot">
+                <div class="clip-frame-slot-label">End frame <span class="optional-label">(optional)</span></div>
+                @if (clip.keyframeUploadStatus === 'done' && clip.stagedKeyframe) {
+                  <div class="clip-frame-preview">
+                    <img [src]="clip.stagedKeyframe.previewUrl" class="clip-frame-img" alt="End frame">
+                    <button class="clip-frame-clear" (click)="clearClipKeyframe(i)">&#10005;</button>
+                  </div>
+                } @else if (clip.keyframeUploadStatus === 'uploading') {
+                  <span class="clip-endframe-hint">Uploading…</span>
+                } @else {
+                  <label class="clip-frame-add" [class.clip-frame-add--error]="clip.keyframeUploadStatus === 'error'">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
+                           (change)="onClipKeyframeSelected(i, $event)">
+                    <span class="clip-frame-add-icon">&#8680;</span>
+                    <span>{{ clip.keyframeUploadStatus === 'error' ? 'Retry' : 'Add' }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <button class="btn-add-clip" (click)="addClip()">&#43; Add Clip</button>
 
         @if (generationError()) {
-          <p class="error-msg">{{ generationError() }}</p>
+          <p class="error-msg" style="margin-top:12px">{{ generationError() }}</p>
         }
         @if (store.createStatus() === 'error') {
-          <p class="error-msg">{{ store.error() }}</p>
+          <p class="error-msg" style="margin-top:12px">{{ store.error() }}</p>
         }
       </div>
 
@@ -315,7 +362,7 @@ interface StagedKeyframe {
         <button class="btn-secondary" (click)="cancel()">Cancel</button>
         <button class="btn-local"
                 (click)="startGeneration()"
-                [disabled]="!canSubmit()">
+                [disabled]="!canSubmit() || isGenerating()">
           {{ buttonLabel() }}
         </button>
       </div>
@@ -341,6 +388,29 @@ interface StagedKeyframe {
     .ref-image-label { font-size: 13px; color: #2e7d32; font-weight: 500; }
     .ref-image-container--disabled { opacity: 0.45; }
     .ref-image-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #2e7d32; font-weight: 500; user-select: none; }
+    /* Clips */
+    .clip-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; background: white; }
+    .clip-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .clip-label { font-weight: 600; font-size: 13px; color: #444; }
+    .clip-remove { background: none; border: none; color: #999; cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1; }
+    .clip-remove:hover { color: #d32f2f; }
+    .clip-prompt { margin-bottom: 10px; }
+    .clip-frames-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .clip-frame-slot { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+    .clip-frame-slot-label { font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.04em; }
+    .clip-frames-arrow { color: #bdbdbd; font-size: 18px; flex-shrink: 0; margin-top: 18px; }
+    .clip-frame-preview { position: relative; width: 64px; height: 64px; }
+    .clip-frame-img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid #c8e6c9; display: block; }
+    .clip-frame-clear { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.55); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+    .clip-frame-clear:hover { background: rgba(211,47,47,0.85); }
+    .clip-frame-add { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; font-size: 11px; color: #1976d2; border: 1px dashed #90caf9; border-radius: 6px; padding: 6px 8px; user-select: none; width: 64px; height: 64px; box-sizing: border-box; text-align: center; }
+    .clip-frame-add:hover { background: #e3f2fd; }
+    .clip-frame-add--error { border-color: #ef9a9a; color: #d32f2f; }
+    .clip-frame-add-icon { font-size: 16px; }
+    .clip-endframe-hint { font-size: 12px; color: #999; font-style: italic; }
+    .clip-endframe-clear:hover { color: #d32f2f; }
+    .btn-add-clip { background: none; border: 1px dashed #a5d6a7; color: #2e7d32; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; width: 100%; margin-top: 4px; }
+    .btn-add-clip:hover { background: #f1f8e9; }
     .no-ref-image-warning { display: flex; gap: 12px; align-items: flex-start; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 14px 16px; }
     .warning-icon { font-size: 20px; color: #f57f17; flex-shrink: 0; }
     .no-ref-image-warning strong { display: block; font-size: 14px; color: #e65100; margin-bottom: 4px; }
@@ -403,27 +473,30 @@ export class LocalVideoComponent implements OnInit {
 
   readonly apiOrigin = environment.apiUrl + environment.socialMediaApi.split('/api')[0];
 
-  readonly prompt = signal('');
-  readonly model = signal('wan-i2v');
+  readonly model = signal('h3-fl2va');
   readonly durationSeconds = signal(2);
-  readonly resolution = signal(MODEL_DEFAULT_RESOLUTION['wan-i2v']);
+  readonly resolution = signal(MODEL_DEFAULT_RESOLUTION['h3-fl2va']);
 
   /** Resolution options valid for the currently selected model. */
   readonly availableResolutions = computed(() =>
     MODEL_RESOLUTIONS[this.model()] ?? MODEL_RESOLUTIONS['wan-i2v']
   );
 
-  readonly stagedKeyframes = signal<StagedKeyframe[]>([]);
-  readonly keyframeObjectKeys = signal<string[]>([]);
-  readonly keyframeUploadStatus = signal<'idle' | 'uploading' | 'done' | 'error'>('idle');
-  readonly keyframeValidationError = signal<string | null>(null);
-  readonly isKeyframeDragOver = signal(false);
-
+  readonly clips = signal<Clip[]>([this.emptyClip()]);
+  readonly isGenerating = signal(false);
   readonly useReferenceImage = signal(true);
   readonly generationError = signal<string | null>(null);
 
   ideaInput = '';
   private channelId = '';
+
+  private emptyClip(): Clip {
+    return {
+      prompt: '',
+      stagedStartFrame: null, startFrameKey: null, startFrameUploadStatus: 'idle',
+      stagedKeyframe: null,   keyframeKey: null,   keyframeUploadStatus: 'idle',
+    };
+  }
 
   ngOnInit(): void {
     this.channelId = this.route.snapshot.paramMap.get('id')!;
@@ -435,16 +508,18 @@ export class LocalVideoComponent implements OnInit {
   }
 
   buttonLabel(): string {
-    if (this.store.isUploading()) return 'Uploading…';
-    if (this.store.isCreating()) return 'Starting…';
-    return 'Start Generation';
+    if (this.isGenerating()) return 'Creating job…';
+    const n = this.clips().length;
+    return n > 1 ? `Generate ${n} Clips` : 'Generate';
   }
 
   canSubmit(): boolean {
-    return !!this.prompt().trim() &&
-      !this.store.isUploading() &&
-      !this.store.isCreating() &&
-      this.keyframeUploadStatus() !== 'uploading';
+    return this.clips().every(c => c.prompt.trim()) &&
+      !this.isGenerating() &&
+      !this.clips().some(c =>
+        c.keyframeUploadStatus === 'uploading' ||
+        c.startFrameUploadStatus === 'uploading'
+      );
   }
 
   cancel(): void {
@@ -476,102 +551,151 @@ export class LocalVideoComponent implements OnInit {
   applyIdeation(): void {
     const result = this.store.ideateResult();
     if (!result) return;
-    this.prompt.set(result.prompt);
-  }
-
-  // --- Keyframes ---
-
-  onKeyframeDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isKeyframeDragOver.set(true);
-  }
-
-  onKeyframeDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isKeyframeDragOver.set(false);
-    // Copy to array immediately — DataTransfer files may be cleared on next tick
-    const files = event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : [];
-    if (files.length > 0) this.addKeyframeFiles(files);
-  }
-
-  onKeyframeFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    // Snapshot to array BEFORE clearing input.value — FileList is a live reference
-    // and becomes empty once the input is reset
-    const files = input.files ? Array.from(input.files) : [];
-    input.value = '';
-    if (files.length > 0) this.addKeyframeFiles(files);
-  }
-
-  private addKeyframeFiles(files: File[]): void {
-    this.keyframeValidationError.set(null);
-    const toAdd: StagedKeyframe[] = [];
-    for (const file of files) {
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        this.keyframeValidationError.set(`"${file.name}" is not an accepted image type (JPG, PNG, WEBP).`);
-        continue;
-      }
-      if (file.size > MAX_IMAGE_BYTES) {
-        this.keyframeValidationError.set(`"${file.name}" exceeds the 20 MB limit.`);
-        continue;
-      }
-      toAdd.push({ file, previewUrl: URL.createObjectURL(file) });
-    }
-    if (toAdd.length > 0) {
-      this.stagedKeyframes.update(prev => [...prev, ...toAdd]);
+    const scenes = result.scenes ?? [];
+    if (scenes.length > 0) {
+      // One clip per keyframe scene — replaces existing clips entirely
+      this.clips.set((scenes as string[]).map(s => ({ ...this.emptyClip(), prompt: s })));
+    } else {
+      this.updateClipPrompt(0, result.prompt);
     }
   }
 
-  removeKeyframe(index: number): void {
-    this.stagedKeyframes.update(prev => {
+  // --- Clips ---
+
+  private updateClipField(index: number, partial: Partial<Clip>): void {
+    this.clips.update(prev => {
       const copy = [...prev];
-      URL.revokeObjectURL(copy[index].previewUrl);
-      copy.splice(index, 1);
+      copy[index] = { ...copy[index], ...partial };
       return copy;
     });
   }
 
-  async uploadKeyframes(): Promise<void> {
-    this.keyframeUploadStatus.set('uploading');
-    const objectKeys: string[] = [];
-    for (const staged of this.stagedKeyframes()) {
-      const formData = new FormData();
-      formData.append('file', staged.file, staged.file.name);
-      const key = await this.store.uploadAsset(formData);
-      if (!key) {
-        this.keyframeUploadStatus.set('error');
-        return;
-      }
-      objectKeys.push(key);
-    }
-    this.keyframeObjectKeys.set(objectKeys);
-    this.keyframeUploadStatus.set('done');
+  updateClipPrompt(index: number, value: string): void {
+    this.updateClipField(index, { prompt: value });
   }
 
-  // --- Start Generation ---
+  addClip(): void {
+    this.clips.update(prev => [...prev, this.emptyClip()]);
+  }
+
+  removeClip(index: number): void {
+    const clip = this.clips()[index];
+    if (clip.stagedStartFrame) URL.revokeObjectURL(clip.stagedStartFrame.previewUrl);
+    if (clip.stagedKeyframe)   URL.revokeObjectURL(clip.stagedKeyframe.previewUrl);
+    this.clips.update(prev => prev.filter((_, i) => i !== index));
+  }
+
+  onClipKeyframeSelected(clipIndex: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+    if (!file) return;
+
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return;
+    if (file.size > MAX_IMAGE_BYTES) return;
+
+    const old = this.clips()[clipIndex].stagedKeyframe;
+    if (old) URL.revokeObjectURL(old.previewUrl);
+
+    this.updateClipField(clipIndex, {
+      stagedKeyframe: { file, previewUrl: URL.createObjectURL(file) },
+      keyframeKey: null,
+      keyframeUploadStatus: 'idle',
+    });
+
+    this.uploadClipKeyframe(clipIndex, file);
+  }
+
+  private async uploadClipKeyframe(clipIndex: number, file: File): Promise<void> {
+    this.updateClipField(clipIndex, { keyframeUploadStatus: 'uploading' });
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    const key = await this.store.uploadAsset(formData);
+    this.updateClipField(clipIndex, {
+      keyframeKey: key ?? null,
+      keyframeUploadStatus: key ? 'done' : 'error',
+    });
+  }
+
+  clearClipKeyframe(clipIndex: number): void {
+    const kf = this.clips()[clipIndex].stagedKeyframe;
+    if (kf) URL.revokeObjectURL(kf.previewUrl);
+    this.updateClipField(clipIndex, {
+      stagedKeyframe: null,
+      keyframeKey: null,
+      keyframeUploadStatus: 'idle',
+    });
+  }
+
+  onClipStartFrameSelected(clipIndex: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+    if (!file) return;
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return;
+    if (file.size > MAX_IMAGE_BYTES) return;
+
+    const old = this.clips()[clipIndex].stagedStartFrame;
+    if (old) URL.revokeObjectURL(old.previewUrl);
+
+    this.updateClipField(clipIndex, {
+      stagedStartFrame: { file, previewUrl: URL.createObjectURL(file) },
+      startFrameKey: null,
+      startFrameUploadStatus: 'idle',
+    });
+    this.uploadClipStartFrame(clipIndex, file);
+  }
+
+  private async uploadClipStartFrame(clipIndex: number, file: File): Promise<void> {
+    this.updateClipField(clipIndex, { startFrameUploadStatus: 'uploading' });
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    const key = await this.store.uploadAsset(formData);
+    this.updateClipField(clipIndex, {
+      startFrameKey: key ?? null,
+      startFrameUploadStatus: key ? 'done' : 'error',
+    });
+  }
+
+  clearClipStartFrame(clipIndex: number): void {
+    const sf = this.clips()[clipIndex].stagedStartFrame;
+    if (sf) URL.revokeObjectURL(sf.previewUrl);
+    this.updateClipField(clipIndex, {
+      stagedStartFrame: null,
+      startFrameKey: null,
+      startFrameUploadStatus: 'idle',
+    });
+  }
+
+  // --- Generate ---
 
   async startGeneration(): Promise<void> {
     if (!this.canSubmit()) return;
 
     this.generationError.set(null);
+    this.isGenerating.set(true);
 
-    // Reference image keys are intentionally empty — the backend auto-uploads
-    // the channel's character image (CharacterImagePath) to R2 on job creation.
     const jobId = await this.store.createJob({
       channelId: this.channelId,
-      prompt: this.prompt().trim(),
       model: this.model(),
       durationSeconds: this.durationSeconds(),
       resolution: this.resolution(),
       aspectRatio: this.aspectRatioFromResolution(this.resolution()),
-      referenceImageKeys: [],
-      keyframeKeys: this.keyframeObjectKeys(),
-      modelOptions: {},
       useChannelImage: this.useReferenceImage(),
+      clips: this.clips().map(c => ({
+        prompt: c.prompt.trim(),
+        startImageKey: c.startFrameKey ?? null,
+        endImageKey: c.keyframeKey ?? null,
+      })),
     });
 
-    if (jobId) {
-      this.router.navigate([jobId], { relativeTo: this.route });
+    this.isGenerating.set(false);
+
+    if (!jobId) {
+      this.generationError.set('Failed to create job.');
+      return;
     }
+
+    this.router.navigate([jobId], { relativeTo: this.route });
   }
 }

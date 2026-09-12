@@ -66,15 +66,17 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
 
         var body = new WanGpGenerateRequest
         {
-            Prompt           = request.Prompt,
-            Model            = request.Model,
-            Width            = width,
-            Height           = height,
-            FrameCount       = frameCount,
-            ReferenceImages  = request.ReferenceImagePaths,
-            Keyframes        = request.KeyframePaths,
-            ReferenceVideo   = request.VideoPath,
-            OutputPath       = request.OutputPath,
+            Prompt            = request.Prompt,
+            Model             = request.Model,
+            Width             = width,
+            Height            = height,
+            FrameCount        = frameCount,
+            ReferenceImages   = request.ReferenceImagePaths,
+            Keyframes         = request.KeyframePaths,
+            ReferenceVideo    = request.VideoPath,
+            OutputPath        = request.OutputPath,
+            NumInferenceSteps = request.ModelOptions.TryGetValue("steps", out var s)
+                                && int.TryParse(s, out var n) ? n : null,
         };
 
         try
@@ -170,17 +172,19 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
 
     private sealed class WanGpGenerateRequest
     {
-        public string       Prompt          { get; set; } = string.Empty;
-        public string       Model           { get; set; } = string.Empty;
-        public int          Width           { get; set; }
-        public int          Height          { get; set; }
-        public int          FrameCount      { get; set; }
-        public List<string> ReferenceImages { get; set; } = new();
-        public List<string> Keyframes       { get; set; } = new();
+        public string       Prompt               { get; set; } = string.Empty;
+        public string       Model                { get; set; } = string.Empty;
+        public int          Width                { get; set; }
+        public int          Height               { get; set; }
+        public int          FrameCount           { get; set; }
+        public List<string> ReferenceImages      { get; set; } = new();
+        public List<string> Keyframes            { get; set; } = new();
         /// <summary>Local path of a reference video for video-to-video conditioning (optional).</summary>
-        public string?      ReferenceVideo  { get; set; }
+        public string?      ReferenceVideo       { get; set; }
         /// <summary>Absolute path on the shared volume where the adapter must write the MP4.</summary>
-        public string       OutputPath      { get; set; } = string.Empty;
+        public string       OutputPath           { get; set; } = string.Empty;
+        /// <summary>Overrides the model's default step count when set. Maps to num_inference_steps in WanGP.</summary>
+        public int?         NumInferenceSteps    { get; set; }
     }
 
     private sealed class WanGpGenerateResponse

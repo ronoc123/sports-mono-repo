@@ -702,15 +702,14 @@ export class LocalVideoStatusComponent implements OnInit {
 
       const newJobId = await this.store.createJob({
         channelId: this.channelId,
-        prompt: this.regenPrompt.trim(),
         model: this.regenModel,
         durationSeconds: this.regenDuration,
         resolution: this.regenResolution,
         aspectRatio: this.regenAspectRatio,
-        referenceImageKeys: [],
-        keyframeKeys: this.keyframeObjectKeys(),
-        modelOptions: {},
-        referenceVideoKey: job.outputVideoKey ?? null,
+        clips: [{
+          prompt: this.regenPrompt.trim(),
+          endImageKey: this.keyframeObjectKeys()[0] ?? null,
+        }],
       });
 
       if (newJobId) {
