@@ -102,7 +102,7 @@ public class JobProcessor
                         Resolution          = job.Resolution,
                         AspectRatio         = job.AspectRatio,
                         OutputPath          = Path.Combine(segDir, "segment.mp4"),
-                        ModelOptions        = job.ModelOptions,
+                        ModelOptions        = job.ModelOptions ?? new(),
                     };
 
                     var segResult = await _generator.GenerateAsync(segRequest, cancellationToken);
