@@ -1,11 +1,105 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-access';
 
+const AUDIO_MODELS = new Set(['mmaudio', 'prism-audio']);
+
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+const MODEL_RESOLUTIONS: Record<string, { value: string; label: string }[]> = {
+  'wan-i2v': [
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '480x832',  label: '480×832  — 480p 9:16' },
+    { value: '624x624',  label: '624×624  — 480p 1:1'  },
+  ],
+  'wan-i2v-720p': [
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+    { value: '960x960',  label: '960×960  — 720p 1:1'  },
+  ],
+  'wan-t2v': [
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '480x832',  label: '480×832  — 480p 9:16' },
+    { value: '624x624',  label: '624×624  — 480p 1:1'  },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+  'wan-t2v-1.3b': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+  ],
+  'h3-fl2va': [
+    { value: '480x832',  label: '480×832  — 480p 9:16 (recommended)' },
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+  ],
+  'h3-ref2va': [
+    { value: '480x832',  label: '480×832  — 480p 9:16 (recommended)' },
+    { value: '832x480',  label: '832×480  — 480p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+  ],
+  'ltx-2': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '360x640',  label: '360×640  — 360p 9:16' },
+    { value: '854x480',  label: '854×480  — 480p 16:9' },
+    { value: '480x854',  label: '480×854  — 480p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+  'ltx-2.3': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '360x640',  label: '360×640  — 360p 9:16' },
+    { value: '854x480',  label: '854×480  — 480p 16:9' },
+    { value: '480x854',  label: '480×854  — 480p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+  'ltx-2.5': [
+    { value: '448x256',  label: '448×256  — 256p 16:9 (fast test)' },
+    { value: '256x448',  label: '256×448  — 256p 9:16' },
+    { value: '640x360',  label: '640×360  — 360p 16:9' },
+    { value: '360x640',  label: '360×640  — 360p 9:16' },
+    { value: '854x480',  label: '854×480  — 480p 16:9' },
+    { value: '480x854',  label: '480×854  — 480p 9:16' },
+    { value: '1280x720', label: '1280×720 — 720p 16:9' },
+    { value: '720x1280', label: '720×1280 — 720p 9:16' },
+  ],
+};
+
+const MODEL_DEFAULT_RESOLUTION: Record<string, string> = {
+  'wan-i2v':      '832x480',
+  'wan-i2v-720p': '1280x720',
+  'wan-t2v':      '832x480',
+  'wan-t2v-1.3b': '448x256',
+  'h3-fl2va':     '480x832',
+  'h3-ref2va':    '480x832',
+  'ltx-2':        '448x256',
+  'ltx-2.3':      '448x256',
+  'ltx-2.5':      '448x256',
+};
+
+const MODEL_DEFAULT_STEPS: Record<string, number | null> = {
+  'wan-i2v':      20,
+  'wan-i2v-720p': 20,
+  'wan-t2v':      20,
+  'wan-t2v-1.3b': 20,
+  'h3-fl2va':     null,
+  'h3-ref2va':    null,
+  'ltx-2':        8,
+  'ltx-2.3':      8,
+  'ltx-2.5':      8,
+};
 
 interface StagedKeyframe {
   file: File;
@@ -101,6 +195,12 @@ interface StagedKeyframe {
                 <span class="meta-label">Model</span>
                 <span class="meta-value">{{ job.model }}</span>
               </div>
+              @if (isAudioJob()) {
+                <div class="meta-row">
+                  <span class="meta-label">Audio Prompt</span>
+                  <span class="meta-value meta-value--prompt">{{ job.prompt }}</span>
+                </div>
+              }
               <div class="meta-row">
                 <span class="meta-label">Duration</span>
                 <span class="meta-value">{{ job.durationSeconds }}s</span>
@@ -121,11 +221,75 @@ interface StagedKeyframe {
               }
             </div>
 
+            <!-- AI Audio panel (hidden for audio jobs themselves) -->
+            @if (!isAudioJob()) {
+              @if (!showAudioForm()) {
+                <div class="regen-bar">
+                  <button class="btn-audio" (click)="showAudioForm.set(true)">&#9834; Add AI Audio</button>
+                  <span class="regen-bar-hint">Use WanGP's MMAudio or PrismAudio to generate a synchronized soundtrack for this video.</span>
+                </div>
+              } @else {
+                <div class="regen-panel">
+                  <div class="regen-header">
+                    <span class="regen-title">Add AI Audio</span>
+                    <button class="btn-link" (click)="showAudioForm.set(false)">Cancel</button>
+                  </div>
+
+                  <div class="regen-info-pill">
+                    <span class="regen-info-icon">&#9834;</span>
+                    WanGP analyses the video and generates a synchronized soundtrack — no music, just what the scene sounds like
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Audio Model</label>
+                      <select class="form-control" [(ngModel)]="audioModel" [disabled]="isGeneratingAudio()">
+                        <option value="mmaudio">MMAudio (recommended)</option>
+                        <option value="prism-audio">PrismAudio</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Audio Prompt <span class="required">*</span></label>
+                    <textarea class="form-control" rows="3"
+                              [(ngModel)]="audioPrompt"
+                              placeholder="e.g. Realistic renovation sounds, shovels digging, pavers being placed, birds in the background, no speech"
+                              [disabled]="isGeneratingAudio()"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Negative Prompt <span class="form-hint">(sounds to avoid)</span></label>
+                    <input type="text" class="form-control"
+                           [(ngModel)]="audioNegativePrompt"
+                           placeholder="e.g. music, speech, singing"
+                           [disabled]="isGeneratingAudio()">
+                  </div>
+
+                  @if (audioError()) {
+                    <p class="error-msg">{{ audioError() }}</p>
+                  }
+
+                  <div class="regen-actions">
+                    <button class="btn-secondary" (click)="showAudioForm.set(false)" [disabled]="isGeneratingAudio()">Cancel</button>
+                    <button class="btn-audio"
+                            (click)="submitAudio()"
+                            [disabled]="!audioPrompt.trim() || isGeneratingAudio()">
+                      @if (isGeneratingAudio()) {
+                        <span class="spinner spinner--sm spinner--white"></span>
+                      }
+                      {{ isGeneratingAudio() ? 'Queuing…' : 'Generate Audio' }}
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+
             <!-- Regenerate panel -->
             @if (!showRegenForm()) {
               <div class="regen-bar">
                 <button class="btn-regen" (click)="openRegenForm()">&#8635; Regenerate with Changes</button>
-                <span class="regen-bar-hint">Refine prompt, resolution, or model — uses this video as the generation starting point.</span>
+                <span class="regen-bar-hint">Refine the prompt, resolution, or model and submit a new generation job.</span>
               </div>
             } @else {
               <div class="regen-panel">
@@ -136,7 +300,7 @@ interface StagedKeyframe {
 
                 <div class="regen-info-pill">
                   <span class="regen-info-icon">&#9654;</span>
-                  Using this video as the generation starting point (video-to-video)
+                  Creates a new job — pre-filled with this job's settings
                 </div>
 
                 <!-- Optional keyframe images -->
@@ -207,16 +371,24 @@ interface StagedKeyframe {
                 <div class="form-row">
                   <div class="form-group">
                     <label class="form-label">Model</label>
-                    <select class="form-control" [(ngModel)]="regenModel" [disabled]="isRegenerating()">
-                      <optgroup label="Wan 2.1 (Recommended)">
+                    <select class="form-control"
+                            [value]="regenModel"
+                            (change)="onRegenModelChange($any($event.target).value)"
+                            [disabled]="isRegenerating()">
+                      <optgroup label="MiniMax H3 (Best for transformation / before-after)">
+                        <option value="h3-fl2va">H3 FL2VA Pruned 20B — 8-step PDD</option>
+                        <option value="h3-ref2va">H3 Ref2VA Pruned 20B — 8-step PDD</option>
+                      </optgroup>
+                      <optgroup label="LTX Video (Fastest)">
+                        <option value="ltx-2.5">LTX 2.5 22B distilled</option>
+                        <option value="ltx-2.3">LTX 2.3 22B distilled</option>
+                        <option value="ltx-2">LTX-2 19B</option>
+                      </optgroup>
+                      <optgroup label="Wan 2.1">
                         <option value="wan-i2v">Wan 2.1 i2v 480p — image-to-video 14B</option>
                         <option value="wan-i2v-720p">Wan 2.1 i2v 720p — image-to-video 14B</option>
                         <option value="wan-t2v">Wan 2.1 t2v — text-to-video 14B</option>
                         <option value="wan-t2v-1.3b">Wan 2.1 t2v 1.3B — fast / low VRAM</option>
-                      </optgroup>
-                      <optgroup label="LTX Video">
-                        <option value="ltx-2">LTX-2 19B</option>
-                        <option value="ltx-2.3">LTX-2.3 22B distilled</option>
                       </optgroup>
                     </select>
                   </div>
@@ -228,31 +400,40 @@ interface StagedKeyframe {
                   </div>
                 </div>
 
-                <!-- Resolution + Aspect Ratio -->
-                <div class="form-row">
-                  <div class="form-group">
-                    <label class="form-label">Resolution</label>
-                    <select class="form-control" [(ngModel)]="regenResolution" [disabled]="isRegenerating()">
-                      <option value="448x256">448×256 (256p — fastest test)</option>
-                      <option value="640x360">640×360 (360p — fast)</option>
-                      <option value="854x480">854×480 (SD)</option>
-                      <option value="1280x720">1280×720 (HD)</option>
-                      <option value="1920x1080">1920×1080 (Full HD)</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Aspect Ratio</label>
-                    <select class="form-control" [(ngModel)]="regenAspectRatio" [disabled]="isRegenerating()">
-                      <option value="16:9">16:9 (Landscape)</option>
-                      <option value="9:16">9:16 (Portrait)</option>
-                      <option value="1:1">1:1 (Square)</option>
-                    </select>
-                  </div>
+                <!-- Resolution -->
+                <div class="form-group">
+                  <label class="form-label">Resolution</label>
+                  <select class="form-control" [(ngModel)]="regenResolution" [disabled]="isRegenerating()">
+                    @for (r of regenAvailableResolutions(); track r.value) {
+                      <option [value]="r.value">{{ r.label }}</option>
+                    }
+                  </select>
                 </div>
+
+                <!-- Inference Steps (hidden for H3 PDD models) -->
+                @if (showRegenStepsControl()) {
+                  <div class="form-group">
+                    <label class="form-label">Inference Steps</label>
+                    <div class="steps-row">
+                      <input type="range" class="steps-slider" min="4" max="50"
+                             [value]="regenSteps()"
+                             (input)="regenSteps.set(+$any($event.target).value)"
+                             [disabled]="isRegenerating()">
+                      <input type="number" class="form-control steps-number" min="4" max="50"
+                             [value]="regenSteps()"
+                             (input)="regenSteps.set(+$any($event.target).value)"
+                             [disabled]="isRegenerating()">
+                      <span class="steps-badge steps-badge--{{ regenStepsLabel().toLowerCase() }}">{{ regenStepsLabel() }}</span>
+                    </div>
+                    <p class="steps-hint">Higher = better quality, slower. LTX distilled: 15–25 recommended. Wan 2.1: 20–30.</p>
+                  </div>
+                }
 
                 @if (regenError()) {
                   <p class="error-msg">{{ regenError() }}</p>
                 }
+
+                <p class="regen-audio-note">&#9834; The new video will be silent. Use <strong>Add AI Audio</strong> on its status page to re-apply audio — copy the prompt from your audio job first.</p>
 
                 <div class="regen-actions">
                   <button class="btn-secondary" (click)="showRegenForm.set(false)" [disabled]="isRegenerating()">Cancel</button>
@@ -417,11 +598,15 @@ interface StagedKeyframe {
     .meta-row:last-child { border-bottom: none; }
     .meta-label { font-size: 13px; color: #777; min-width: 100px; }
     .meta-value { font-size: 13px; color: #333; font-weight: 500; }
+    .meta-value--prompt { font-weight: 400; font-style: italic; color: #555; user-select: all; }
     /* Regen bar */
     .regen-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 16px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; flex-wrap: wrap; }
     .regen-bar-hint { font-size: 12px; color: #555; flex: 1; min-width: 0; }
     .btn-regen { background: #1976d2; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap; flex-shrink: 0; }
     .btn-regen:hover { background: #1565c0; }
+    .btn-audio { background: #7c3aed; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-audio:hover:not(:disabled) { background: #6d28d9; }
+    .btn-audio:disabled { opacity: 0.6; cursor: not-allowed; }
     /* Regen panel */
     .regen-panel { background: white; border: 1px solid #90caf9; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
     .regen-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -431,6 +616,7 @@ interface StagedKeyframe {
     .regen-section { margin-bottom: 16px; }
     .regen-section-label { font-size: 13px; font-weight: 600; color: #444; margin: 0 0 8px; }
     .optional-label { font-size: 12px; font-weight: 400; color: #999; }
+    .regen-audio-note { font-size: 12px; color: #7c5c00; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 9px 12px; margin: 10px 0 0; }
     .regen-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e3f2fd; }
     /* Keyframe upload */
     .keyframe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 14px; }
@@ -448,6 +634,15 @@ interface StagedKeyframe {
     .upload-hint { color: #999; font-size: 12px; }
     .keyframe-actions { margin-top: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .upload-done-banner { display: flex; align-items: center; gap: 8px; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2e7d32; font-weight: 500; }
+    /* Steps control */
+    .steps-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .steps-slider { flex: 1; accent-color: #1976d2; cursor: pointer; }
+    .steps-number { width: 72px; flex-shrink: 0; }
+    .steps-hint { margin: 6px 0 0; font-size: 12px; color: #888; }
+    .steps-badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
+    .steps-badge--fast { background: #fff8e1; color: #f57f17; }
+    .steps-badge--balanced { background: #e3f2fd; color: #1565c0; }
+    .steps-badge--quality { background: #e8f5e9; color: #2e7d32; }
     /* Post section */
     .post-section { background: white; border: 1px solid #c8e6c9; border-radius: 8px; padding: 20px; }
     .post-section-title { margin: 0 0 16px; font-size: 17px; color: #1a1a1a; }
@@ -514,12 +709,33 @@ export class LocalVideoStatusComponent implements OnInit {
   postDescription = '';
   postHashtags = '';
 
-  // Regenerate form plain properties (ngModel)
+  // Regenerate form properties
   regenPrompt = '';
-  regenModel = 'wan-i2v';
-  regenDuration = 5;
-  regenResolution = '1280x720';
-  regenAspectRatio = '16:9';
+  readonly regenModel = signal('h3-fl2va');
+  regenDuration = 4;
+  regenResolution = '480x832';
+
+  readonly regenAvailableResolutions = computed(() =>
+    MODEL_RESOLUTIONS[this.regenModel()] ?? MODEL_RESOLUTIONS['h3-fl2va']
+  );
+
+  readonly regenSteps = signal<number>(20);
+  readonly showRegenStepsControl = computed(() => MODEL_DEFAULT_STEPS[this.regenModel()] !== null);
+  readonly regenStepsLabel = computed(() => {
+    const s = this.regenSteps();
+    if (s <= 10) return 'Fast';
+    if (s <= 18) return 'Balanced';
+    return 'Quality';
+  });
+
+  // Audio generation panel
+  readonly showAudioForm = signal(false);
+  readonly isGeneratingAudio = signal(false);
+  readonly audioError = signal<string | null>(null);
+  readonly isAudioJob = computed(() => AUDIO_MODELS.has(this.store.currentJob()?.model ?? ''));
+  audioModel = 'mmaudio';
+  audioPrompt = '';
+  audioNegativePrompt = 'music, speech, singing';
 
   private jobId = '';
   private channelId = '';
@@ -602,10 +818,11 @@ export class LocalVideoStatusComponent implements OnInit {
     const job = this.store.currentJob();
     if (!job) return;
     this.regenPrompt = job.prompt;
-    this.regenModel = job.model ?? 'ltx-2.3';
-    this.regenDuration = job.durationSeconds ?? 5;
-    this.regenResolution = job.resolution ?? '1280x720';
-    this.regenAspectRatio = job.aspectRatio ?? '16:9';
+    this.regenModel.set(job.model ?? 'h3-fl2va');
+    this.regenDuration = job.durationSeconds ?? 4;
+    this.regenResolution = job.resolution ?? MODEL_DEFAULT_RESOLUTION[job.model] ?? '480x832';
+    const defaultSteps = MODEL_DEFAULT_STEPS[job.model ?? 'h3-fl2va'];
+    this.regenSteps.set(defaultSteps ?? 20);
     // Reset keyframe state for a fresh panel
     this.stagedKeyframes.set([]);
     this.keyframeObjectKeys.set([]);
@@ -613,6 +830,23 @@ export class LocalVideoStatusComponent implements OnInit {
     this.keyframeValidationError.set(null);
     this.regenError.set(null);
     this.showRegenForm.set(true);
+  }
+
+  private aspectRatioFromResolution(resolution: string): string {
+    const [w, h] = resolution.split('x').map(Number);
+    return w > h ? '16:9' : h > w ? '9:16' : '1:1';
+  }
+
+  onRegenModelChange(newModel: string): void {
+    this.regenModel.set(newModel);
+    const options = MODEL_RESOLUTIONS[newModel] ?? [];
+    if (!options.find(r => r.value === this.regenResolution)) {
+      this.regenResolution = MODEL_DEFAULT_RESOLUTION[newModel] ?? options[0]?.value ?? '480x832';
+    }
+    const defaultSteps = MODEL_DEFAULT_STEPS[newModel];
+    if (defaultSteps !== null) {
+      this.regenSteps.set(defaultSteps);
+    }
   }
 
   // --- Keyframe upload ---
@@ -700,12 +934,17 @@ export class LocalVideoStatusComponent implements OnInit {
         }
       }
 
+      const defaultSteps = MODEL_DEFAULT_STEPS[this.regenModel()];
+      const modelOptions: Record<string, string> | undefined =
+        defaultSteps !== null ? { steps: this.regenSteps().toString() } : undefined;
+
       const newJobId = await this.store.createJob({
         channelId: this.channelId,
-        model: this.regenModel,
+        model: this.regenModel(),
         durationSeconds: this.regenDuration,
         resolution: this.regenResolution,
-        aspectRatio: this.regenAspectRatio,
+        aspectRatio: this.aspectRatioFromResolution(this.regenResolution),
+        modelOptions,
         clips: [{
           prompt: this.regenPrompt.trim(),
           endImageKey: this.keyframeObjectKeys()[0] ?? null,
@@ -719,6 +958,27 @@ export class LocalVideoStatusComponent implements OnInit {
       }
     } finally {
       this.isRegenerating.set(false);
+    }
+  }
+
+  async submitAudio(): Promise<void> {
+    if (!this.audioPrompt.trim() || this.isGeneratingAudio()) return;
+    this.audioError.set(null);
+    this.isGeneratingAudio.set(true);
+    try {
+      const audioJobId = await this.store.generateAudio(this.jobId, {
+        channelId: this.channelId,
+        audioModel: this.audioModel,
+        prompt: this.audioPrompt.trim(),
+        negativePrompt: this.audioNegativePrompt.trim() || undefined,
+      });
+      if (audioJobId) {
+        this.router.navigate(['/channels', this.channelId, 'local-video', audioJobId]);
+      } else {
+        this.audioError.set('Failed to queue audio generation job. Please try again.');
+      }
+    } finally {
+      this.isGeneratingAudio.set(false);
     }
   }
 

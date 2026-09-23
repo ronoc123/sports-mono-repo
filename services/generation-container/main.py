@@ -114,6 +114,21 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="WanGP Generation Adapter", lifespan=lifespan)
 
 
+# Audio model IDs → WanGP internal model_type strings.
+# MMAudio and PrismAudio are WanGP extensions that generate audio for an existing video.
+# Enable them in WanGP under Configuration → Extensions before use.
+AUDIO_MODEL_TYPE_MAP: dict[str, str] = {
+    "mmaudio":     "mmaudio",
+    "prism-audio": "prism_audio",
+}
+
+# Default inference steps for audio models
+AUDIO_MODEL_STEPS: dict[str, int] = {
+    "mmaudio":     25,
+    "prism_audio": 25,
+}
+
+
 # ── Request / response models ─────────────────────────────────────────────────
 
 class GenerateRequest(BaseModel):
@@ -131,6 +146,16 @@ class GenerateRequest(BaseModel):
 
 class GenerateResponse(BaseModel):
     output_path: str
+
+
+class AudioRequest(BaseModel):
+    """Request to add AI-generated audio to an existing silent video."""
+    video_path: str              # absolute local path to the input video (shared volume)
+    prompt: str                  # positive audio description
+    negative_prompt: str = ""    # sounds to avoid
+    model: str = "mmaudio"       # "mmaudio" or "prism-audio"
+    output_path: str             # where to write the video with audio
+    num_inference_steps: int | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -187,6 +212,52 @@ async def generate(req: GenerateRequest):
         shutil.move(generated_path, req.output_path)
 
     logger.info("Generation complete → %s", req.output_path)
+    return GenerateResponse(output_path=req.output_path)
+
+
+@app.post("/audio", response_model=GenerateResponse)
+async def generate_audio(req: AudioRequest):
+    """
+    Add AI-generated audio to an existing silent video using WanGP's MMAudio or PrismAudio extension.
+
+    The input video must be accessible on the shared Docker volume (/app/tmp).
+    MMAudio / PrismAudio must be enabled in WanGP under Configuration → Extensions.
+    """
+    if _session is None:
+        raise HTTPException(status_code=503, detail="WanGP session not ready")
+
+    model_type = AUDIO_MODEL_TYPE_MAP.get(req.model, "mmaudio")
+    steps = req.num_inference_steps or AUDIO_MODEL_STEPS.get(model_type, 25)
+
+    settings: dict = {
+        "model_type":          model_type,
+        "video":               req.video_path,
+        "prompt":              req.prompt,
+        "negative_prompt":     req.negative_prompt,
+        "num_inference_steps": steps,
+    }
+
+    logger.info(
+        "Audio generation: model=%s steps=%d video=%s — %r",
+        model_type, steps, req.video_path, req.prompt[:80],
+    )
+
+    async with _generation_lock:
+        try:
+            loop = asyncio.get_event_loop()
+            generated_path = await loop.run_in_executor(
+                None,
+                lambda: _run_generation(settings),
+            )
+        except Exception as exc:
+            logger.error("Audio generation failed: %s", exc, exc_info=True)
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    os.makedirs(os.path.dirname(req.output_path), exist_ok=True)
+    if generated_path != req.output_path:
+        shutil.move(generated_path, req.output_path)
+
+    logger.info("Audio generation complete → %s", req.output_path)
     return GenerateResponse(output_path=req.output_path)
 
 

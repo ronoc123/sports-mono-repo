@@ -90,6 +90,23 @@ const MODEL_DEFAULT_RESOLUTION: Record<string, string> = {
   'ltx-2.5':      '448x256',
 };
 
+/**
+ * Default inference steps per model.
+ * null = model uses a fixed PDD distillation schedule — hide the control entirely.
+ * Changing steps on H3 PDD models breaks the schedule and does not improve quality.
+ */
+const MODEL_DEFAULT_STEPS: Record<string, number | null> = {
+  'wan-i2v':      20,
+  'wan-i2v-720p': 20,
+  'wan-t2v':      20,
+  'wan-t2v-1.3b': 20,
+  'h3-fl2va':     null,
+  'h3-ref2va':    null,
+  'ltx-2':        8,
+  'ltx-2.3':      8,
+  'ltx-2.5':      8,
+};
+
 interface StagedKeyframe {
   file: File;
   previewUrl: string;
@@ -149,27 +166,6 @@ interface Clip {
           }
         } @else {
           <div class="loading-inline">Loading channel...</div>
-        }
-      </div>
-
-      <!-- Channel Context Audio (auto-used) -->
-      <div class="step-section">
-        <h2 class="step-title">
-          <span class="step-num">&#9654;</span>
-          Channel Context Audio
-        </h2>
-        @if (channelStore.selectedChannel(); as channel) {
-          @if (channel.contextAudioUrl) {
-            <p class="step-desc">Your channel's context audio will automatically be mixed into the final video.</p>
-            <div class="ref-audio-container">
-              <audio controls [src]="apiOrigin + channel.contextAudioUrl" class="ref-audio-player"></audio>
-              <div class="ref-image-footer">
-                <span class="ref-image-label">&#10003; Auto-mixing channel context audio</span>
-              </div>
-            </div>
-          } @else {
-            <p class="step-desc" style="color:#999">No context audio set for this channel — video will be generated without audio. You can add audio on the channel settings page.</p>
-          }
         }
       </div>
 
@@ -273,6 +269,22 @@ interface Clip {
             }
           </select>
         </div>
+
+        @if (showStepsControl()) {
+          <div class="form-group">
+            <label>Inference Steps</label>
+            <div class="steps-row">
+              <input type="range" class="steps-slider" min="4" max="50"
+                     [value]="inferenceSteps()"
+                     (input)="inferenceSteps.set(+$any($event.target).value)">
+              <input type="number" class="form-control steps-number" min="4" max="50"
+                     [value]="inferenceSteps()"
+                     (input)="inferenceSteps.set(+$any($event.target).value)">
+              <span class="steps-badge steps-badge--{{ stepsLabel().toLowerCase() }}">{{ stepsLabel() }}</span>
+            </div>
+            <p class="steps-hint">Higher = better quality, slower. LTX distilled: 15–25 recommended. Wan 2.1: 20–30.</p>
+          </div>
+        }
       </div>
 
       <!-- Clips -->
@@ -380,8 +392,6 @@ interface Clip {
     .optional-label { font-size: 13px; font-weight: 400; color: #999; }
     .required { color: #d32f2f; }
     .loading-inline { color: #999; font-size: 14px; padding: 8px 0; }
-    .ref-audio-container { display: flex; flex-direction: column; border: 1px solid #c8e6c9; border-radius: 10px; overflow: hidden; max-width: 420px; }
-    .ref-audio-player { width: 100%; display: block; background: #f5f5f5; padding: 12px; box-sizing: border-box; }
     .ref-image-container { display: flex; flex-direction: column; border: 1px solid #c8e6c9; border-radius: 10px; overflow: hidden; max-width: 420px; }
     .ref-image { width: 100%; max-height: 240px; object-fit: contain; background: #f5f5f5; display: block; }
     .ref-image-footer { display: flex; align-items: center; padding: 10px 14px; background: #f1f8e9; border-top: 1px solid #c8e6c9; }
@@ -439,6 +449,14 @@ interface Clip {
     textarea.form-control { resize: vertical; }
     select.form-control { appearance: auto; }
     .error-msg { color: #d32f2f; font-size: 13px; margin: 8px 0 0; }
+    .steps-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+    .steps-slider { flex: 1; accent-color: #2e7d32; cursor: pointer; }
+    .steps-number { width: 72px; flex-shrink: 0; }
+    .steps-hint { margin: 6px 0 0; font-size: 12px; color: #888; }
+    .steps-badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
+    .steps-badge--fast { background: #fff8e1; color: #f57f17; }
+    .steps-badge--balanced { background: #e3f2fd; color: #1565c0; }
+    .steps-badge--quality { background: #e8f5e9; color: #2e7d32; }
     .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
     .btn-secondary { background: white; color: #333; border: 1px solid #ddd; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-secondary:hover { background: #f5f5f5; }
@@ -486,6 +504,14 @@ export class LocalVideoComponent implements OnInit {
   readonly isGenerating = signal(false);
   readonly useReferenceImage = signal(true);
   readonly generationError = signal<string | null>(null);
+  readonly inferenceSteps = signal<number>(20);
+  readonly showStepsControl = computed(() => MODEL_DEFAULT_STEPS[this.model()] !== null);
+  readonly stepsLabel = computed(() => {
+    const s = this.inferenceSteps();
+    if (s <= 10) return 'Fast';
+    if (s <= 18) return 'Balanced';
+    return 'Quality';
+  });
 
   ideaInput = '';
   private channelId = '';
@@ -533,6 +559,10 @@ export class LocalVideoComponent implements OnInit {
     const options = MODEL_RESOLUTIONS[newModel] ?? [];
     if (!options.find(r => r.value === this.resolution())) {
       this.resolution.set(MODEL_DEFAULT_RESOLUTION[newModel] ?? options[0]?.value ?? '832x480');
+    }
+    const defaultSteps = MODEL_DEFAULT_STEPS[newModel];
+    if (defaultSteps !== null) {
+      this.inferenceSteps.set(defaultSteps);
     }
   }
 
@@ -675,6 +705,10 @@ export class LocalVideoComponent implements OnInit {
     this.generationError.set(null);
     this.isGenerating.set(true);
 
+    const defaultSteps = MODEL_DEFAULT_STEPS[this.model()];
+    const modelOptions: Record<string, string> | undefined =
+      defaultSteps !== null ? { steps: this.inferenceSteps().toString() } : undefined;
+
     const jobId = await this.store.createJob({
       channelId: this.channelId,
       model: this.model(),
@@ -682,6 +716,7 @@ export class LocalVideoComponent implements OnInit {
       resolution: this.resolution(),
       aspectRatio: this.aspectRatioFromResolution(this.resolution()),
       useChannelImage: this.useReferenceImage(),
+      modelOptions,
       clips: this.clips().map(c => ({
         prompt: c.prompt.trim(),
         startImageKey: c.startFrameKey ?? null,

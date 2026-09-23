@@ -13,6 +13,7 @@ import {
   RenderJob,
   IdeateVideoRequest,
   IdeateVideoResponse,
+  GenerateAudioRequest,
 } from './render-job.models';
 
 @Injectable({ providedIn: 'root' })
@@ -69,6 +70,13 @@ export class RenderJobApiService {
   ideate(req: IdeateVideoRequest): Observable<ServiceResponse<IdeateVideoResponse>> {
     return this.http.post<ServiceResponse<IdeateVideoResponse>>(
       `${this.base}render-jobs/ideate`,
+      req
+    );
+  }
+
+  generateAudio(sourceJobId: string, req: GenerateAudioRequest): Observable<ServiceResponse<CreateRenderJobResponse>> {
+    return this.http.post<ServiceResponse<CreateRenderJobResponse>>(
+      `${this.base}render-jobs/${sourceJobId}/audio`,
       req
     );
   }

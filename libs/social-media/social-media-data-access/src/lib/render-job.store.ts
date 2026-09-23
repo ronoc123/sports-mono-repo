@@ -9,6 +9,7 @@ import {
   StartPostFromRenderJobRequest,
   IdeateVideoRequest,
   IdeateVideoResponse,
+  GenerateAudioRequest,
 } from './render-job.models';
 
 export const RenderJobStore = signalStore(
@@ -126,6 +127,15 @@ export const RenderJobStore = signalStore(
           ideateStatus: 'error',
           ideateError: err?.error?.message ?? 'Claude could not generate a concept. Please try again.',
         });
+        return null;
+      }
+    },
+
+    async generateAudio(sourceJobId: string, req: GenerateAudioRequest): Promise<string | null> {
+      try {
+        const res = await firstValueFrom(api.generateAudio(sourceJobId, req));
+        return res.data.jobId;
+      } catch {
         return null;
       }
     },

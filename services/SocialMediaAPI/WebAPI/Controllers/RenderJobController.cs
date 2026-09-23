@@ -133,6 +133,33 @@ public class RenderJobController : ControllerBase
     }
 
     /// <summary>
+    /// Creates an AI audio generation job from a completed render job.
+    /// Uses WanGP's MMAudio or PrismAudio extension to synthesise a soundtrack
+    /// synchronized to the source video's content.
+    /// The result is a new render job whose output is the source video with AI audio mixed in.
+    /// </summary>
+    [HttpPost("{sourceJobId}/audio")]
+    public async Task<ActionResult<ServiceResponse<CreateRenderJobResponse>>> GenerateAudio(
+        string sourceJobId,
+        [FromBody] GenerateAudioRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new CreateAudioForRenderJobCommand(
+                sourceJobId,
+                request.ChannelId,
+                request.AudioModel,
+                request.Prompt,
+                request.NegativePrompt ?? string.Empty),
+            cancellationToken);
+
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Start a post cycle from a completed local render job.
     /// Downloads the video from R2 and kicks off the posting pipeline.
     /// </summary>
@@ -173,6 +200,17 @@ public class IdeateVideoRequest
 {
     public string ChannelId { get; set; } = string.Empty;
     public string UserIdea { get; set; } = string.Empty;
+}
+
+public class GenerateAudioRequest
+{
+    public string ChannelId { get; set; } = string.Empty;
+    /// <summary>"mmaudio" or "prism-audio"</summary>
+    public string AudioModel { get; set; } = "mmaudio";
+    /// <summary>Positive audio prompt — describe the sounds you want.</summary>
+    public string Prompt { get; set; } = string.Empty;
+    /// <summary>Negative audio prompt — sounds to avoid (e.g. "music, speech").</summary>
+    public string? NegativePrompt { get; set; }
 }
 
 public class CreateRenderJobRequest

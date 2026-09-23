@@ -69,6 +69,14 @@ export interface IdeateVideoRequest {
   userIdea: string;
 }
 
+export interface GenerateAudioRequest {
+  channelId: string;
+  /** "mmaudio" or "prism-audio" */
+  audioModel: string;
+  prompt: string;
+  negativePrompt?: string;
+}
+
 export interface IdeateVideoResponse {
   prompt: string;
   scenes: string[];

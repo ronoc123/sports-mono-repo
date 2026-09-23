@@ -10,11 +10,16 @@ namespace VideoWorker.Generators;
 /// Calls the thin Python generation adapter (services/generation-container)
 /// which wraps WanGP's in-process Python API.
 ///
-/// Contract:
+/// Contract (video):
 ///   POST  {ApiUrl}/generate
 ///   Body  application/json  — WanGpGenerateRequest (snake_case)
 ///   200   { "output_path": "/app/tmp/{jobId}/output.mp4" }
 ///   5xx   { "detail": "error message" }
+///
+/// Contract (audio — MMAudio / PrismAudio):
+///   POST  {ApiUrl}/audio
+///   Body  application/json  — WanGpAudioRequest (snake_case)
+///   200   { "output_path": "/app/tmp/{jobId}/output_with_audio.mp4" }
 ///
 /// Input/output files are exchanged via a shared Docker volume (/app/tmp).
 /// The worker downloads reference images to that volume before calling this
@@ -23,6 +28,9 @@ namespace VideoWorker.Generators;
 /// </summary>
 public sealed class WanGpVideoGenerator : IVideoGenerator
 {
+    /// <summary>Models that generate audio for a given video instead of generating video frames.</summary>
+    private static readonly HashSet<string> AudioModels =
+        new(StringComparer.OrdinalIgnoreCase) { "mmaudio", "prism-audio" };
     private readonly HttpClient _http;
     private readonly ILogger<WanGpVideoGenerator> _logger;
 
@@ -54,6 +62,9 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
         VideoGenerationRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (AudioModels.Contains(request.Model))
+            return await GenerateAudioInternalAsync(request, cancellationToken);
+
         var (width, height) = ParseResolution(request.Resolution);
         var frameCount      = DurationToFrameCount(request.DurationSeconds);
 
@@ -190,5 +201,92 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
     private sealed class WanGpGenerateResponse
     {
         public string? OutputPath { get; set; }
+    }
+
+    // ── Audio generation (MMAudio / PrismAudio) ────────────────────────────────
+
+    private async Task<VideoGenerationResult> GenerateAudioInternalAsync(
+        VideoGenerationRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(request.VideoPath))
+            return VideoGenerationResult.Failed(
+                "Audio generation requires a reference video path (VideoPath must not be null).");
+
+        request.ModelOptions.TryGetValue("steps", out var stepsStr);
+        int.TryParse(stepsStr, out var steps);
+
+        request.ModelOptions.TryGetValue("negative_prompt", out var negativePrompt);
+
+        var body = new WanGpAudioRequest
+        {
+            VideoPath       = request.VideoPath,
+            Prompt          = request.Prompt,
+            NegativePrompt  = negativePrompt ?? string.Empty,
+            Model           = request.Model,
+            OutputPath      = request.OutputPath,
+            NumInferenceSteps = steps > 0 ? steps : null,
+        };
+
+        _logger.LogInformation(
+            "WanGP: POST /audio (model={Model}, video={VideoPath}, steps={Steps}) — {Prompt}",
+            request.Model, request.VideoPath, body.NumInferenceSteps, request.Prompt[..Math.Min(80, request.Prompt.Length)]);
+
+        try
+        {
+            using var response = await _http.PostAsJsonAsync(
+                "audio", body, JsonOpts, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var detail = await TryReadDetailAsync(response, cancellationToken);
+                _logger.LogError("WanGP audio adapter returned {StatusCode}: {Detail}",
+                    (int)response.StatusCode, detail);
+                return VideoGenerationResult.Failed(
+                    $"Audio generation service error {(int)response.StatusCode}: {detail}");
+            }
+
+            var result = await response.Content
+                .ReadFromJsonAsync<WanGpGenerateResponse>(JsonOpts, cancellationToken);
+
+            if (result is null || string.IsNullOrEmpty(result.OutputPath))
+            {
+                _logger.LogError("WanGP audio adapter returned success but output_path is missing");
+                return VideoGenerationResult.Failed("Audio generation service returned no output path.");
+            }
+
+            _logger.LogInformation("WanGP audio generation succeeded: {OutputPath}", result.OutputPath);
+            return VideoGenerationResult.Succeeded(result.OutputPath);
+        }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError("WanGP audio adapter timed out after {Timeout}s", _http.Timeout.TotalSeconds);
+            return VideoGenerationResult.Failed(
+                $"Audio generation timed out after {_http.Timeout.TotalSeconds}s.");
+        }
+        catch (OperationCanceledException)
+        {
+            return VideoGenerationResult.Failed("Audio generation was cancelled.");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Network error reaching generation service at {BaseAddress}", _http.BaseAddress);
+            return VideoGenerationResult.Failed($"Network error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error calling audio generation service");
+            return VideoGenerationResult.Failed($"Unexpected error: {ex.Message}");
+        }
+    }
+
+    private sealed class WanGpAudioRequest
+    {
+        public string  VideoPath         { get; set; } = string.Empty;
+        public string  Prompt            { get; set; } = string.Empty;
+        public string  NegativePrompt    { get; set; } = string.Empty;
+        public string  Model             { get; set; } = "mmaudio";
+        public string  OutputPath        { get; set; } = string.Empty;
+        public int?    NumInferenceSteps { get; set; }
     }
 }
