@@ -44,6 +44,12 @@ RUN pip install torch==2.3.1 torchvision==0.18.1 \
 RUN pip install -r requirements.txt \
     --extra-index-url https://download.pytorch.org/whl/cu121
 
+# ── Pin Triton to match PyTorch 2.3.1 ────────────────────────────────────────
+# WanGP's requirements may pull Triton 3.x, which broke constexpr subscripting
+# in WanGP's LTX2 denoiser_triton.py kernel (AXIS_IDS[a] pattern).
+# Triton 2.3.0 is the version PyTorch 2.3.1 was built against and is compatible.
+RUN pip install triton==2.3.0
+
 # ── Install adapter dependencies ──────────────────────────────────────────────
 COPY requirements.txt /app/adapter-requirements.txt
 RUN pip install -r /app/adapter-requirements.txt

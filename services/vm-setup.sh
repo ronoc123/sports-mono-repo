@@ -208,6 +208,30 @@ else
     git -C "$WANGP_DIR" checkout "$WANGP_COMMIT"
 fi
 
+# ── 6b. Patch WanGP for Triton 3.x compatibility ─────────────────────────────
+# denoiser_triton.py uses AXIS_IDS[a] where AXIS_IDS is a tl.constexpr tuple.
+# Triton 3.x removed __getitem__ from constexpr; fix by accessing .value first.
+# Applied after every clone/update so it survives WanGP upgrades.
+log "Patching WanGP for Triton 3.x compatibility..."
+TRITON_PATCH_TARGET="$WANGP_DIR/models/ltx2/denoiser_triton.py"
+python3 - "$TRITON_PATCH_TARGET" <<'PATCH'
+import pathlib, sys
+
+target = pathlib.Path(sys.argv[1])
+if not target.exists():
+    print(f"  {target} not found — skipping patch")
+    sys.exit(0)
+
+txt = target.read_text()
+new_txt = txt.replace("AXIS_IDS[", "AXIS_IDS.value[")
+new_txt = new_txt.replace("GRID[", "GRID.value[")
+if new_txt != txt:
+    target.write_text(new_txt)
+    print(f"  Patched {target}")
+else:
+    print(f"  Already patched or pattern not found — no changes")
+PATCH
+
 # ── 7. PyTorch — pinned BEFORE WanGP requirements ────────────────────────────
 # Install torch first with --index-url so only the target CUDA index is used.
 # WanGP's requirements.txt does not pin a torch version, so pip will see these
