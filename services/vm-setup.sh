@@ -332,6 +332,21 @@ export WANGP_OUTPUT_DIR="\$WORKSPACE/tmp/wangp-out"
 
 mkdir -p "\$WANGP_OUTPUT_DIR" "\$WORKSPACE/tmp"
 
+# ── Pull latest code and republish VideoWorker ────────────────────────────────
+echo ""
+echo "Pulling latest code from origin/main..."
+git -C "\$REPO_DIR" pull --ff-only origin main
+
+echo "Republishing VideoWorker..."
+dotnet publish "\$REPO_DIR/services/VideoWorker" \
+    -c Release \
+    -o "\$WORKER_BIN" \
+    --self-contained false \
+    -p:PublishSingleFile=false \
+    --nologo \
+    -v quiet
+echo "  VideoWorker updated"
+
 echo ""
 echo "Activating Python environment (\$ENV_NAME)..."
 source "\$CONDA_DIR/etc/profile.d/conda.sh"
