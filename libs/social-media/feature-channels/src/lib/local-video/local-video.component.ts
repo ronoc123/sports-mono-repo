@@ -2,8 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ChannelStore, RenderJobStore } from '@sports-ui/social-media-data-access';
-import { environment } from '@sports-ui/api-types';
+import { RenderJobStore } from '@sports-ui/social-media-data-access';
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -135,90 +134,6 @@ interface Clip {
         <h1>Local Video Generation</h1>
       </div>
 
-      <!-- Channel Reference Image (auto-used) -->
-      <div class="step-section">
-        <h2 class="step-title">
-          <span class="step-num">&#9654;</span>
-          Channel Reference Image
-        </h2>
-        @if (channelStore.selectedChannel(); as channel) {
-          @if (channel.characterImageUrl) {
-            <p class="step-desc">Your channel's character reference image can be sent to the GPU worker as visual context.</p>
-            <div class="ref-image-container" [class.ref-image-container--disabled]="!useReferenceImage()">
-              <img [src]="apiOrigin + channel.characterImageUrl" alt="Channel character reference" class="ref-image">
-              <div class="ref-image-footer">
-                <label class="ref-image-toggle">
-                  <input type="checkbox"
-                         [checked]="useReferenceImage()"
-                         (change)="useReferenceImage.set($any($event.target).checked)">
-                  {{ useReferenceImage() ? '&#10003; Send character image to model' : 'Character image disabled for this job' }}
-                </label>
-              </div>
-            </div>
-          } @else {
-            <div class="no-ref-image-warning">
-              <span class="warning-icon">&#9888;</span>
-              <div>
-                <strong>No character reference image set.</strong>
-                <p>Go back to the channel page and upload a character reference image before generating a video.</p>
-              </div>
-            </div>
-          }
-        } @else {
-          <div class="loading-inline">Loading channel...</div>
-        }
-      </div>
-
-      <!-- Claude Ideation (optional) -->
-      <div class="step-section step-section--ideation">
-        <h2 class="step-title">
-          <span class="step-num step-num--ai">&#10022;</span>
-          Ideate with Claude <span class="optional-label">(Optional)</span>
-        </h2>
-        <p class="step-desc">Describe a rough idea and Claude will generate a detailed prompt and 6 keyframe scene descriptions using your channel's character and context. You can then apply it directly to the form below.</p>
-
-        <div class="form-group">
-          <label>Your rough idea</label>
-          <textarea class="form-control" rows="3"
-                    [(ngModel)]="ideaInput"
-                    placeholder="e.g. 'A day in the life morning routine, energetic and motivational'"></textarea>
-        </div>
-
-        <div class="ideation-actions">
-          <button class="btn-ai btn-sm"
-                  (click)="runIdeation()"
-                  [disabled]="!ideaInput.trim() || store.isIdeating()">
-            {{ store.isIdeating() ? 'Claude is thinking…' : 'Generate Concept' }}
-          </button>
-          @if (store.ideateStatus() === 'success' && store.ideateResult()) {
-            <button class="btn-apply btn-sm" (click)="applyIdeation()">
-              &#10003; Apply to Form
-            </button>
-          }
-        </div>
-
-        @if (store.ideateError()) {
-          <p class="error-msg">{{ store.ideateError() }}</p>
-        }
-
-        @if (store.ideateStatus() === 'success' && store.ideateResult(); as result) {
-          <div class="ideation-result">
-            <div class="ideation-result-section">
-              <div class="ideation-result-label">Overall Prompt</div>
-              <p class="ideation-result-prompt">{{ result.prompt }}</p>
-            </div>
-            <div class="ideation-result-section">
-              <div class="ideation-result-label">Keyframe Scenes</div>
-              <ol class="scene-list">
-                @for (scene of result.scenes; track $index) {
-                  <li class="scene-item">{{ scene }}</li>
-                }
-              </ol>
-            </div>
-          </div>
-        }
-      </div>
-
       <!-- Generation Settings (shared across all clips) -->
       <div class="step-section">
         <h2 class="step-title">
@@ -293,74 +208,113 @@ interface Clip {
           <span class="step-num">2</span>
           Clips
         </h2>
-        <p class="step-desc">
-          All clips are submitted as one job and concatenated into a single output video.
-          Use 4–5 s clips to keep generation fast and quality high.
-          Add an end-frame image to guide how each clip should end.
-        </p>
 
-        @for (clip of clips(); track $index; let i = $index) {
-          <div class="clip-card">
-            <div class="clip-header">
-              <span class="clip-label">Clip {{ i + 1 }}</span>
-              @if (clips().length > 1) {
-                <button class="clip-remove" (click)="removeClip(i)" title="Remove clip">&#10005;</button>
-              }
-            </div>
+        <!-- Workflow toggle -->
+        <div class="workflow-tabs">
+          <button class="workflow-tab"
+                  [class.workflow-tab--active]="activeWorkflow() === 'manual'"
+                  (click)="activeWorkflow.set('manual')">
+            Manual
+          </button>
+          <button class="workflow-tab"
+                  [class.workflow-tab--active]="activeWorkflow() === 'auto-keyframes'"
+                  (click)="activeWorkflow.set('auto-keyframes')">
+            Auto Keyframes
+          </button>
+        </div>
 
-            <textarea class="form-control clip-prompt" rows="3"
-                      [value]="clip.prompt"
-                      (input)="updateClipPrompt(i, $any($event.target).value)"
-                      placeholder="Describe what happens in this clip…"></textarea>
+        @if (activeWorkflow() === 'manual') {
+          <p class="step-desc">
+            All clips are submitted as one job and concatenated into a single output video.
+            Use 4–5 s clips to keep generation fast and quality high.
+            Add an end-frame image to guide how each clip should end.
+          </p>
 
-            <!-- Anchor images row -->
-            <div class="clip-frames-row">
-              <!-- Start frame (anchor / image_start) -->
-              <div class="clip-frame-slot">
-                <div class="clip-frame-slot-label">Start frame <span class="optional-label">(optional)</span></div>
-                @if (clip.startFrameUploadStatus === 'done' && clip.stagedStartFrame) {
-                  <div class="clip-frame-preview">
-                    <img [src]="clip.stagedStartFrame.previewUrl" class="clip-frame-img" alt="Start frame">
-                    <button class="clip-frame-clear" (click)="clearClipStartFrame(i)">&#10005;</button>
-                  </div>
-                } @else if (clip.startFrameUploadStatus === 'uploading') {
-                  <span class="clip-endframe-hint">Uploading…</span>
-                } @else {
-                  <label class="clip-frame-add" [class.clip-frame-add--error]="clip.startFrameUploadStatus === 'error'">
-                    <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
-                           (change)="onClipStartFrameSelected(i, $event)">
-                    <span class="clip-frame-add-icon">&#8680;</span>
-                    <span>{{ clip.startFrameUploadStatus === 'error' ? 'Retry' : 'Add' }}</span>
-                  </label>
+          @for (clip of clips(); track $index; let i = $index) {
+            <div class="clip-card">
+              <div class="clip-header">
+                <span class="clip-label">Clip {{ i + 1 }}</span>
+                @if (clips().length > 1) {
+                  <button class="clip-remove" (click)="removeClip(i)" title="Remove clip">&#10005;</button>
                 }
               </div>
 
-              <div class="clip-frames-arrow">&#8594;</div>
+              <textarea class="form-control clip-prompt" rows="3"
+                        [value]="clip.prompt"
+                        (input)="updateClipPrompt(i, $any($event.target).value)"
+                        placeholder="Describe what happens in this clip…"></textarea>
 
-              <!-- End frame (keyframe / image_end) -->
-              <div class="clip-frame-slot">
-                <div class="clip-frame-slot-label">End frame <span class="optional-label">(optional)</span></div>
-                @if (clip.keyframeUploadStatus === 'done' && clip.stagedKeyframe) {
-                  <div class="clip-frame-preview">
-                    <img [src]="clip.stagedKeyframe.previewUrl" class="clip-frame-img" alt="End frame">
-                    <button class="clip-frame-clear" (click)="clearClipKeyframe(i)">&#10005;</button>
-                  </div>
-                } @else if (clip.keyframeUploadStatus === 'uploading') {
-                  <span class="clip-endframe-hint">Uploading…</span>
-                } @else {
-                  <label class="clip-frame-add" [class.clip-frame-add--error]="clip.keyframeUploadStatus === 'error'">
-                    <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
-                           (change)="onClipKeyframeSelected(i, $event)">
-                    <span class="clip-frame-add-icon">&#8680;</span>
-                    <span>{{ clip.keyframeUploadStatus === 'error' ? 'Retry' : 'Add' }}</span>
-                  </label>
-                }
+              <!-- Anchor images row -->
+              <div class="clip-frames-row">
+                <!-- Start frame (anchor / image_start) -->
+                <div class="clip-frame-slot">
+                  <div class="clip-frame-slot-label">Start frame <span class="optional-label">(optional)</span></div>
+                  @if (clip.startFrameUploadStatus === 'done' && clip.stagedStartFrame) {
+                    <div class="clip-frame-preview">
+                      <img [src]="clip.stagedStartFrame.previewUrl" class="clip-frame-img" alt="Start frame">
+                      <button class="clip-frame-clear" (click)="clearClipStartFrame(i)">&#10005;</button>
+                    </div>
+                  } @else if (clip.startFrameUploadStatus === 'uploading') {
+                    <span class="clip-endframe-hint">Uploading…</span>
+                  } @else {
+                    <label class="clip-frame-add" [class.clip-frame-add--error]="clip.startFrameUploadStatus === 'error'">
+                      <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
+                             (change)="onClipStartFrameSelected(i, $event)">
+                      <span class="clip-frame-add-icon">&#8680;</span>
+                      <span>{{ clip.startFrameUploadStatus === 'error' ? 'Retry' : 'Add' }}</span>
+                    </label>
+                  }
+                </div>
+
+                <div class="clip-frames-arrow">&#8594;</div>
+
+                <!-- End frame (keyframe / image_end) -->
+                <div class="clip-frame-slot">
+                  <div class="clip-frame-slot-label">End frame <span class="optional-label">(optional)</span></div>
+                  @if (clip.keyframeUploadStatus === 'done' && clip.stagedKeyframe) {
+                    <div class="clip-frame-preview">
+                      <img [src]="clip.stagedKeyframe.previewUrl" class="clip-frame-img" alt="End frame">
+                      <button class="clip-frame-clear" (click)="clearClipKeyframe(i)">&#10005;</button>
+                    </div>
+                  } @else if (clip.keyframeUploadStatus === 'uploading') {
+                    <span class="clip-endframe-hint">Uploading…</span>
+                  } @else {
+                    <label class="clip-frame-add" [class.clip-frame-add--error]="clip.keyframeUploadStatus === 'error'">
+                      <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
+                             (change)="onClipKeyframeSelected(i, $event)">
+                      <span class="clip-frame-add-icon">&#8680;</span>
+                      <span>{{ clip.keyframeUploadStatus === 'error' ? 'Retry' : 'Add' }}</span>
+                    </label>
+                  }
+                </div>
               </div>
             </div>
-          </div>
+          }
+        } @else {
+          <p class="step-desc">
+            Paste your scene descriptions below. The VM will automatically generate a start-frame
+            image for each scene before creating the video clips — no image uploads needed.
+          </p>
+
+          @for (clip of clips(); track $index; let i = $index) {
+            <div class="clip-card">
+              <div class="clip-header">
+                <span class="clip-label">Scene {{ i + 1 }}</span>
+                @if (clips().length > 1) {
+                  <button class="clip-remove" (click)="removeClip(i)" title="Remove scene">&#10005;</button>
+                }
+              </div>
+              <textarea class="form-control clip-prompt" rows="3"
+                        [value]="clip.prompt"
+                        (input)="updateClipPrompt(i, $any($event.target).value)"
+                        placeholder="Describe this scene — the VM will generate a keyframe image from this description…"></textarea>
+            </div>
+          }
         }
 
-        <button class="btn-add-clip" (click)="addClip()">&#43; Add Clip</button>
+        <button class="btn-add-clip" (click)="addClip()">
+          &#43; Add {{ activeWorkflow() === 'auto-keyframes' ? 'Scene' : 'Clip' }}
+        </button>
 
         @if (generationError()) {
           <p class="error-msg" style="margin-top:12px">{{ generationError() }}</p>
@@ -391,13 +345,6 @@ interface Clip {
     .step-desc { color: #666; font-size: 13px; margin: 0 0 14px; line-height: 1.5; }
     .optional-label { font-size: 13px; font-weight: 400; color: #999; }
     .required { color: #d32f2f; }
-    .loading-inline { color: #999; font-size: 14px; padding: 8px 0; }
-    .ref-image-container { display: flex; flex-direction: column; border: 1px solid #c8e6c9; border-radius: 10px; overflow: hidden; max-width: 420px; }
-    .ref-image { width: 100%; max-height: 240px; object-fit: contain; background: #f5f5f5; display: block; }
-    .ref-image-footer { display: flex; align-items: center; padding: 10px 14px; background: #f1f8e9; border-top: 1px solid #c8e6c9; }
-    .ref-image-label { font-size: 13px; color: #2e7d32; font-weight: 500; }
-    .ref-image-container--disabled { opacity: 0.45; }
-    .ref-image-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #2e7d32; font-weight: 500; user-select: none; }
     /* Clips */
     .clip-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; background: white; }
     .clip-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -421,8 +368,6 @@ interface Clip {
     .clip-endframe-clear:hover { color: #d32f2f; }
     .btn-add-clip { background: none; border: 1px dashed #a5d6a7; color: #2e7d32; padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; width: 100%; margin-top: 4px; }
     .btn-add-clip:hover { background: #f1f8e9; }
-    .no-ref-image-warning { display: flex; gap: 12px; align-items: flex-start; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 14px 16px; }
-    .warning-icon { font-size: 20px; color: #f57f17; flex-shrink: 0; }
     .no-ref-image-warning strong { display: block; font-size: 14px; color: #e65100; margin-bottom: 4px; }
     .no-ref-image-warning p { margin: 0; font-size: 13px; color: #555; }
     .keyframe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 14px; }
@@ -461,35 +406,20 @@ interface Clip {
     .btn-secondary { background: white; color: #333; border: 1px solid #ddd; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-secondary:hover { background: #f5f5f5; }
     .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-sm { padding: 8px 18px; font-size: 13px; }
     .btn-local { background: #2e7d32; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
     .btn-local:hover { background: #1b5e20; }
     .btn-local:disabled { opacity: 0.6; cursor: not-allowed; }
-    /* Ideation section */
-    .step-section--ideation { border-color: #d8b4fe; background: #faf5ff; }
-    .step-num--ai { background: #7c3aed; font-size: 15px; }
-    .btn-ai { background: #7c3aed; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-    .btn-ai:hover { background: #6d28d9; }
-    .btn-ai:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-apply { background: #059669; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-    .btn-apply:hover { background: #047857; }
-    .ideation-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
-    .ideation-result { margin-top: 18px; border: 1px solid #d8b4fe; border-radius: 8px; overflow: hidden; }
-    .ideation-result-section { padding: 14px 16px; }
-    .ideation-result-section + .ideation-result-section { border-top: 1px solid #e9d5ff; }
-    .ideation-result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #7c3aed; margin-bottom: 8px; }
-    .ideation-result-prompt { margin: 0; font-size: 14px; color: #1e1b4b; line-height: 1.6; }
-    .scene-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
-    .scene-item { font-size: 13px; color: #374151; line-height: 1.5; }
+    /* Workflow tabs */
+    .workflow-tabs { display: flex; margin-bottom: 14px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+    .workflow-tab { flex: 1; padding: 9px 16px; border: none; background: white; cursor: pointer; font-size: 13px; font-weight: 500; color: #555; transition: background 0.15s, color 0.15s; }
+    .workflow-tab:hover:not(.workflow-tab--active) { background: #f5f5f5; }
+    .workflow-tab--active { background: #2e7d32; color: white; }
   `]
 })
 export class LocalVideoComponent implements OnInit {
   readonly store = inject(RenderJobStore);
-  readonly channelStore = inject(ChannelStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-
-  readonly apiOrigin = environment.apiUrl + environment.socialMediaApi.split('/api')[0];
 
   readonly model = signal('h3-fl2va');
   readonly durationSeconds = signal(2);
@@ -502,7 +432,6 @@ export class LocalVideoComponent implements OnInit {
 
   readonly clips = signal<Clip[]>([this.emptyClip()]);
   readonly isGenerating = signal(false);
-  readonly useReferenceImage = signal(true);
   readonly generationError = signal<string | null>(null);
   readonly inferenceSteps = signal<number>(20);
   readonly showStepsControl = computed(() => MODEL_DEFAULT_STEPS[this.model()] !== null);
@@ -513,7 +442,8 @@ export class LocalVideoComponent implements OnInit {
     return 'Quality';
   });
 
-  ideaInput = '';
+  readonly activeWorkflow = signal<'manual' | 'auto-keyframes'>('manual');
+
   private channelId = '';
 
   private emptyClip(): Clip {
@@ -527,10 +457,6 @@ export class LocalVideoComponent implements OnInit {
   ngOnInit(): void {
     this.channelId = this.route.snapshot.paramMap.get('id')!;
     this.store.resetJob();
-    const existing = this.channelStore.selectedChannel();
-    if (!existing || existing.id !== this.channelId) {
-      this.channelStore.loadChannel(this.channelId);
-    }
   }
 
   buttonLabel(): string {
@@ -569,25 +495,6 @@ export class LocalVideoComponent implements OnInit {
   private aspectRatioFromResolution(resolution: string): string {
     const [w, h] = resolution.split('x').map(Number);
     return w > h ? '16:9' : h > w ? '9:16' : '1:1';
-  }
-
-  // --- Claude Ideation ---
-
-  async runIdeation(): Promise<void> {
-    if (!this.ideaInput.trim()) return;
-    await this.store.ideate({ channelId: this.channelId, userIdea: this.ideaInput.trim() });
-  }
-
-  applyIdeation(): void {
-    const result = this.store.ideateResult();
-    if (!result) return;
-    const scenes = result.scenes ?? [];
-    if (scenes.length > 0) {
-      // One clip per keyframe scene — replaces existing clips entirely
-      this.clips.set((scenes as string[]).map(s => ({ ...this.emptyClip(), prompt: s })));
-    } else {
-      this.updateClipPrompt(0, result.prompt);
-    }
   }
 
   // --- Clips ---
@@ -705,6 +612,7 @@ export class LocalVideoComponent implements OnInit {
     this.generationError.set(null);
     this.isGenerating.set(true);
 
+    const isAutoKeyframes = this.activeWorkflow() === 'auto-keyframes';
     const defaultSteps = MODEL_DEFAULT_STEPS[this.model()];
     const modelOptions: Record<string, string> | undefined =
       defaultSteps !== null ? { steps: this.inferenceSteps().toString() } : undefined;
@@ -715,12 +623,13 @@ export class LocalVideoComponent implements OnInit {
       durationSeconds: this.durationSeconds(),
       resolution: this.resolution(),
       aspectRatio: this.aspectRatioFromResolution(this.resolution()),
-      useChannelImage: this.useReferenceImage(),
+      useChannelImage: false,
+      autoGenerateKeyframes: isAutoKeyframes || undefined,
       modelOptions,
       clips: this.clips().map(c => ({
         prompt: c.prompt.trim(),
-        startImageKey: c.startFrameKey ?? null,
-        endImageKey: c.keyframeKey ?? null,
+        startImageKey: isAutoKeyframes ? null : (c.startFrameKey ?? null),
+        endImageKey: isAutoKeyframes ? null : (c.keyframeKey ?? null),
       })),
     });
 

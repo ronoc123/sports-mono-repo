@@ -57,7 +57,9 @@ public class RenderJobController : ControllerBase
                 request.AspectRatio,
                 request.Clips,
                 request.ModelOptions,
-                request.UseChannelImage),
+                request.UseChannelImage,
+                request.ReferenceVideoKey,
+                request.AutoGenerateKeyframes),
             cancellationToken);
 
         return Ok(result);
@@ -227,4 +229,14 @@ public class CreateRenderJobRequest
     /// default start frame for clips that have no explicit StartImageKey. Defaults to true.
     /// </summary>
     public bool UseChannelImage { get; set; } = true;
+    /// <summary>
+    /// R2 key of a completed video to use as video-to-video (v2v) conditioning reference.
+    /// When set, the VideoWorker downloads this video and passes it as video_start to WanGP.
+    /// </summary>
+    public string? ReferenceVideoKey { get; set; }
+    /// <summary>
+    /// When true, the VideoWorker generates a start-frame image for each clip from the
+    /// clip's prompt before video generation. Clips should have no StartImageKey.
+    /// </summary>
+    public bool AutoGenerateKeyframes { get; set; } = false;
 }

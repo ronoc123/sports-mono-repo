@@ -26,7 +26,9 @@ public record CreateRenderJobCommand(
     string AspectRatio,
     List<CreateRenderJobClipRequest> Clips,
     Dictionary<string, string>? ModelOptions,
-    bool UseChannelImage = true
+    bool UseChannelImage = true,
+    string? ReferenceVideoKey = null,
+    bool AutoGenerateKeyframes = false
 ) : IRequest<ServiceResponse<CreateRenderJobResponse>>;
 
 public class CreateRenderJobCommandValidator : AbstractValidator<CreateRenderJobCommand>
@@ -68,10 +70,11 @@ public class CreateRenderJobCommandHandler
     {
         var jobId = ObjectId.GenerateNewId().ToString();
 
-        // Upload the channel character image once if UseChannelImage is true and
-        // at least one clip does not supply its own start frame.
+        // Upload the channel character image once if UseChannelImage is true,
+        // not in auto-keyframe mode, and at least one clip has no explicit start frame.
         string? channelImageKey = null;
-        if (request.UseChannelImage && request.Clips.Any(c => string.IsNullOrEmpty(c.StartImageKey)))
+        if (request.UseChannelImage && !request.AutoGenerateKeyframes
+            && request.Clips.Any(c => string.IsNullOrEmpty(c.StartImageKey)))
         {
             var uploaded = await TryUploadChannelImageAsync(request.ChannelId, jobId, cancellationToken);
             channelImageKey = uploaded.FirstOrDefault();
@@ -96,6 +99,8 @@ public class CreateRenderJobCommandHandler
             AspectRatio = request.AspectRatio,
             ModelOptions = request.ModelOptions ?? new Dictionary<string, string>(),
             OutputVideoKey = $"generation/{jobId}/output.mp4",
+            ReferenceVideoKey = request.ReferenceVideoKey,
+            AutoGenerateKeyframes = request.AutoGenerateKeyframes,
             Clips = clips,
         };
 

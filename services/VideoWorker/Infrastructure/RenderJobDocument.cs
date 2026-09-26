@@ -99,4 +99,11 @@ public class RenderJobDocument
     /// </summary>
     [BsonElement("clips")]
     public List<RenderJobClipDocument> Clips { get; set; } = new();
+
+    /// <summary>
+    /// When true, the worker generates a start-frame keyframe image per clip from the
+    /// clip's prompt before video generation. Images stay on the shared volume.
+    /// </summary>
+    [BsonElement("autoGenerateKeyframes")]
+    public bool AutoGenerateKeyframes { get; set; }
 }

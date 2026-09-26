@@ -65,8 +65,58 @@ public class JobProcessor
                 // ── Multi-clip path ──────────────────────────────────────────────
                 _logger.LogInformation("Multi-clip job: {ClipCount} clip(s)", job.Clips.Count);
 
+                // Download v2v reference video once if provided — applied to first clip only.
+                string? clipReferenceVideoPath = null;
+                if (!string.IsNullOrEmpty(job.ReferenceVideoKey))
+                {
+                    clipReferenceVideoPath = await _r2.DownloadToLocalAsync(job.ReferenceVideoKey, tempDir, cancellationToken);
+                    _logger.LogInformation("Reference video downloaded for v2v conditioning: {VideoPath}", clipReferenceVideoPath);
+                }
+
                 var segmentPaths = new List<string>();
                 string? previousLastFramePath = null;
+
+                // ── Phase 1: Auto-generate keyframe images (one per clip) ─────────
+                // Best-effort: failure is logged but does not fail the job.
+                var autoKeyframePaths = new string?[job.Clips.Count];
+                if (job.AutoGenerateKeyframes)
+                {
+                    _logger.LogInformation(
+                        "Auto-keyframe phase: generating {Count} start-frame image(s)", job.Clips.Count);
+
+                    for (int kfIdx = 0; kfIdx < job.Clips.Count; kfIdx++)
+                    {
+                        var clip    = job.Clips[kfIdx];
+                        var imgDir  = Path.Combine(tempDir, $"clip_{kfIdx:D2}");
+                        Directory.CreateDirectory(imgDir);
+                        var imgPath = Path.Combine(imgDir, "keyframe.png");
+
+                        var imgReq = new ImageGenerationRequest
+                        {
+                            Prompt       = clip.Prompt,
+                            Model        = job.Model,
+                            Resolution   = job.Resolution,
+                            OutputPath   = imgPath,
+                            ModelOptions = job.ModelOptions ?? new(),
+                        };
+
+                        var imgResult = await _generator.GenerateImageAsync(imgReq, cancellationToken);
+
+                        if (imgResult.Success)
+                        {
+                            autoKeyframePaths[kfIdx] = imgResult.ImagePath;
+                            _logger.LogInformation(
+                                "Keyframe {I}/{Total} generated: {Path}",
+                                kfIdx + 1, job.Clips.Count, imgResult.ImagePath);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Keyframe {I}/{Total} generation failed: {Error} — clip will proceed without auto start-frame",
+                                kfIdx + 1, job.Clips.Count, imgResult.ErrorMessage);
+                        }
+                    }
+                }
 
                 foreach (var (clip, idx) in job.Clips.Select((c, i) => (c, i)))
                 {
@@ -77,6 +127,9 @@ public class JobProcessor
                     if (!string.IsNullOrEmpty(clip.StartImageKey))
                         // Explicit start frame always wins
                         refImages.Add(await _r2.DownloadToLocalAsync(clip.StartImageKey, segDir, cancellationToken));
+                    else if (autoKeyframePaths[idx] is not null)
+                        // Auto-generated keyframe for this clip
+                        refImages.Add(autoKeyframePaths[idx]!);
                     else if (previousLastFramePath is not null)
                         // Chain: use the last frame of the previous segment for visual continuity
                         refImages.Add(previousLastFramePath);
@@ -85,7 +138,9 @@ public class JobProcessor
                     if (!string.IsNullOrEmpty(clip.EndImageKey))
                         keyframes.Add(await _r2.DownloadToLocalAsync(clip.EndImageKey, segDir, cancellationToken));
 
-                    var chained = previousLastFramePath is not null && string.IsNullOrEmpty(clip.StartImageKey);
+                    var chained = previousLastFramePath is not null
+                        && string.IsNullOrEmpty(clip.StartImageKey)
+                        && autoKeyframePaths[idx] is null;
                     _logger.LogInformation(
                         "Clip {Idx}/{Total}: startImage={HasStart} (chained={Chained}), endImage={HasEnd}, prompt={Prompt}",
                         idx + 1, job.Clips.Count,
@@ -98,6 +153,9 @@ public class JobProcessor
                         Model               = job.Model,
                         ReferenceImagePaths = refImages,
                         KeyframePaths       = keyframes,
+                        // v2v reference only applied to the first clip; subsequent clips
+                        // are chained via previousLastFramePath instead.
+                        VideoPath           = idx == 0 ? clipReferenceVideoPath : null,
                         DurationSeconds     = job.DurationSeconds,
                         Resolution          = job.Resolution,
                         AspectRatio         = job.AspectRatio,

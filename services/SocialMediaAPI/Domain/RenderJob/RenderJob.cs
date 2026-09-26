@@ -85,6 +85,13 @@ public class RenderJob : Entity<string>
     [BsonElement("clips")]
     public List<RenderJobClip> Clips { get; set; } = new();
 
+    /// <summary>
+    /// When true, the VideoWorker generates a start-frame image per clip from the clip's
+    /// prompt before running video generation. Clips should have no StartImageKey.
+    /// </summary>
+    [BsonElement("autoGenerateKeyframes")]
+    public bool AutoGenerateKeyframes { get; set; }
+
     /// <summary>Set when status transitions to Processing.</summary>
     [BsonElement("workerId")]
     public string? WorkerId { get; set; }

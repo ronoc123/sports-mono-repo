@@ -71,6 +71,19 @@ MODEL_TYPE_MAP: dict[str, str] = {
     "ltx-2.5":           "ltx2_25_22B",              # LTX 2.5 22B (distilled via LoRA)
 }
 
+# H3 sliding-window parameters (from minimax_h3_handler.py query_model_def).
+# The H3 model's factory default single-window cap is 362 frames (~15 s).
+# For videos longer than this we must explicitly enable sliding windows so
+# WanGP generates the extra frames rather than capping output at ~14.6 s.
+H3_MODEL_TYPES: frozenset[str] = frozenset({
+    "minimax_h3_fl2va_pruned",
+    "minimax_h3_ref2va_pruned",
+    "minimax_h3_fl2va",
+    "minimax_h3_ref2va",
+})
+H3_WINDOW_SIZE    = 362   # frames — recommended single-window size
+H3_WINDOW_OVERLAP = 18    # frames — default overlap between windows
+
 # Per-model inference step counts.
 # PDD / distilled models run well at 8 steps; non-distilled Wan 2.1 needs more.
 MODEL_STEPS: dict[str, int] = {
@@ -188,6 +201,17 @@ async def generate(req: GenerateRequest):
         settings["video_start"] = req.reference_video
         logger.info("v2v conditioning: video_start=%s", req.reference_video)
 
+    # H3 models cap single-window generation at ~362 frames (~15 s).
+    # Explicitly enable sliding windows for longer requests so the full
+    # duration is generated instead of being truncated to ~14.6 s.
+    if model_type in H3_MODEL_TYPES and req.frame_count > H3_WINDOW_SIZE:
+        settings["sliding_window_size"]    = H3_WINDOW_SIZE
+        settings["sliding_window_overlap"] = H3_WINDOW_OVERLAP
+        logger.info(
+            "H3 long video: %d frames > window %d — sliding window enabled (overlap=%d)",
+            req.frame_count, H3_WINDOW_SIZE, H3_WINDOW_OVERLAP,
+        )
+
     logger.info(
         "Generating: model=%s %dx%d %d frames — %r",
         model_type, req.width, req.height, req.frame_count,
@@ -259,6 +283,63 @@ async def generate_audio(req: AudioRequest):
 
     logger.info("Audio generation complete → %s", req.output_path)
     return GenerateResponse(output_path=req.output_path)
+
+
+class ImageRequest(BaseModel):
+    """Request to generate a single still image (text-to-image) via WanGP."""
+    prompt: str
+    model: str = "ltx-2"
+    width: int = 1280
+    height: int = 720
+    output_path: str             # absolute path on the shared volume
+
+
+class ImageResponse(BaseModel):
+    output_path: str
+
+
+@app.post("/image", response_model=ImageResponse)
+async def generate_image(req: ImageRequest):
+    """
+    Generate a single still image using WanGP's text-to-image mode (image_mode=1).
+    Used by the VideoWorker's Auto Keyframes phase to synthesise per-clip start-frame
+    images from scene descriptions before generating video clips.
+    """
+    if _session is None:
+        raise HTTPException(status_code=503, detail="WanGP session not ready")
+
+    model_type = MODEL_TYPE_MAP.get(req.model, "ltx2_22B_distilled")
+
+    settings: dict = {
+        "model_type":          model_type,
+        "prompt":              req.prompt,
+        "resolution":          f"{req.width}x{req.height}",
+        "image_mode":          1,   # generate a single still image instead of a video
+        "num_inference_steps": MODEL_STEPS.get(model_type, 20),
+    }
+
+    logger.info(
+        "Image generation: model=%s %dx%d — %r",
+        model_type, req.width, req.height, req.prompt[:80],
+    )
+
+    async with _generation_lock:
+        try:
+            loop = asyncio.get_event_loop()
+            generated_path = await loop.run_in_executor(
+                None,
+                lambda: _run_generation(settings),
+            )
+        except Exception as exc:
+            logger.error("Image generation failed: %s", exc, exc_info=True)
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    os.makedirs(os.path.dirname(req.output_path), exist_ok=True)
+    if generated_path != req.output_path:
+        shutil.move(generated_path, req.output_path)
+
+    logger.info("Image generation complete → %s", req.output_path)
+    return ImageResponse(output_path=req.output_path)
 
 
 @app.get("/health")

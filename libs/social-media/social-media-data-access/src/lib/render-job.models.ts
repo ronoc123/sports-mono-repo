@@ -45,6 +45,16 @@ export interface CreateRenderJobRequest {
    * default start frame for clips that have no explicit startImageKey. Defaults to true.
    */
   useChannelImage?: boolean;
+  /**
+   * R2 key of a completed video to use as video-to-video (v2v) conditioning reference.
+   * When set, the VideoWorker downloads this video and passes it as video_start to WanGP.
+   */
+  referenceVideoKey?: string | null;
+  /**
+   * When true, the VideoWorker generates a start-frame image per clip from the clip's
+   * prompt before video generation. Clips should have no startImageKey when this is set.
+   */
+  autoGenerateKeyframes?: boolean;
 }
 
 export interface CreateRenderJobResponse {

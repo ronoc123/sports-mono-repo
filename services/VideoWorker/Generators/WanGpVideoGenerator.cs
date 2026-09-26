@@ -203,6 +203,91 @@ public sealed class WanGpVideoGenerator : IVideoGenerator
         public string? OutputPath { get; set; }
     }
 
+    // ── Image generation (text-to-image for Auto Keyframes phase) ────────────
+
+    public async Task<ImageGenerationResult> GenerateImageAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var (width, height) = ParseResolution(request.Resolution);
+
+        _logger.LogInformation(
+            "WanGP: POST /image (model={Model}, {Width}x{Height}) — {Prompt}",
+            request.Model, width, height,
+            request.Prompt[..Math.Min(80, request.Prompt.Length)]);
+
+        var body = new WanGpImageRequest
+        {
+            Prompt     = request.Prompt,
+            Model      = request.Model,
+            Width      = width,
+            Height     = height,
+            OutputPath = request.OutputPath,
+        };
+
+        try
+        {
+            using var response = await _http.PostAsJsonAsync(
+                "image", body, JsonOpts, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var detail = await TryReadDetailAsync(response, cancellationToken);
+                _logger.LogError("WanGP image adapter returned {StatusCode}: {Detail}",
+                    (int)response.StatusCode, detail);
+                return ImageGenerationResult.Failed(
+                    $"Image generation service error {(int)response.StatusCode}: {detail}");
+            }
+
+            var result = await response.Content
+                .ReadFromJsonAsync<WanGpImageResponse>(JsonOpts, cancellationToken);
+
+            if (result is null || string.IsNullOrEmpty(result.OutputPath))
+            {
+                _logger.LogError("WanGP image adapter returned success but output_path is missing");
+                return ImageGenerationResult.Failed("Image generation service returned no output path.");
+            }
+
+            _logger.LogInformation("WanGP image generation succeeded: {OutputPath}", result.OutputPath);
+            return ImageGenerationResult.Succeeded(result.OutputPath);
+        }
+        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError("WanGP image adapter timed out after {Timeout}s", _http.Timeout.TotalSeconds);
+            return ImageGenerationResult.Failed(
+                $"Image generation timed out after {_http.Timeout.TotalSeconds}s.");
+        }
+        catch (OperationCanceledException)
+        {
+            return ImageGenerationResult.Failed("Image generation was cancelled.");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Network error reaching image generation service at {BaseAddress}",
+                _http.BaseAddress);
+            return ImageGenerationResult.Failed($"Network error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error calling image generation service");
+            return ImageGenerationResult.Failed($"Unexpected error: {ex.Message}");
+        }
+    }
+
+    private sealed class WanGpImageRequest
+    {
+        public string Prompt     { get; set; } = string.Empty;
+        public string Model      { get; set; } = string.Empty;
+        public int    Width      { get; set; }
+        public int    Height     { get; set; }
+        public string OutputPath { get; set; } = string.Empty;
+    }
+
+    private sealed class WanGpImageResponse
+    {
+        public string? OutputPath { get; set; }
+    }
+
     // ── Audio generation (MMAudio / PrismAudio) ────────────────────────────────
 
     private async Task<VideoGenerationResult> GenerateAudioInternalAsync(

@@ -165,7 +165,7 @@ else
         CLONE_URL="${REPO_URL/https:\/\//https:\/\/${GITHUB_TOKEN}@}"
     fi
     log "Cloning repo to $REPO_DIR..."
-    git clone "$CLONE_URL" "$REPO_DIR"
+    git clone --depth 1 "$CLONE_URL" "$REPO_DIR"
 fi
 
 # ── 5. Miniconda + Python 3.10.9 environment ──────────────────────────────────
@@ -200,12 +200,11 @@ log "Active Python: $ACTIVE_PYTHON"
 log "Setting up WanGP (commit: $WANGP_COMMIT)..."
 if [[ -d "$WANGP_DIR/.git" ]]; then
     log "WanGP exists — updating..."
-    git -C "$WANGP_DIR" fetch
-    git -C "$WANGP_DIR" checkout "$WANGP_COMMIT"
+    git -C "$WANGP_DIR" fetch --depth 1 origin "$WANGP_COMMIT"
+    git -C "$WANGP_DIR" checkout FETCH_HEAD
 else
     log "Cloning WanGP..."
-    git clone "$WANGP_REPO" "$WANGP_DIR"
-    git -C "$WANGP_DIR" checkout "$WANGP_COMMIT"
+    git clone --depth 1 --branch "$WANGP_COMMIT" "$WANGP_REPO" "$WANGP_DIR"
 fi
 
 # ── 6b. Patch WanGP for Triton 3.x compatibility ─────────────────────────────

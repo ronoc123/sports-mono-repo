@@ -945,6 +945,7 @@ export class LocalVideoStatusComponent implements OnInit {
         resolution: this.regenResolution,
         aspectRatio: this.aspectRatioFromResolution(this.regenResolution),
         modelOptions,
+        referenceVideoKey: job.outputVideoKey ?? null,
         clips: [{
           prompt: this.regenPrompt.trim(),
           endImageKey: this.keyframeObjectKeys()[0] ?? null,
