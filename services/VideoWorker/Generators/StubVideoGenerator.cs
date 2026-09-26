@@ -21,6 +21,25 @@ public class StubVideoGenerator : IVideoGenerator
         _logger = logger;
     }
 
+    public Task<ImageGenerationResult> GenerateImageAsync(
+        ImageGenerationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "StubVideoGenerator: skipping image generation for model={Model} — returning stub result",
+            request.Model);
+
+        // Stub: create an empty placeholder file so downstream code has a path to work with.
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(request.OutputPath)!);
+            File.WriteAllBytes(request.OutputPath, Array.Empty<byte>());
+        }
+        catch { /* best-effort */ }
+
+        return Task.FromResult(ImageGenerationResult.Succeeded(request.OutputPath));
+    }
+
     public async Task<VideoGenerationResult> GenerateAsync(
         VideoGenerationRequest request,
         CancellationToken cancellationToken)
